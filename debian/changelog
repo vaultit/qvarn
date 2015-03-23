@@ -1,3 +1,9 @@
+unified-api-backend (0.7-1) experimental; urgency=medium
+
+  * Shorten name of script, for start-stop-daemon
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Mon, 23 Mar 2015 18:00:45 +0200
+
 unified-api-backend (0.6-1) experimental; urgency=medium
 
   * New version to test Jenkins job triggering.
