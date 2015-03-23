@@ -4,7 +4,7 @@ Uploaders: Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>
 Section: web
 Priority: optional
 Standards-Version: 3.9.4
-Build-Depends: debhelper (>= 9), python-all (>= 2.6.6-3~), dh-python
+Build-Depends: debhelper (>= 9), python-all (>= 2.6.6-3~)
 X-Python-Version: >= 2.6
 
 Package: unified-api-backend
