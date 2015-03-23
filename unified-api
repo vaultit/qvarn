@@ -33,7 +33,7 @@ api_version_string = '.'.join(str(x) for x in api_version)
 
 
 # What is the version of the implementation?
-implementation_version_string = 'shortername'
+implementation_version_string = 'blirp'
 
 
 # Default address and port to listen on.
