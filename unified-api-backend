@@ -28,7 +28,7 @@ import unifiedapibottle as bottle
 
 
 # Which version of the API are we implementing?
-api_version = (1,0)
+api_version = (2,0)
 api_version_string = '.'.join(str(x) for x in api_version)
 
 

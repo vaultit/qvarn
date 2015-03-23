@@ -1,3 +1,9 @@
+unified-api-backend (0.5-1) experimental; urgency=medium
+
+  * New version to test Jenkins job triggering.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Mon, 23 Mar 2015 17:41:55 +0200
+
 unified-api-backend (0.4-1) experimental; urgency=medium
 
   * New version to test Jenkins job triggering.
