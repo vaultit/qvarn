@@ -16,7 +16,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Unified API Backend"
 NAME=unified-api-backend
 DAEMON=/usr/bin/$NAME
-DAEMON_ARGS="--options args"
+DAEMON_ARGS=""
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
