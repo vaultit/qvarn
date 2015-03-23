@@ -28,12 +28,12 @@ import unifiedapibottle as bottle
 
 
 # Which version of the API are we implementing?
-api_version = (2,0)
+api_version = (1,0)
 api_version_string = '.'.join(str(x) for x in api_version)
 
 
 # What is the version of the implementation?
-implementation_version_string = 'see git'
+implementation_version_string = 'trallallalaaa'
 
 
 # Default address and port to listen on.
