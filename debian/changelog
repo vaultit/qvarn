@@ -1,8 +1,8 @@
-unified-api-backend (0.8-1) UNRELEASED; urgency=medium
+unified-api-backend (0.8-1) experimental; urgency=medium
 
   * New version
 
- -- Lars Wirzenius <liw@liw.fi>  Mon, 23 Mar 2015 18:01:31 +0200
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Mon, 23 Mar 2015 18:01:36 +0200
 
 unified-api-backend (0.7-1) experimental; urgency=medium
 
