@@ -1,0 +1,471 @@
+#!/usr/bin/env python2
+#
+# This is a MOCKUP implementation of the Tilaajavastuu backend API. It
+# is meant to be an example of how the API works, for people trying to
+# understand the API, and a tool for those making changes to the API.
+# When planning API changes, it's easy to change the mockup and
+# experiment with the mockup, rather than a production implementation.
+#
+# The intent of the mockup code is to be small and clean. It doesn't
+# try to be efficient, and it doesn't do things like store data
+# persistently. It is very much not intended to be production quality
+# in that sense. However, since it is an example for those using the
+# API, it is meant to be clear to a Python programmer. If it is not,
+# please report a bug.
+#
+# The mockup is implemented using the Python bottle.py mini-framework
+# for web applications. Each resource in the API is its own class, and
+# there's a base class Resource to provide a consistent interface. The
+# ListResource base class provides functionality for the common HTTP
+# methods, which is what most resources support.
+
+
+import os
+import sys
+import wsgiref.simple_server
+
+import unifiedapibottle as bottle
+
+
+# Which version of the API are we implementing?
+api_version = (1,0)
+api_version_string = '.'.join(str(x) for x in api_version)
+
+
+# What is the version of the implementation?
+implementation_version_string = 'see git'
+
+
+# Default address and port to listen on.
+default_address = 'localhost'
+default_port = 12765
+
+
+class Application(object):
+
+    def run(self):
+        app = self.create_bottle_app()
+        self.start_bottle_app(app)
+
+    def create_bottle_app(self):
+        resources = [
+            Version(),
+            TarkastajaQuery(),
+            Persons(),
+            Orgs(),
+        ]
+
+        model = Model()
+        app = bottle.Bottle()
+        for resource in resources:
+            resource.set_model(model)
+            resource.register_routes(app)
+            
+        return app
+
+
+    def start_bottle_app(self, app):
+        # If $TV_MOCKUP_PORT_FILE is set, use the random port server.
+        # Otherwise, use a default well-known port.
+        if 'TV_MOCKUP_PORT_FILE' in os.environ:
+            app.run(host=default_address, server_class=RandomPortServer)
+        else:
+            app.run(host=default_address, port=default_port)
+
+
+class RandomPortServer(wsgiref.simple_server.WSGIServer):
+
+    # Make the HTTP server listen on a random port. This avoids using
+    # a fixed port (which would prevent multiple instance) or picking
+    # the port outside (which would result in a race condition).
+    #
+    # In addition, when the port is chosen and bound, it is written to
+    # the file given in the TV_MOCKUP_PORT_FILE environment variable.
+
+    # This is inspired by the DebugServer class written by Richard Maw
+    # for the Baserock Lorry Controller. See git.baserock.org for that
+    # code. This code is a reimplementation from scratch to avoid any
+    # copyright issues.
+
+    def __init__(self, (host, ignored_port), *args, **kwargs):
+        # Use port 0 here, to tell the server to pick a random port.
+        wsgiref.simple_server.WSGIServer.__init__(
+            self, (host, 0), *args, **kwargs)
+
+        # Port is bound, write it to the file.
+        port_file = os.environ['TV_MOCKUP_PORT_FILE']
+        with open(port_file, 'w') as f:
+            f.write('%s\n' % self.server_port)
+
+
+class Model(dict):
+
+    # Store all the data the API implemenation keeps track of. This is
+    # a dict, indexed by the resource type's base path: /persons,
+    # /orgs, etc. The value of for each resource type depends on the
+    # implementation of that type.
+
+    pass
+    
+
+class Resource(object):
+
+    # A basic resource. This provides minimal functionality.
+    # Subclasses need to register every route they support.
+
+    def set_model(self, model):
+        self._model = model
+
+    def register_routes(self, app):
+        pass
+
+
+class TarkastajaQuery(Resource):
+
+    # Note that we mock the data separately for this query
+    # interface. FIXME: Make it possible to query "real" data
+    # later, when adding such data becomes possible via the API.
+
+    _fake_employer = {
+        'addressCountry': 'FI',
+        'postoffice': '00000',
+        'address': '1024 Example Street',
+        'homeland': 'FI',
+        'businessId': '1789014-2',
+        'name': 'Suomen Tilaajavastuu Oy',
+    }
+
+    _fake_employee_ssn = '030473-889N'
+
+    _fake_employee = {
+        'source': 'Some Source',
+        'dateOfBirth': '03.04.1973',
+        'phone': '+040123461',
+        'domicile': 'Someplace',
+        'nationality': 'FI',
+        'lastName': 'Testaaja',
+        'firstName': 'Seiska',
+        'taxNumber': '177777777777',
+    }
+
+    _fake_result = {
+        'results': [
+            {
+                'employer': _fake_employer,
+                'employee': _fake_employee,
+            }
+        ]
+    }
+
+    def register_routes(self, app):
+        app.route(
+            path='/tarkastaja/fi-ssn/<ssn>',
+            method='GET',
+            callback=self._get_tarkastaja_fi_ssn)
+        app.route(
+            path='/tarkastaja/fi-taxnumber/<taxnumber>',
+            method='GET',
+            callback=self._get_tarkastaja_fi_taxnumber)
+        app.route(
+            path='/tarkastaja/foreign-ssn/<ssn>',
+            method='GET',
+            callback=self._get_tarkastaja_foreign_ssn)
+
+    def _get_tarkastaja_fi_ssn(self, ssn):
+        print 'ssn:', repr(ssn)
+        print 'fake ssn:', repr(self._fake_employee_ssn)
+        if ssn.lower() == self._fake_employee_ssn.lower():
+            return self._fake_result
+        return bottle.HTTPResponse(status=404)
+
+    def _get_tarkastaja_fi_taxnumber(self, taxnumber):
+        if taxnumber == self._fake_employee['taxNumber']:
+            return self._fake_result
+        return bottle.HTTPResponse(status=404)
+
+    def _get_tarkastaja_foreign_ssn(self, ssn):
+        return bottle.HTTPResponse(status=404)
+
+
+class ListResource(Resource):
+
+    # A typical resource in the API that provides a list of things
+    # that can be managed hisng GET, POST, PUT, and DELETE, and where
+    # each thing has its own internal id. Most API resources are like
+    # this. This class provides a common implementation for this,
+    # subclasses provide the details of each type of resource.
+    #
+    # Note that subclasses MUST define attributes _type and _schema,
+    # and the method _validate_type_specific_things, and may
+    # optionally define _fill_in_type_specific_defaults.
+
+    def __init__(self, basepath):
+        Resource.__init__(self)
+        self._basepath = basepath
+        self._id_inventor = IdInventor()
+        self._validator = Validator(self._schema, self._type)
+
+    def register_routes(self, app):
+        routes = [
+            ('GET', self._basepath, self._get_list),
+            ('POST', self._basepath, self._create_item),
+            ('GET', self._basepath + '/<id>', self._get_item),
+            ('PUT', self._basepath + '/<id>', self._update_item),
+            ('DELETE', self._basepath + '/<id>', self._delete_item),
+            ]
+
+        for method, path, callback in routes:
+            app.route(path=path, method=method, callback=callback)
+
+    @property
+    def _submodel(self):
+        if self._basepath not in self._model:
+            self._model[self._basepath] = {}
+        return self._model[self._basepath]
+
+    def _get_list(self):
+        # GET /foos
+        return {
+            'ids': self._submodel.keys()
+            }
+
+    def _get_item(self, id):
+        # GET /foos/<id>
+        if id not in self._submodel:
+            return bottle.HTTPResponse(status=404)
+        return self._submodel[id]
+
+    def _create_item(self):
+        # POST /foos
+        id = self._id_inventor.next_id()
+        obj = bottle.request.json
+        problem = self._validate_item(id, obj)
+        if problem:
+            return problem
+        self._fill_in_defaults(id, obj)
+        self._submodel[id] = obj
+        return self._get_item(id)
+
+    def _update_item(self, id):
+        # PUT /foos/<id>
+        if id not in self._submodel:
+            return bottle.HTTPResponse(status=404)
+        obj = bottle.request.json
+        problem = self._validate_item(id, obj)
+        if problem:
+            return problem
+        self._fill_in_defaults(id, obj)
+        self._submodel[id] = obj
+        return self._get_item(id)
+
+    def _delete_item(self, id):
+        # DELETE /foos/<id>
+        if id not in self._submodel:
+            return bottle.HTTPResponse(status=404)
+        del self._submodel[id]
+
+    def _validate_item(self, id, obj):
+        '''Validate a new/updated item.
+
+        Return None for OK, or a suitable HTTPResponse if there was a
+        problem.
+
+        '''
+
+        return (self._validator.validate(id, obj) or
+                self._validate_type_specific_things(obj))
+
+    def _fill_in_defaults(self, id, obj):
+        '''Fill in default fields in an object.'''
+        self._fill_in_common_fields(id, obj)
+        self._fill_in_type_specific_defaults(obj)
+        self._fill_in_defaults_from_schema(obj, self._schema)
+
+    def _fill_in_common_fields(self, id, obj):
+        obj[u'id'] = id
+        obj[u'type'] = self._type
+
+    def _fill_in_defaults_from_schema(self, obj, schema):
+        defaults = {
+            unicode: u'',
+            list: [],
+            dict: {},
+        }
+        for key in schema:
+            if key not in obj:
+                t = type(schema[key])
+                obj[key] = defaults[t]
+
+    def _fill_in_type_specific_defaults(self, obj):
+        pass
+
+
+class IdInventor(object):
+
+    def __init__(self):
+        self._cur_id = 0
+
+    def next_id(self):
+        self._cur_id += 1
+        return str(self._cur_id)
+
+
+class Validator(object):
+
+    # Validate an object (from JSON) against a "schema" object, which
+    # is a template that shows the types of values, and for dicts the
+    # allowed keys and the corresponding values.
+
+    def __init__(self, schema, resource_type):
+        self._schema = schema
+        self._type = resource_type
+
+    def validate(self, id, obj):
+        '''Validate an object.
+
+        Return None for OK, or a bottle.HTTPResponse to be returned to
+        the API client to indicate an error.
+
+        '''
+
+        return (self._validate_resource_type(obj) or
+                self._validate_resource_id(id, obj) or
+                self._validate_against_schema('object', obj, self._schema))
+
+
+    def _validate_resource_type(self, obj):
+        # We allow a missing "type" field, but if it's there, its
+        # value must be correct.
+        if obj.get(u'type', self._type) != self._type:
+            return bottle.HTTPResponse(
+                status=400, body='type must be %s' % self._type)
+
+    def _validate_resource_id(self, id, obj):
+        # We allow a missing "id" field, but if it's there, its value
+        # must be correct.
+        if obj.get(u'id', id) != id:
+            return bottle.HTTPResponse(status=400, body='id must be unset or correct')
+
+    def _validate_against_schema(self, location, obj, schema):
+        if type(obj) != type(schema):
+            return bottle.HTTPResponse(
+                status=400,
+                body='{0}: must be {1}, not {2}'.format(
+                    location, type(schema), type(obj)))
+        if type(schema) == list:
+            return self._validate_list(location, obj, schema)
+        elif type(schema) == dict:
+            return self._validate_dict(location, obj, schema)
+        elif type(schema) == unicode:
+            return self._validate_unicode(location, obj, schema)
+        else:
+            return bottle.HTTPResponse(
+                status=500,
+                body="{0}: Don't know how to validate {1}".format(
+                    location, repr(schema)))
+
+    def _validate_list(self, location, obj, schema):
+        assert len(schema) == 1
+        for i, item in enumerate(obj):
+            problem = self._validate_against_schema(
+                '{0}[{1}]'.format(location, i), item, schema[0])
+            if problem:
+                return problem
+
+    def _validate_dict(self, location, obj, schema):
+        for key in obj:
+            if key not in schema:
+                return bottle.HTTPResponse(
+                    status=400,
+                    body='{0}: {1} is not allowed'.format(location, key))
+            problem = self._validate_against_schema(
+                '{0}[{1}]'.format(location, key), obj[key], schema[key])
+            if problem:
+                return problem
+        for key in schema:
+            if key not in obj:
+                v = schema[key]
+                if type(v) == unicode and v:
+                    return bottle.HTTPResponse(
+                        status=400,
+                        body='{0}: {1} is required'.format(location, key))
+
+    def _validate_unicode(self, location, obj, schema):
+        if schema == u'required' and not obj:
+            return bottle.HTTPResponse(
+                status=400,
+                body='{0}: empty value not allowed'.format(location))
+
+
+
+#
+# This is where all the classes to implement specific resources start.
+#
+
+
+class Version(Resource):
+
+    # The /version resource.
+
+    def register_routes(self, app):
+        app.route(path='/version', method='GET', callback=self._get_version)
+
+    def _get_version(self):
+        return {
+            'api': {
+                'version': api_version_string,
+                },
+            'implementation': {
+                'version': implementation_version_string,
+                'name': 'mockup',
+                },
+            }
+
+
+class Persons(ListResource):
+
+    _type = u'person'
+
+    _schema = {
+        u'names': [
+            {
+                u'full-name': u'required',
+                u'sort-key': u'',
+                u'given-names': [u''],
+                u'surnames': [u''],
+            },
+        ],
+        u'gov-ids': [],
+        u'contacts': [],
+        u'nationalities': [],
+        u'residences': [],
+    }
+
+    def __init__(self):
+        ListResource.__init__(self, '/persons')
+
+    def _validate_type_specific_things(self, obj):
+        if not obj.get('names'):
+            return bottle.HTTPResponse(status=400, body='"names" must not be empty')
+
+
+class Orgs(ListResource):
+
+    _type = u'org'
+    _schema = {
+        u'names': [u''],
+    }
+
+    def __init__(self):
+        ListResource.__init__(self, '/orgs')
+
+    def _validate_type_specific_things(self, obj):
+        pass
+
+
+#
+# The main program. For technical reasons, this needs to be at the end.
+#
+
+if __name__ == '__main__':
+    Application().run()
