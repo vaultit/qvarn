@@ -49,7 +49,7 @@ do_start()
         fi
     fi
 
-    $DAEMON $DAEMON_ARGS &
+    $DAEMON $DAEMON_ARGS > /dev/null &
     echo $! > $PIDFILE
     return 0
 }
