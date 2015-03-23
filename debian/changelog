@@ -1,3 +1,9 @@
+unified-api-backend (0.2-1) experimental; urgency=medium
+
+  * Add init script.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Mon, 23 Mar 2015 17:02:24 +0200
+
 unified-api-backend (0.1-1) experimental; urgency=low
 
   * Initial packaging. This is not intended to be uploaded to Debian, so
