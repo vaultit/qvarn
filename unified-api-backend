@@ -37,7 +37,7 @@ implementation_version_string = 'see git'
 
 
 # Default address and port to listen on.
-default_address = 'localhost'
+default_address = '0.0.0.0'
 default_port = 12765
 
 
