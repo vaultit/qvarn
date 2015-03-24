@@ -158,6 +158,7 @@ class TarkastajaQuery(Resource):
     }
 
     def register_routes(self, app):
+        return
         app.route(
             path='/tarkastaja/fi-ssn/<ssn>',
             method='GET',
