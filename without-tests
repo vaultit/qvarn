@@ -1,0 +1,37 @@
+# This file lists Python modules that DO NOT have corresponding unit
+# test modules (foo_tests.py).
+
+
+# The Python build script. It makes no sense to have unit tests for
+# this.
+setup.py
+
+# The module namespace file. It makes no sense to have unit tests for
+# this.
+unifiedapi/__init__.py
+
+# Our own copy of bottle.py. This is not our code, so we do not have
+# unit tests for it.
+unifiedapi/bottle.py
+
+# The database abstraction layer. This is meant to be simple and obvious
+# enough that unit tests are not needed.
+unifiedapi/db.py
+
+# The backend application main program. This does things like parsing
+# the command line or starting the HTTP server. These are things that
+# do not benefit much from unit tests, and are better tested by system
+# level tests, to avoid having to mock the universe.
+unifiedapi/backend_app.py
+
+# Classes for simple ("/version") and list-style ("/persons") resources.
+# These don't do enough things that make sense to unit test. These get
+# tested properly by system level tests, especially the API test suite.
+unifiedapi/list_resource.py
+unifiedapi/simple_resource.py
+
+# This currently only includes a method to log an HTTP request. That's
+# something that it doesn't make a lot sense to unit test (it'd just
+# require mocking and verifying that the right log function gets called,
+# and that's not worth the effort).
+unifiedapi/util.py

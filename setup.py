@@ -1,5 +1,9 @@
 #!/usr/bin/python
-# Copyright (C) 2015  Suomen Tilaajavastuu Oy
+#
+# setup.py - standard Python build-and-package program
+#
+# Copyright 2015 Suomen Tilaajavastuu Oy
+# All rights reserved.
 
 
 from distutils.core import setup
@@ -11,6 +15,5 @@ setup(
     description='Unified API backend',
     author='Suomen Tilaajavastuu Oy',
     author_email='tilaajavastuu.hifi@tilaajavastuu.fi',
-    scripts=['unified-api'],
-    py_modules=['unifiedapibottle'],
+    packages=['unifiedapi'],
 )

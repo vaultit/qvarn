@@ -9,7 +9,11 @@ X-Python-Version: >= 2.6
 
 Package: unified-api-backend
 Architecture: all
-Depends: ${python:Depends}, ${misc:Depends}, python (>= 2.6)
+Depends: ${python:Depends}, ${misc:Depends},
+ python (>= 2.6),
+ haproxy,
+ lighttpd,
+ python-flup
 Description: services provided by Suomen Tilaajavastuu
  This is the backend implementation of the "Unified API" specified for the
  services provided by Suomen Tilaajavastuu.

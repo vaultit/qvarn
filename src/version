@@ -1,0 +1,34 @@
+#!/usr/bin/env python2
+#
+# src/version - implement the /version resource
+#
+# Copyright 2015 Suomen Tilaajavastuu Oy
+# All rights reserved.
+
+
+import unifiedapi
+
+
+def version():
+    return {
+        'api': {
+            'version': '1.0',
+        },
+        'implementation': {
+            'version': 'see git',
+            'name': 'unified-api-backend',
+        },
+    }
+
+
+def main():
+    resource = unifiedapi.SimpleResource()
+    resource.set_path(u'/version', version)
+
+    app = unifiedapi.BackendApplication()
+    app.set_resource(resource)
+    app.run()
+
+
+if __name__ == '__main__':
+    main()

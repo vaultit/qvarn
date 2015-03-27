@@ -1,0 +1,90 @@
+#!/bin/sh
+#
+# check - run automated build-time tests
+#
+# Copyright 2015 Suomen Tilaajavastuu Oy
+# All rights reserved.
+
+
+set -eu
+
+
+# Run unit tests using the CoverageTestRunner module.
+# See http://liw.fi/coverage-test-runner/ for the module
+# (python-coverage-test-runner package in Debian).
+
+python -m CoverageTestRunner unifiedapi --ignore-missing-from=without-tests
+
+# coverage.py leaves .coverage around even after a successful run.
+# It's useless, though, so delete it.
+
+rm -f .coverage
+
+
+# Use the pep8 tool to check for coding style being conformant to the
+# PEP8 specification. See https://www.python.org/dev/peps/pep-0008/ for
+# details.
+
+pep8  --exclude=bottle.py unifiedapi/*.py src/*
+
+
+# Use pylint to find errors and more style issues. Note that pylint
+# has a LOT of warnings, and some of them are not always right. The
+# options below disable the ones that are problematic.
+#
+# Justifications:
+#
+#       min-similarity-lines            some of the backend's code
+#                                       legitimately has similar code;
+#                                       we'll handle such things via
+#                                       code review instead of pylint
+#
+#       invalid-name                    mechanistic rules for names are
+#                                       too simplistic; use code review
+#                                       to deal with bad names instead
+#
+#       too-many-public-methods         we run pylint against unit test
+#       too-few-public-methods          modules, and unittest.TestCase
+#                                       classes often have either very
+#                                       few or very many methods, and
+#                                       that's OK
+#
+#       unused-argumenti                we have (test) code that doesn't
+#                                       use all of its arguments, in order
+#                                       to conform to API requirements
+#
+#       star-args                       *args and **kwargs in method arguments
+#                                       can be quite useful, and the way
+#                                       we use them in BackendException is
+#                                       a valid and necessary use of them
+#
+#       no-self-use                     this warns also about helper methods
+#                                       that are only ever used from the
+#                                       class they're in; it's OK for these
+#                                       to not use "self"
+#
+#       cyclic-import                   we use "from .foo import Foo" in
+#                                       __init__.py to manage name space,
+#                                       and to hide the implementation
+#                                       structure of the unifiedapi module;
+#                                       the imports work, even if they look
+#                                       like a cyclic one
+#
+#       missing-docstring               docstrings are good, but it's too
+#                                       too much to require them everywhere
+
+pylint --ignore bottle.py \
+       --rcfile /dev/null \
+       --persistent no \
+       --reports no \
+       --min-similarity-lines=9999 \
+       --disable invalid-name \
+       --disable too-many-public-methods \
+       --disable too-few-public-methods \
+       --disable unused-argument \
+       --disable star-args \
+       --disable no-self-use \
+       --disable cyclic-import \
+       --disable missing-docstring \
+       \
+       unifiedapi src/*

@@ -1,0 +1,116 @@
+#!/bin/sh
+#
+# unified-api-backend.postinst - script to run after package install/upgrade
+#
+# This script gets run by dpkg (the Debian package manager) after a
+# package has been installed or upgraded. This script takes care of
+# any automatic configuration that needs to be done.
+#
+# Copyright 2015 Suomen Tilaajavastuu Oy
+# All rights reserved.
+
+
+set -eu
+
+
+# Create a directory (given mode, user, group, path) if it doesn't
+# exist yet. If it does exist, change it's mode, user, and group as
+# specified.
+
+create_dir_if_needed()
+{
+    local mode="$1"
+    local user="$2"
+    local group="$3"
+    local dir="$4"
+
+    install -d -m "$mode" -o "$user" -g "$group" "$dir"
+}
+
+
+# Create the location where start-backend-app tells backend apps to
+# put their databases.
+
+create_backend_app_storage_location()
+{
+    create_dir_if_needed 0755 www-data www-data \
+                         /var/lib/unified-api-backend/storage
+}
+
+
+# Create the location where start-backend-app tells backend apps to
+# put their log files.
+
+create_backend_app_log_dir()
+{
+    create_dir_if_needed 0755 www-data www-data \
+                         /var/log/unified-api-backend
+}
+
+
+# Set up haproxy. We create a custom configuration file based on the
+# default file in /etc, and a snippet we provide (in /usr/share).
+# Additionally, change /etc/default to use our custom configuration
+# rather than the default.
+
+setup_haproxy()
+{
+    create_dir_if_needed 0755 root root /var/lib/unified-api-backend
+    cat \
+        /etc/haproxy/haproxy.cfg \
+        /usr/share/unified-api-backend/haproxy.cfg.snippet \
+        > /var/lib/unified-api-backend/haproxy.cfg
+
+    if ! grep '^CONFIG' /etc/default/haproxy > /dev/null
+    then
+        echo 'CONFIG="/var/lib/unified-api-backend/haproxy.cfg"' \
+             >> /etc/default/haproxy
+    fi
+}
+
+
+# Set up lighttpd. We force the fastcgi module, and our own, to be
+# enabled.
+#
+# Additionally, we make sure the log directory is created, since for
+# some reason the Debian package doesn't seem to take care of that.
+#
+# We also force the server.port configuration setting to 8080, since
+# we use lighttpd on localhost:8080 only, to avoid conflicting with
+# haproxy on *:80.
+
+setup_lighttpd()
+{
+    lighttpd-enable-mod fastcgi || true
+    lighttpd-enable-mod unified-api-backend || true
+
+    create_dir_if_needed 0755 www-data www-data /var/log/lighttpd
+
+    sed -i 's/^server\.port *=.*/server.port = 8080/' \
+        /etc/lighttpd/lighttpd.conf
+    if ! grep '^server\.bind *=' /etc/lighttpd/lighttpd.conf > /dev/null
+    then
+        echo 'server.bind = "127.0.0.1"' >> /etc/lighttpd/lighttpd.conf
+    fi
+}
+
+
+# Do debhelper stuff first.
+
+#DEBHELPER#
+
+
+# Do our specific stuff here, after all the generic (and hopefully
+# safe) debhelper stuff is finished.
+
+create_backend_app_storage_location
+create_backend_app_log_dir
+setup_haproxy
+setup_lighttpd
+
+# Restart lighttpd and haproxy to make sure they follow our config
+# changes. (invoke-rc.d is the Debian tool to do the restarting only
+# if the services should be running in the current run level.)
+
+invoke-rc.d lighttpd restart
+invoke-rc.d haproxy restart

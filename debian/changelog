@@ -1,3 +1,255 @@
+unified-api-backend (0.62-1) experimental; urgency=medium
+
+  * Accept a None id for new items.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Thu, 16 Apr 2015 16:03:52 +0300
+
+unified-api-backend (0.61-1) experimental; urgency=medium
+
+  * code cleanups
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Thu, 16 Apr 2015 15:59:14 +0300
+
+unified-api-backend (0.60-1) experimental; urgency=medium
+
+  * Fixes to add_missing_item_fields
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Tue, 14 Apr 2015 15:44:48 +0300
+
+unified-api-backend (0.59-1) experimental; urgency=medium
+
+  * Fix checking of person names when no id.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Tue, 14 Apr 2015 15:21:26 +0300
+
+unified-api-backend (0.58-1) experimental; urgency=medium
+
+  * Rework validation.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Tue, 14 Apr 2015 15:15:06 +0300
+
+unified-api-backend (0.57-1) experimental; urgency=medium
+
+  * Fix
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Mon, 13 Apr 2015 18:44:14 +0300
+
+unified-api-backend (0.56-1) experimental; urgency=medium
+
+  * Add start-backend-app
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Mon, 13 Apr 2015 18:41:02 +0300
+
+unified-api-backend (0.55-1) experimental; urgency=medium
+
+  * Fixes
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Mon, 13 Apr 2015 18:37:22 +0300
+
+unified-api-backend (0.54-1) experimental; urgency=medium
+
+  * Fixes
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Mon, 13 Apr 2015 18:17:47 +0300
+
+unified-api-backend (0.53-1) experimental; urgency=medium
+
+  * Fixes and updates
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Mon, 13 Apr 2015 18:13:10 +0300
+
+unified-api-backend (0.52-1) experimental; urgency=medium
+
+  * Fix lighttpd config for new command line syntax for backend apps.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Mon, 13 Apr 2015 15:56:42 +0300
+
+unified-api-backend (0.51-1) experimental; urgency=medium
+
+  * Refactor some code.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Mon, 13 Apr 2015 15:52:08 +0300
+
+unified-api-backend (0.50-1) experimental; urgency=medium
+
+  * Add an /orgs implementation
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Mon, 13 Apr 2015 13:47:42 +0300
+
+unified-api-backend (0.49-1) experimental; urgency=medium
+
+  * Use per-thread SQLite instances.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Mon, 13 Apr 2015 12:30:09 +0300
+
+unified-api-backend (0.48-1) experimental; urgency=medium
+
+  * Set up src/person logging.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Mon, 13 Apr 2015 12:00:40 +0300
+
+unified-api-backend (0.47-1) experimental; urgency=medium
+
+  * Fix /persons database location.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Fri, 10 Apr 2015 16:02:23 +0300
+
+unified-api-backend (0.46-1) experimental; urgency=medium
+
+  * Use real database, not files-on-disk, for storage.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Fri, 10 Apr 2015 15:52:29 +0300
+
+unified-api-backend (0.45-1) experimental; urgency=medium
+
+  * Rewrite /persons validation.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Tue, 07 Apr 2015 16:27:49 +0300
+
+unified-api-backend (0.44-1) experimental; urgency=medium
+
+  * Restart haproxy on upgrades.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Thu, 02 Apr 2015 16:25:53 +0300
+
+unified-api-backend (0.43-1) experimental; urgency=medium
+
+  * Set up /persons storage.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Thu, 02 Apr 2015 16:16:48 +0300
+
+unified-api-backend (0.42-1) experimental; urgency=medium
+
+  * Fix persons app imports etc.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Thu, 02 Apr 2015 16:11:00 +0300
+
+unified-api-backend (0.41-1) experimental; urgency=medium
+
+  * Install persons app.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Thu, 02 Apr 2015 16:05:12 +0300
+
+unified-api-backend (0.40-1) experimental; urgency=medium
+
+  * Fix /var/log/lighttpd creation.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Thu, 02 Apr 2015 15:55:56 +0300
+
+unified-api-backend (0.39-1) experimental; urgency=medium
+
+  * Fix stupid regexp error.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Thu, 02 Apr 2015 15:53:22 +0300
+
+unified-api-backend (0.38-1) experimental; urgency=medium
+
+  * Fix /version user, group in lighttpd.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Thu, 02 Apr 2015 15:50:35 +0300
+
+unified-api-backend (0.37-1) experimental; urgency=medium
+
+  * Fix lighttpd config for /version.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Thu, 02 Apr 2015 15:45:37 +0300
+
+unified-api-backend (0.36-1) experimental; urgency=medium
+
+  * Fix munging of lighttpd.conf.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Thu, 02 Apr 2015 15:38:37 +0300
+
+unified-api-backend (0.35-1) experimental; urgency=medium
+
+  * Tweaks.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Thu, 02 Apr 2015 15:36:22 +0300
+
+unified-api-backend (0.34-1) experimental; urgency=medium
+
+  * Fix another lighttpd config problem.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Wed, 01 Apr 2015 17:50:35 +0300
+
+unified-api-backend (0.33-1) experimental; urgency=medium
+
+  * Do not fail if lighttpd-enable-mod fails. Stupid script.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Wed, 01 Apr 2015 17:45:56 +0300
+
+unified-api-backend (0.32-1) experimental; urgency=medium
+
+  * Remove lighttpd config lines it whinges about.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Wed, 01 Apr 2015 17:43:05 +0300
+
+unified-api-backend (0.31-1) experimental; urgency=medium
+
+  * Restart, instead of reloading, lighttpd in postinst.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Wed, 01 Apr 2015 17:35:23 +0300
+
+unified-api-backend (0.30-1) experimental; urgency=medium
+
+  * Change lighttpd to listen on 127.0.0.1:8080 only, since haproxy
+    handles port 80. Also, send the error log to syslog.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Wed, 01 Apr 2015 17:33:09 +0300
+
+unified-api-backend (0.29-1) experimental; urgency=medium
+
+  * Fix lighttpd module enabling.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Wed, 01 Apr 2015 17:18:54 +0300
+
+unified-api-backend (0.28-1) experimental; urgency=medium
+
+  * Add dependency on lighttpd.
+  * Run /version application via lighttpd instead of an init script.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Wed, 01 Apr 2015 17:15:43 +0300
+
+unified-api-backend (0.27-1) experimental; urgency=medium
+
+  * Fix haproxy config file syntax error in IP address.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Wed, 01 Apr 2015 15:10:47 +0300
+
+unified-api-backend (0.26-1) experimental; urgency=medium
+
+  * Install /version backend application in a good place. The old place
+    was just a bug.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Wed, 01 Apr 2015 14:55:33 +0300
+
+unified-api-backend (0.25-1) experimental; urgency=medium
+
+  * Install haproxy.cfg.snippet in the right directory.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Wed, 01 Apr 2015 14:48:55 +0300
+
+unified-api-backend (0.24-1) experimental; urgency=medium
+
+  * Invoke init.d script from postinst.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Wed, 01 Apr 2015 14:39:51 +0300
+
+unified-api-backend (0.23-1) experimental; urgency=medium
+
+  * Install the /version backend app as /usr/bin/unifiedapi-version.
+  * Change init file to start unifiedapi-version.
+  * Add dependency on haproxy.
+  * Generate a new haproxy.cfg in /var, and configure haproxy to use it.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Wed, 01 Apr 2015 14:35:44 +0300
+
+unified-api-backend (0.22-1) experimental; urgency=medium
+
+  * New version, for testing CD pipeline.
+
+ -- Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>  Wed, 01 Apr 2015 12:09:32 +0300
+
 unified-api-backend (0.20-1) experimental; urgency=medium
 
   * New version

@@ -1,0 +1,40 @@
+# haproxy.cfg.snippet - unifed-api-backend specific haproxy config
+#
+# This configuration snippet gets appended to the
+# /etc/haproxy/haproxy.cfg that Debian provides. We benefit from the
+# settings Debian has chosen, for security and other reasons, and we
+# want to continue to benefit from any updates to those settings.
+# That's why we keep our own stuff in a separate file, and the
+# unified-api-backend.postinst script catenates the two files and
+# configures haproxy to use that file.
+
+
+frontend http-in
+    # Bind to port 80 on every interface.
+    bind *:80
+
+    # Add named acl's. haproxy config syntax seems to insist
+    # this is done (read: the condition can't be used directly).
+    # "Acl" here means "rule for what requests should be
+    # forwarded to which backends", not "access control list"
+    # in its usual meaning.
+
+    acl resource_version path_beg /version
+    acl resource_persons path_beg /persons
+    acl resource_orgs path_beg /orgs
+
+    use_backend version_apps if resource_version
+    use_backend persons_apps if resource_persons
+    use_backend orgs_apps if resource_orgs
+
+# We need a backend stanza for each backend application. Note that
+# port numbers here must match those in the config for lighttpd.
+
+backend version_apps
+    server version1 127.0.0.1:9001
+
+backend persons_apps
+    server persons1 127.0.0.1:9002
+
+backend orgs_apps
+    server orgs1 127.0.0.1:9003

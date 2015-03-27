@@ -1,0 +1,107 @@
+#!/usr/bin/env python2
+#
+# src/orgs.py - implement the /orgs resource
+#
+# Copyright 2015 Suomen Tilaajavastuu Oy
+# All rights reserved.
+
+
+import unifiedapi
+
+
+org_prototype = {
+    u'type': u'',
+    u'id': u'',
+    u'names': [u''],
+    u'gov-org-ids': [
+        {
+            u'country': u'',
+            u'org-id-type': u'',
+            u'gov-org-id': u'',
+        },
+    ],
+    u'contacts': [
+        {
+            u'contact-type': u'',
+            u'contact-source': u'',
+            u'contact-timestamp': u'',
+            u'phone-number': u'',
+            u'full-address': u'',
+            u'country': u'',
+            u'address-lines': [u''],
+            u'post-code': u'',
+            u'post-area': u'',
+        },
+    ],
+    u'is-luotettava-kumppani-member': False,
+}
+
+
+class CreateOrgsTables_v1(unifiedapi.StoragePreparationStep):
+
+    def run(self, db):
+        db.create_table(
+            u'org',
+            (u'type', unicode),
+            (u'id', unicode),
+            (u'is-luotettava-kumppani-member', bool))
+
+        db.create_table(
+            u'org_names',
+            (u'id', unicode),
+            (u'list_pos', int),
+            (u'value', unicode))
+
+        db.create_table(
+            u'org_gov_org_ids',
+            (u'id', unicode),
+            (u'list_pos', int),
+            (u'country', unicode),
+            (u'org-id-type', unicode),
+            (u'gov-org-id', unicode))
+
+        db.create_table(
+            u'org_contacts',
+            (u'id', unicode),
+            (u'list_pos', int),
+            (u'contact-type', unicode),
+            (u'contact-source', unicode),
+            (u'contact-timestamp', unicode),
+            (u'phone-number', unicode),
+            (u'full-address', unicode),
+            (u'country', unicode),
+            (u'post-code', unicode),
+            (u'post-area', unicode))
+
+        db.create_table(
+            u'org_contacts_address_lines',
+            (u'id', int),
+            (u'dict_list_pos', int),
+            (u'list_pos', int),
+            (u'value', unicode))
+
+
+class NamelessOrg(unifiedapi.ValidationError):
+
+    msg = u'Organisation {id} does not have any names'
+
+
+def validate_org(obj):
+    if not obj[u'names']:
+        raise NamelessOrg(id=obj[u'id'])
+
+
+if __name__ == '__main__':
+    prep = unifiedapi.StoragePreparer()
+    prep.add_step(u'create-orgs-tables-v1', CreateOrgsTables_v1())
+
+    resource = unifiedapi.ListResource()
+    resource.set_path(u'/orgs')
+    resource.set_item_type(u'org')
+    resource.set_item_prototype(org_prototype)
+    resource.set_item_validator(validate_org)
+    resource.set_storage_preparer(prep)
+
+    app = unifiedapi.BackendApplication()
+    app.set_resource(resource)
+    app.run()
