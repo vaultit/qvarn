@@ -145,7 +145,6 @@ class ListResource(object):
         except unifiedapi.ItemDoesNotExist as e:
             logging.error(str(e), exc_info=True)
             raise bottle.HTTPError(status=404)
-        return ro.get_item(item_id)
 
     def _get_path_arg_as_unicode(self, item_id):
         # bottle.py gives as args from paths as str, we need them as unicode.
