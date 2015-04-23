@@ -61,16 +61,15 @@ class ListResource(object):
         '''Set the storage preparer.'''
         self._preparer = preparer
 
-    def prepare_resource(self, app):
+    def prepare_resource(self, database_url):
         '''Prepare the resource for action.'''
-        self._setup_routes(app)
-        self.database = app.args.database
+
+        self.database = database_url
 
         # Make sure the database exists.
         self._create_wo_storage()
 
-    def _setup_routes(self, app):
-        routes = [
+        return [
             {
                 'path': self._path,
                 'method': 'GET',
@@ -97,8 +96,6 @@ class ListResource(object):
                 'callback': self.delete_item,
             },
         ]
-
-        app.add_routes(routes)
 
     def get_items(self):
         '''Serve GET /foos to list all items.'''

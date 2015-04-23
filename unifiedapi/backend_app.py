@@ -25,11 +25,11 @@ class BackendApplication(object):
 
     This class is parameterised by calling the ``set_resource`` and
     ``add_routes`` methods. The application actually starts when the
-    ``run`` method is called.
-
-    The ``args`` attribute is public, and can be used to access the
-    configuration set by the command line arguments. It is an
-    ``argparse`` type.
+    ``run`` method is called. The resource set with ``set_resource``
+    MUST have a ``prepare_resource`` method, which gets as its
+    parameter the URI to the database, and returns a represetation of
+    routes suitable to be given to ``add_routes``. The resource object
+    does not need to call ``add_routes`` directly.
 
     '''
 
@@ -66,7 +66,8 @@ class BackendApplication(object):
         '''Run the application.'''
         args = self._parse_command_line()
         self._setup_logging(args)
-        self._prepare_resource(args)
+        routes = self._prepare_resource(args)
+        self.add_routes(routes)
         self._start_service(args)
 
     def _parse_command_line(self):
@@ -104,7 +105,7 @@ class BackendApplication(object):
             logging.info('{} starts'.format(sys.argv[0]))
 
     def _prepare_resource(self, args):
-        self._resource.prepare_resource(args.database)
+        return self._resource.prepare_resource(args.database)
 
     def _start_service(self, args):
         if not self._start_debug_server(args):

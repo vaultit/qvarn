@@ -23,13 +23,11 @@ class SimpleResource(object):
         self._path = path
         self._callback = callback
 
-    def prepare_resource(self, app):
-        routes = [
+    def prepare_resource(self, database_url):
+        return [
             {
                 'path': self._path,
                 'method': 'GET',
                 'callback': self._callback
             },
         ]
-
-        app.add_routes(routes)
