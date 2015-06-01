@@ -79,7 +79,7 @@ class CreatePersonsTables_v1(unifiedapi.StoragePreparationStep):
             (u'value', unicode))
 
         db.create_table(
-            u'person_gov_ids',
+            u'person_private_gov_ids',
             (u'id', unicode),
             (u'list_pos', int),
             (u'country', unicode),
@@ -87,7 +87,7 @@ class CreatePersonsTables_v1(unifiedapi.StoragePreparationStep):
             (u'gov_id', unicode))
 
         db.create_table(
-            u'person_contacts',
+            u'person_private_contacts',
             (u'id', unicode),
             (u'list_pos', int),
             (u'contact_type', unicode),
@@ -100,20 +100,20 @@ class CreatePersonsTables_v1(unifiedapi.StoragePreparationStep):
             (u'post_area', unicode))
 
         db.create_table(
-            u'person_contacts_address_lines',
+            u'person_private_contacts_address_lines',
             (u'id', int),
             (u'dict_list_pos', int),
             (u'list_pos', int),
             (u'value', unicode))
 
         db.create_table(
-            u'person_nationalities',
+            u'person_private_nationalities',
             (u'id', unicode),
             (u'list_pos', int),
             (u'value', unicode))
 
         db.create_table(
-            u'person_residences',
+            u'person_private_residences',
             (u'id', unicode),
             (u'list_pos', int),
             (u'value', unicode))
