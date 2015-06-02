@@ -12,6 +12,7 @@ import unifiedapi
 org_prototype = {
     u'type': u'',
     u'id': u'',
+    u'country': u'',
     u'names': [u''],
     u'gov_org_ids': [
         {
@@ -44,6 +45,7 @@ class CreateOrgsTables_v1(unifiedapi.StoragePreparationStep):
             u'org',
             (u'type', unicode),
             (u'id', unicode),
+            (u'country', unicode),
             (u'is_luotettava_kumppani_member', bool))
 
         db.create_table(
