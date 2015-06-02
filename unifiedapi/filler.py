@@ -16,7 +16,7 @@ def add_missing_item_fields(item_type, prototype, item):
     if type(item) is not dict:
         return
 
-    if u'type' not in item:
+    if u'type' not in item and u'type' in prototype:
         item[u'type'] = item_type
 
     _fill_in_dict_fields(prototype, item)

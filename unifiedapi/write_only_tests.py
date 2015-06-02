@@ -40,6 +40,12 @@ class WriteOnlyStorageTests(unittest.TestCase):
         ],
     }
 
+    subitem_name = u'secret'
+
+    subitem_prototype = {
+        u'secret_identity': u'',
+    }
+
     def create_tables(self, db):
         db.create_table(
             u'person',
@@ -62,6 +68,10 @@ class WriteOnlyStorageTests(unittest.TestCase):
             (u'dict_list_pos', int),
             (u'list_pos', int),
             (u'value', unicode))
+        db.create_table(
+            u'person_secret',
+            (u'id', unicode),
+            (u'secret_identity', unicode))
 
     def setUp(self):
         db = unifiedapi.open_memory_database()
@@ -71,12 +81,16 @@ class WriteOnlyStorageTests(unittest.TestCase):
         self.wo = unifiedapi.WriteOnlyStorage()
         self.wo.set_db(db)
         self.wo.set_item_prototype(self.person[u'type'], self.prototype)
+        self.wo.set_subitem_prototype(
+            self.person[u'type'], self.subitem_name, self.subitem_prototype)
         self.wo.set_preparer(prep)
         self.wo.prepare()
 
         self.ro = unifiedapi.ReadOnlyStorage()
         self.ro.set_db(db)
         self.ro.set_item_prototype(self.person[u'type'], self.prototype)
+        self.ro.set_subitem_prototype(
+            self.person[u'type'], self.subitem_name, self.subitem_prototype)
 
     def test_adds_item_and_invents_id(self):
         added = self.wo.add_item(self.person)
@@ -128,3 +142,12 @@ class WriteOnlyStorageTests(unittest.TestCase):
         added2 = self.wo.add_item(self.person)
         self.wo.delete_item(added1[u'id'])
         self.assertEqual(self.ro.get_item_ids(), [added2[u'id']])
+
+    def test_updates_subitem(self):
+        added = self.wo.add_item(self.person)
+        subitem = {
+            u'secret_identity': u'Peter Parker',
+        }
+        self.wo.update_subitem(added[u'id'], self.subitem_name, subitem)
+        updated_subitem = self.ro.get_subitem(added[u'id'], self.subitem_name)
+        self.assertEqual(subitem, updated_subitem)

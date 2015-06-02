@@ -20,6 +20,7 @@ class ReadOnlyStorage(object):
         self._db = None
         self._item_type = None
         self._prototype = None
+        self._subitem_prototypes = unifiedapi.SubItemPrototypes()
 
     def set_db(self, db):
         '''Set the database to use.'''
@@ -29,6 +30,10 @@ class ReadOnlyStorage(object):
         '''Set type and prototype of items in this database.'''
         self._item_type = item_type
         self._prototype = prototype
+
+    def set_subitem_prototype(self, item_type, subitem_name, prototype):
+        '''Set prototype for a subitem.'''
+        self._subitem_prototypes.add(item_type, subitem_name, prototype)
 
     def get_item_ids(self):
         '''Get list of ids of all items.'''
@@ -42,6 +47,15 @@ class ReadOnlyStorage(object):
         rw = ReadWalker(self._db, self._item_type, item_id)
         rw.walk_item(item, self._prototype)
         return item
+
+    def get_subitem(self, item_id, subitem_name):
+        '''Get a specific subitem.'''
+        subitem = {}
+        table_name = u'%s_%s' % (self._item_type, subitem_name)
+        prototype = self._subitem_prototypes.get(self._item_type, subitem_name)
+        rw = ReadWalker(self._db, table_name, item_id)
+        rw.walk_item(subitem, prototype)
+        return subitem
 
 
 class ItemDoesNotExist(unifiedapi.BackendException):
@@ -64,16 +78,23 @@ class ReadWalker(unifiedapi.ItemWalker):
             item[name] = row[name]
 
     def _get_row(self, table_name, item_id, column_names):
+        # If a dict has no non-list fields, column_names is empty.
+        # This breaks the self._db.select_matching_rows call below.
+        # There's no sensible way to fix the select method, so we look
+        # for the id column instead.
+        lookup_names = column_names or [u'id']
+
         match = {
             u'id': item_id
         }
-        rows = self._db.select_matching_rows(table_name, column_names, match)
+        rows = self._db.select_matching_rows(table_name, lookup_names, match)
         for row in rows:
-            return row
+            # If we don't have any columns, return an empty dict.
+            return row if column_names else {}
         raise ItemDoesNotExist(id=item_id)
 
     def visit_main_str_list(self, item, field):
-        table_name = self._db.make_table_name(item[u'type'], field)
+        table_name = self._db.make_table_name(self._item_type, field)
         item[field] = self._get_str_list(table_name, self._item_id)
 
     def _get_str_list(self, table_name, item_id):
@@ -102,15 +123,15 @@ class ReadWalker(unifiedapi.ItemWalker):
         return result
 
     def visit_main_dict_list(self, item, field, column_names):
-        table_name = self._db.make_table_name(item[u'type'], field)
-        item[field] = self._get_list(table_name, item['id'], column_names)
+        table_name = self._db.make_table_name(self._item_type, field)
+        item[field] = self._get_list(table_name, self._item_id, column_names)
 
     def visit_dict_in_list_str_list(self, item, field, pos, str_list_field):
         table_name = self._db.make_table_name(
-            item[u'type'], field, str_list_field)
+            self._item_type, field, str_list_field)
 
         match = {
-            u'id': item[u'id'],
+            u'id': self._item_id,
             u'dict_list_pos': unicode(pos),
         }
         rows = self._db.select_matching_rows(
