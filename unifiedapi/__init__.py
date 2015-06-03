@@ -18,3 +18,4 @@ from .filler import add_missing_item_fields
 from .util import log_request
 from .simple_resource import SimpleResource
 from .list_resource import ListResource
+from .idgen import ResourceIdGenerator

@@ -1,0 +1,27 @@
+#!/usr/bin/env python2
+#
+# This benchmarks, in a very simplistic way, resource identifier
+# generation.
+
+import time
+import unifiedapi
+
+
+N = 1000000
+rig = unifiedapi.ResourceIdGenerator()
+resource_type = u'org'
+ids = []
+
+i = 0
+started = time.time()
+while i < N:
+    i += 1
+    ids.append(rig.new_id(resource_type))
+ended = time.time()
+
+duration = ended - started
+print 'N:', N
+print 'duration:', duration
+print 'Hertz:', N / duration
+
+assert len(ids) == len(set(ids))
