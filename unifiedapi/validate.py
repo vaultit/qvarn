@@ -51,9 +51,9 @@ class ItemValidator(object):
         self._validate_is_dict(prototype)
         self._validate_is_dict(item)
 
-        self._validate_has_type_field(prototype)
-        self._validate_has_type_field(item)
-        self._validate_type_field(item, item_type)
+        if u'type' in prototype:
+            self._validate_has_type_field(item)
+            self._validate_type_field(item, item_type)
 
         self._validate_dict(prototype, item)
 

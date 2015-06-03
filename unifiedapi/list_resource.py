@@ -31,6 +31,7 @@ class ListResource(object):
         self._item_type = None
         self._item_prototype = None
         self._item_validator = None
+        self._subitem_prototypes = unifiedapi.SubItemPrototypes()
         self._preparer = None
         self.database = None
 
@@ -57,6 +58,10 @@ class ListResource(object):
 
         self._item_validator = item_validator
 
+    def set_subitem_prototype(self, subitem_name, prototype):
+        '''Set prototype for a subitem.'''
+        self._subitem_prototypes.add(self._item_type, subitem_name, prototype)
+
     def set_storage_preparer(self, preparer):
         '''Set the storage preparer.'''
         self._preparer = preparer
@@ -69,7 +74,7 @@ class ListResource(object):
         # Make sure the database exists.
         self._create_wo_storage()
 
-        return [
+        item_paths = [
             {
                 'path': self._path,
                 'method': 'GET',
@@ -96,6 +101,28 @@ class ListResource(object):
                 'callback': self.delete_item,
             },
         ]
+
+        subitem_paths = []
+        for subitem_name, _ in self._subitem_prototypes.get_all():
+            subitem_path = self._path + '/<item_id>/' + subitem_name
+            subitem_paths.extend([
+                {
+                    'path': subitem_path,
+                    'method': 'GET',
+                    'callback':
+                    lambda item_id, x=subitem_name:
+                    self.get_subitem(item_id, x),
+                },
+                {
+                    'path': subitem_path,
+                    'method': 'PUT',
+                    'callback':
+                    lambda item_id, x=subitem_name:
+                    self.put_subitem(item_id, x),
+                }
+            ])
+
+        return item_paths + subitem_paths
 
     def get_items(self):
         '''Serve GET /foos to list all items.'''
@@ -147,6 +174,17 @@ class ListResource(object):
         # bottle.py gives as args from paths as str, we need them as unicode.
         return unicode(item_id)
 
+    def get_subitem(self, item_id, subitem_path):
+        '''Serve GET /foos/123/subitem.'''
+        unifiedapi.log_request()
+        ro = self._create_ro_storage()
+        item_id = self._get_path_arg_as_unicode(item_id)
+        try:
+            return ro.get_subitem(item_id, subitem_path)
+        except unifiedapi.ItemDoesNotExist as e:
+            logging.error(str(e), exc_info=True)
+            raise bottle.HTTPError(status=404)
+
     def put_item(self, item_id):
         '''Serve PUT /foos/123 to update an item.'''
         unifiedapi.log_request()
@@ -175,6 +213,28 @@ class ListResource(object):
         if item[u'id'] not in (None, item_id):
             raise ItemHasConflictingId(id=item[u'id'], wanted=item_id)
 
+    def put_subitem(self, item_id, subitem_name):
+        '''Serve PUT /foos/123/subitem to update a subitem.'''
+        unifiedapi.log_request()
+
+        item_id = self._get_path_arg_as_unicode(item_id)
+        subitem = bottle.request.json
+
+        subitem_type = u'%s_%s' % (self._item_type, subitem_name)
+        prototype = self._subitem_prototypes.get(self._item_type, subitem_name)
+        unifiedapi.add_missing_item_fields(subitem_type, prototype, subitem)
+
+        iv = unifiedapi.ItemValidator()
+        try:
+            iv.validate_item(subitem_type, prototype, subitem)
+        except unifiedapi.ValidationError as e:
+            logging.error(u'Validation error: %s', e)
+            raise bottle.HTTPError(status=400)
+
+        wo = self._create_wo_storage()
+        wo.update_subitem(item_id, subitem_name, subitem)
+        return subitem
+
     def delete_item(self, item_id):
         '''Serve DELETE /foos/123 to delete an item.'''
         unifiedapi.log_request()
@@ -189,6 +249,8 @@ class ListResource(object):
     def _create_ro_storage(self):
         ro = unifiedapi.ReadOnlyStorage()
         ro.set_item_prototype(self._item_type, self._item_prototype)
+        for subitem_name, prototype in self._subitem_prototypes.get_all():
+            ro.set_subitem_prototype(self._item_type, subitem_name, prototype)
         db = unifiedapi.open_disk_database(self.database)
         ro.set_db(db)
         return ro
@@ -196,6 +258,8 @@ class ListResource(object):
     def _create_wo_storage(self):
         wo = unifiedapi.WriteOnlyStorage()
         wo.set_item_prototype(self._item_type, self._item_prototype)
+        for subitem_name, prototype in self._subitem_prototypes.get_all():
+            wo.set_subitem_prototype(self._item_type, subitem_name, prototype)
         wo.set_preparer(self._preparer)
 
         db = unifiedapi.open_disk_database(self.database)

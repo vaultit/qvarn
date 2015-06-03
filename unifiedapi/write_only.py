@@ -24,6 +24,7 @@ class WriteOnlyStorage(object):
         self._db = None
         self._item_type = None
         self._prototype = None
+        self._subitem_prototypes = unifiedapi.SubItemPrototypes()
 
     def set_db(self, db):
         '''Set the database instance being used.'''
@@ -33,6 +34,10 @@ class WriteOnlyStorage(object):
         '''Set type and prototype for items handled by this instance.'''
         self._item_type = item_type
         self._prototype = prototype
+
+    def set_subitem_prototype(self, item_type, subitem_name, prototype):
+        '''Set prototype for a subitem.'''
+        self._subitem_prototypes.add(item_type, subitem_name, prototype)
 
     def set_preparer(self, preparer):
         '''Set the StoragePreparer for this database.'''
@@ -60,6 +65,8 @@ class WriteOnlyStorage(object):
         added[u'id'] = self._invent_id()
 
         self.update_item(added)
+        for subitem_name, prototype in self._subitem_prototypes.get_all():
+            self.update_subitem(added[u'id'], subitem_name, prototype)
         return added
 
     def _invent_id(self):
@@ -72,10 +79,18 @@ class WriteOnlyStorage(object):
 
         '''
 
-        ww = WriteWalker(self._db)
+        ww = WriteWalker(self._db, self._item_type, item[u'id'])
         with self._db:
             self._delete_item_in_transaction(item[u'id'])
             ww.walk_item(item, self._prototype)
+
+    def update_subitem(self, item_id, subitem_name, subitem):
+        prototype = self._subitem_prototypes.get(self._item_type, subitem_name)
+        table_name = u'%s_%s' % (self._item_type, subitem_name)
+        ww = WriteWalker(self._db, table_name, item_id)
+        with self._db:
+            self._delete_subitem_in_transaction(item_id, subitem_name)
+            ww.walk_item(subitem, prototype)
 
     def delete_item(self, item_id):
         '''Delete an item given its id.'''
@@ -85,6 +100,14 @@ class WriteOnlyStorage(object):
     def _delete_item_in_transaction(self, item_id):
         dw = DeleteWalker(self._db, self._item_type, item_id)
         dw.walk_item(self._prototype, self._prototype)
+        for subitem_name, _ in self._subitem_prototypes.get_all():
+            self._delete_subitem_in_transaction(item_id, subitem_name)
+
+    def _delete_subitem_in_transaction(self, item_id, subitem_name):
+        table_name = u'%s_%s' % (self._item_type, subitem_name)
+        prototype = self._subitem_prototypes.get(self._item_type, subitem_name)
+        dw = DeleteWalker(self._db, table_name, item_id)
+        dw.walk_item(prototype, prototype)
 
 
 class CannotAddWithId(unifiedapi.BackendException):
@@ -96,16 +119,20 @@ class WriteWalker(unifiedapi.ItemWalker):
 
     '''Visit every part of an item to write it to database.'''
 
-    def __init__(self, db):
+    def __init__(self, db, item_type, item_id):
         self._db = db
+        self._item_type = item_type
+        self._item_id = item_id
 
     def visit_main_dict(self, item, column_names):
         columns = [(x, item[x]) for x in column_names]
-        self._db.insert(item[u'type'], *columns)
+        if u'id' not in column_names:
+            columns.append((u'id', self._item_id))
+        self._db.insert(self._item_type, *columns)
 
     def visit_main_str_list(self, item, field):
-        table_name = self._db.make_table_name(item[u'type'], field)
-        self._insert_str_list(table_name, item[u'id'], None, item[field])
+        table_name = self._db.make_table_name(self._item_type, field)
+        self._insert_str_list(table_name, self._item_id, None, item[field])
 
     def _insert_str_list(self, table_name, item_id, dict_list_pos, strings):
         prefix = [(u'id', item_id)]
@@ -119,10 +146,10 @@ class WriteWalker(unifiedapi.ItemWalker):
             self._db.insert(table_name, *columns)
 
     def visit_dict_in_list(self, item, field, pos, column_names):
-        table_name = self._db.make_table_name(item[u'type'], field)
+        table_name = self._db.make_table_name(self._item_type, field)
         some_dict = item[field][pos]
         columns = [
-            (u'id', item[u'id']),
+            (u'id', self._item_id),
             (u'list_pos', pos),
             ]
         columns += [(x, some_dict[x]) for x in column_names]
@@ -130,9 +157,9 @@ class WriteWalker(unifiedapi.ItemWalker):
 
     def visit_dict_in_list_str_list(self, item, field, pos, str_list_field):
         table_name = self._db.make_table_name(
-            item[u'type'], field, str_list_field)
+            self._item_type, field, str_list_field)
         strings = item[field][pos][str_list_field]
-        self._insert_str_list(table_name, item[u'id'], pos, strings)
+        self._insert_str_list(table_name, self._item_id, pos, strings)
 
 
 class DeleteWalker(unifiedapi.ItemWalker):
