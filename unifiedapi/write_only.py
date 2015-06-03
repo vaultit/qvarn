@@ -4,8 +4,6 @@
 # All rights reserved.
 
 
-import random
-
 import unifiedapi
 
 
@@ -25,6 +23,7 @@ class WriteOnlyStorage(object):
         self._item_type = None
         self._prototype = None
         self._subitem_prototypes = unifiedapi.SubItemPrototypes()
+        self._resource_id_generator = unifiedapi.ResourceIdGenerator()
 
     def set_db(self, db):
         '''Set the database instance being used.'''
@@ -62,15 +61,12 @@ class WriteOnlyStorage(object):
             raise CannotAddWithId(id=item[u'id'])
 
         added = dict(item)
-        added[u'id'] = self._invent_id()
+        added[u'id'] = self._resource_id_generator.new_id(self._item_type)
 
         self.update_item(added)
         for subitem_name, prototype in self._subitem_prototypes.get_all():
             self.update_subitem(added[u'id'], subitem_name, prototype)
         return added
-
-    def _invent_id(self):
-        return unicode(random.randint(1, 1024))
 
     def update_item(self, item):
         '''Update an existing item.
