@@ -78,7 +78,7 @@ class ItemWalker(object):
     def _walk_dict_list(self, item, field, proto_dict):
         names = self._get_simple_columns(proto_dict)
         self.visit_main_dict_list(item, field, names)
-
+        
         for i in range(len(item[field])):
             self.visit_dict_in_list(item, field, i, names)
             for str_list_field in self._get_str_lists(proto_dict):

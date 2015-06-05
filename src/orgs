@@ -13,27 +13,28 @@ org_prototype = {
     u'type': u'',
     u'id': u'',
     u'names': [u''],
-    u'gov-org-ids': [
+    u'country': u'',
+    u'gov_org_ids': [
         {
             u'country': u'',
-            u'org-id-type': u'',
-            u'gov-org-id': u'',
+            u'org_id_type': u'',
+            u'gov_org_id': u'',
         },
     ],
     u'contacts': [
         {
-            u'contact-type': u'',
-            u'contact-source': u'',
-            u'contact-timestamp': u'',
-            u'phone-number': u'',
-            u'full-address': u'',
+            u'contact_type': u'',
+            u'contact_source': u'',
+            u'contact_timestamp': u'',
+            u'phone_number': u'',
+            u'full_address': u'',
             u'country': u'',
-            u'address-lines': [u''],
-            u'post-code': u'',
-            u'post-area': u'',
+            u'address_lines': [u''],
+            u'post_code': u'',
+            u'post_area': u'',
         },
     ],
-    u'is-luotettava-kumppani-member': False,
+    u'is_luotettava_kumppani_member': False,
 }
 
 
@@ -44,7 +45,8 @@ class CreateOrgsTables_v1(unifiedapi.StoragePreparationStep):
             u'org',
             (u'type', unicode),
             (u'id', unicode),
-            (u'is-luotettava-kumppani-member', bool))
+            (u'country', unicode),
+            (u'is_luotettava_kumppani_member', bool))
 
         db.create_table(
             u'org_names',
@@ -53,29 +55,29 @@ class CreateOrgsTables_v1(unifiedapi.StoragePreparationStep):
             (u'value', unicode))
 
         db.create_table(
-            u'org_gov_org_ids',
+            u'org_gov-org-ids',
             (u'id', unicode),
             (u'list_pos', int),
             (u'country', unicode),
-            (u'org-id-type', unicode),
-            (u'gov-org-id', unicode))
+            (u'org_id_type', unicode),
+            (u'gov_org_id', unicode))
 
         db.create_table(
             u'org_contacts',
             (u'id', unicode),
             (u'list_pos', int),
-            (u'contact-type', unicode),
-            (u'contact-source', unicode),
-            (u'contact-timestamp', unicode),
-            (u'phone-number', unicode),
-            (u'full-address', unicode),
+            (u'contact_type', unicode),
+            (u'contact_source', unicode),
+            (u'contact_timestamp', unicode),
+            (u'phone_number', unicode),
+            (u'full_address', unicode),
             (u'country', unicode),
-            (u'post-code', unicode),
-            (u'post-area', unicode))
+            (u'post_code', unicode),
+            (u'post_area', unicode))
 
         db.create_table(
-            u'org_contacts_address_lines',
-            (u'id', int),
+            u'org_contacts_address-lines',
+            (u'id', unicode),
             (u'dict_list_pos', int),
             (u'list_pos', int),
             (u'value', unicode))

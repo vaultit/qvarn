@@ -50,7 +50,7 @@ class WriteOnlyStorageTests(unittest.TestCase):
             u'person_aliases',
             (u'id', unicode),
             (u'list_pos', int),
-            (u'value', unicode))
+            (u'aliases', unicode))
         db.create_table(
             u'person_addrs',
             (u'id', unicode),
@@ -61,7 +61,7 @@ class WriteOnlyStorageTests(unittest.TestCase):
             (u'id', unicode),
             (u'dict_list_pos', int),
             (u'list_pos', int),
-            (u'value', unicode))
+            (u'lines', unicode))
 
     def setUp(self):
         db = unifiedapi.open_memory_database()
