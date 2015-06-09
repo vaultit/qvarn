@@ -54,6 +54,7 @@ person_private_prototype = {
     ],
 }
 
+
 person_sync_prototype = {
     u'sync_id': u'',
     u'sync_revision': u'',

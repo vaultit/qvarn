@@ -38,6 +38,12 @@ org_prototype = {
 }
 
 
+org_sync_prototype = {
+    u'sync_id': u'',
+    u'sync_revision': u'',
+}
+
+
 class CreateOrgsTables_v1(unifiedapi.StoragePreparationStep):
 
     def run(self, db):
@@ -82,6 +88,12 @@ class CreateOrgsTables_v1(unifiedapi.StoragePreparationStep):
             (u'list_pos', int),
             (u'value', unicode))
 
+        db.create_table(
+            u'org_sync',
+            (u'id', unicode),
+            (u'sync_id', unicode),
+            (u'sync_revision', unicode))
+
 
 class NamelessOrg(unifiedapi.ValidationError):
 
@@ -102,6 +114,7 @@ if __name__ == '__main__':
     resource.set_item_type(u'org')
     resource.set_item_prototype(org_prototype)
     resource.set_item_validator(validate_org)
+    resource.set_subitem_prototype(u'sync', org_sync_prototype)
     resource.set_storage_preparer(prep)
 
     app = unifiedapi.BackendApplication()
