@@ -66,7 +66,6 @@ class CreatePersonsTables_v1(unifiedapi.StoragePreparationStep):
             (u'dict_list_pos', int),
             (u'list_pos', int),
             (u'given_names', unicode))
-            #(u'value', unicode))
 
         db.create_table(
             u'person_names_surnames',
@@ -74,7 +73,6 @@ class CreatePersonsTables_v1(unifiedapi.StoragePreparationStep):
             (u'dict_list_pos', int),
             (u'list_pos', int),
             (u'surnames', unicode))
-            #(u'value', unicode))
 
         db.create_table(
             u'person_gov_ids',
@@ -103,21 +101,18 @@ class CreatePersonsTables_v1(unifiedapi.StoragePreparationStep):
             (u'dict_list_pos', int),
             (u'list_pos', int),
             (u'address_lines', unicode))
-            #(u'value', unicode))
 
         db.create_table(
             u'person_nationalities',
             (u'id', unicode),
             (u'list_pos', int),
             (u'nationalities', unicode))
-            #(u'value', unicode))
 
         db.create_table(
             u'person_residences',
             (u'id', unicode),
             (u'list_pos', int),
             (u'residences', unicode))
-            #(u'value', unicode))
 
 
 class NamelessPerson(unifiedapi.ValidationError):

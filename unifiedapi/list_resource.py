@@ -109,7 +109,7 @@ class ListResource(object):
         return ro.get_item_ids()
 
     def get_matching_items(self, search_criteria):
-        '''Serve GET /foos/search to list all items matching 
+        '''Serve GET /foos/search to list all items matching
         the search criteria.'''
         unifiedapi.log_request()
         ro = self._create_ro_storage()
@@ -121,23 +121,26 @@ class ListResource(object):
 
         for i in range(len(criteria)):
             param = criteria[i]
-            if i%3 == 0:
+            if i % 3 == 0:
                 matching_rules.append(param)
-            elif i%3 == 1:
+                # if param not in [u'exact', u'startswith', u'contains']:
+                if param not in [u'exact']:
+                    raise bottle.HTTPError(status=400)
+            elif i % 3 == 1:
                 search_fields.append(param)
             else:
                 search_values.append(param)
-        
+
         return ro.get_search_matches(matching_rules, search_fields,
                                      search_values)
-    
+
     def post_item(self):
         '''Serve POST /foos to create a new item.'''
         unifiedapi.log_request()
         item = bottle.request.json
         unifiedapi.add_missing_item_fields(
             self._item_type, self._item_prototype, item)
-        
+
         iv = unifiedapi.ItemValidator()
         try:
             iv.validate_item(self._item_type, self._item_prototype, item)

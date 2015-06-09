@@ -21,6 +21,7 @@ class ReadOnlyStorageTests(unittest.TestCase):
             {
                 u'baz': u'',
                 u'foobars': [u''],
+                u'foo': [u''],
                 u'bar': u'',
             },
         ],
@@ -35,6 +36,7 @@ class ReadOnlyStorageTests(unittest.TestCase):
             {
                 u'baz': u'bling',
                 u'foobars': [],
+                u'foo': [],
                 u'bar': u'bong',
             },
         ],
@@ -58,6 +60,12 @@ class ReadOnlyStorageTests(unittest.TestCase):
             (u'list_pos', int),
             (u'baz', unicode),
             (u'bar', unicode))
+        db.create_table(
+            u'yo_dicts_foo',
+            (u'id', unicode),
+            (u'dict_list_pos', int),
+            (u'list_pos', int),
+            (u'foo', unicode))
         db.create_table(
             u'yo_dicts_foobars',
             (u'id', unicode),
@@ -139,4 +147,6 @@ class ReadOnlyStorageTests(unittest.TestCase):
         search_result = self.ro.get_search_matches(['exact', 'exact'],
                                                    [u'bar'],
                                                    [u'barbaz'])
-        self.assertIn(new_id, search_result[u'matches'][0][u'id'])
+        match_list = search_result[u'matches']
+        self.assertIsNot(0, len(match_list))
+        self.assertIn(new_id, match_list[0][u'id'])

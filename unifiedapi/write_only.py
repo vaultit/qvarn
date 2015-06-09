@@ -105,7 +105,8 @@ class WriteWalker(unifiedapi.ItemWalker):
 
     def visit_main_str_list(self, item, field):
         table_name = self._db.make_table_name(item[u'type'], field)
-        self._insert_str_list(table_name, field, item[u'id'], None, item[field])
+        self._insert_str_list(table_name, field, item[u'id'], None,
+                              item[field])
 
     def _insert_str_list(self, table_name, column_name, item_id, dict_list_pos,
                          strings):

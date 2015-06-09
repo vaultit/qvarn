@@ -141,7 +141,6 @@ class Database(object):
             u','.join(quoted_names), self._quote(table_name))
         if condition:
             sql += u' WHERE ' + condition
-            
         values = dict((self._quote(x), values[x]) for x in values or {})
         c = self._conn.cursor()
         c.execute(sql, values)
