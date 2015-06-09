@@ -128,7 +128,11 @@ class ListResource(object):
         '''Serve GET /foos to list all items.'''
         unifiedapi.log_request()
         ro = self._create_ro_storage()
-        return ro.get_item_ids()
+        return {
+            'resources': [
+                {'id': resource_id} for resource_id in ro.get_item_ids()
+            ],
+        }
 
     def post_item(self):
         '''Serve POST /foos to create a new item.'''
