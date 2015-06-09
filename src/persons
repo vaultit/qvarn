@@ -54,6 +54,11 @@ person_private_prototype = {
     ],
 }
 
+person_sync_prototype = {
+    u'sync_id': u'',
+    u'sync_revision': u'',
+}
+
 
 class CreatePersonsTables_v1(unifiedapi.StoragePreparationStep):
 
@@ -130,6 +135,12 @@ class CreatePersonsTables_v1(unifiedapi.StoragePreparationStep):
             (u'country', unicode),
             (u'location', unicode))
 
+        db.create_table(
+            u'person_sync',
+            (u'id', unicode),
+            (u'sync_id', unicode),
+            (u'sync_revision', unicode))
+
 
 class NamelessPerson(unifiedapi.ValidationError):
 
@@ -159,6 +170,7 @@ if __name__ == '__main__':
     resource.set_item_prototype(person_prototype)
     resource.set_item_validator(validate_person)
     resource.set_subitem_prototype(u'private', person_private_prototype)
+    resource.set_subitem_prototype(u'sync', person_sync_prototype)
     resource.set_storage_preparer(prep)
 
     app = unifiedapi.BackendApplication()
