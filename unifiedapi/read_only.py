@@ -43,7 +43,6 @@ class ReadOnlyStorage(object):
         rw.walk_item(item, self._prototype)
         return item
 
-#    def search(self, matching_rules, search_fields, search_values):
     def search(self, search_params):
         '''Do a search.'''
 
