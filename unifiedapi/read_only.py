@@ -43,44 +43,39 @@ class ReadOnlyStorage(object):
         rw.walk_item(item, self._prototype)
         return item
 
-    def get_search_matches(self, matching_rules, search_fields,
-                           search_values):
+#    def search(self, matching_rules, search_fields, search_values):
+    def search(self, search_params):
         '''Do a search.'''
 
-        tsw = TableSearchWalker(self._db, self._item_type, self._prototype,
-                                {})
+        tsw = TableSearchWalker(self._db, self._item_type, self._prototype, {})
         tsw.walk_item(self._prototype, self._prototype)
 
-        result = self._do_search(search_fields, search_values, matching_rules,
-                                 tsw.table_map)
+        result = self._do_search(search_params, tsw.table_map)
 
-        result_list = []
-        for row_id in result:
-            result_list.append({u'id': row_id})
+        return {
+            u'resources': [
+                {u'id': resource_id} for resource_id in result
+                ],
+            }
 
-        return {u'matches': result_list}
-
-    def _do_search(self, search_fields, search_values, matching_rules,
-                   table_map):
+    def _do_search(self, search_params, table_map):
 
         final_result = set()
         results_added = False
 
-        for i in range(len(search_fields)):
+        for i in range(len(search_params)):
             result = set()
-            field = unicode(search_fields[i])
+            search_param = search_params[i]
+            field = unicode(search_param[1])
             match = {}
-            match[field] = unicode(search_values[i])
+            match[field] = unicode(search_param[2])
             table_names = table_map[field]
             param_result = set()
             for table_name in table_names:
-                if matching_rules[i] == 'exact':
-                    for row in self._db.select_matching_rows(table_name,
-                                                             [u'id'],
-                                                             match):
+                if search_param[0] == 'exact':
+                    for row in self._db.select_matching_rows(
+                            table_name, [u'id'], match):
                         result.add(row[u'id'])
-                else:
-                    raise bottle.HTTPError(status=400)
                 param_result.update(result)
             if results_added:
                 final_result.intersection_update(param_result)

@@ -109,30 +109,26 @@ class ListResource(object):
         return ro.get_item_ids()
 
     def get_matching_items(self, search_criteria):
-        '''Serve GET /foos/search to list all items matching
-        the search criteria.'''
+        '''Serve GET /foos/search to list all items matching search criteria.'''
         unifiedapi.log_request()
         ro = self._create_ro_storage()
 
-        matching_rules = []
-        search_fields = []
-        search_values = []
         criteria = search_criteria.split('/')
+        search_params = []
 
         for i in range(len(criteria)):
-            param = criteria[i]
             if i % 3 == 0:
-                matching_rules.append(param)
-                # if param not in [u'exact', u'startswith', u'contains']:
-                if param not in [u'exact']:
+                matching_rule = criteria[i]
+                if matching_rule not in [u'exact']:
                     raise bottle.HTTPError(status=400)
             elif i % 3 == 1:
-                search_fields.append(param)
-            else:
-                search_values.append(param)
+                search_field = criteria[i]
+            elif i % 3 == 2:
+                search_value = criteria[i]
+                search_param = (matching_rule, search_field, search_value)
+                search_params.append(search_param)
 
-        return ro.get_search_matches(matching_rules, search_fields,
-                                     search_values)
+        return ro.search(search_params)
 
     def post_item(self):
         '''Serve POST /foos to create a new item.'''

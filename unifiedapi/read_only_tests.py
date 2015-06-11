@@ -112,41 +112,33 @@ class ReadOnlyStorageTests(unittest.TestCase):
     def test_search_main_item(self):
         added = self.wo.add_item(self.item)
         new_id = added[u'id']
-        search_result = self.ro.get_search_matches(['exact'],
-                                                   [u'foo'],
-                                                   [u'foobar'])
-        self.assertIn(new_id, search_result[u'matches'][0][u'id'])
+        search_result = self.ro.search([(u'exact', u'foo', u'foobar')])
+        self.assertEqual(search_result, {u'resources': [{u'id': new_id}]})
 
     def test_search_main_list(self):
         added = self.wo.add_item(self.item)
         new_id = added[u'id']
-        search_result = self.ro.get_search_matches(['exact'],
-                                                   [u'bars'],
-                                                   [u'bar1'])
-        self.assertIn(new_id, search_result[u'matches'][0][u'id'])
+        search_result = self.ro.search([('exact', u'bars', u'bar1')])
+        self.assertIn(new_id, search_result[u'resources'][0][u'id'])
 
     def test_search_multiple_conditions(self):
         added = self.wo.add_item(self.item)
         new_id = added[u'id']
-        search_result = self.ro.get_search_matches(['exact', 'exact'],
-                                                   [u'foo', u'bars'],
-                                                   [u'foobar', u'bar1'])
-        self.assertIn(new_id, search_result[u'matches'][0][u'id'])
+        search_result = self.ro.search([(u'exact', u'foo', u'foobar'),
+                                        (u'exact', u'bars', u'bar1')])
+        self.assertIn(new_id, search_result[u'resources'][0][u'id'])
 
     def test_search_multiple_conditions_from_same_table(self):
         added = self.wo.add_item(self.item)
         new_id = added[u'id']
-        search_result = self.ro.get_search_matches(['exact', 'exact'],
-                                                   [u'foo', u'type'],
-                                                   [u'foobar', u'yo'])
-        self.assertIn(new_id, search_result[u'matches'][0][u'id'])
+        search_result = self.ro.search([(u'exact', u'foo', u'foobar'),
+                                        (u'exact', u'type', u'yo')])
+        self.assertIn(new_id, search_result[u'resources'][0][u'id'])
 
     def test_search_condition_with_multiple_targets(self):
         added = self.wo.add_item(self.item)
         new_id = added[u'id']
-        search_result = self.ro.get_search_matches(['exact', 'exact'],
-                                                   [u'bar'],
-                                                   [u'barbaz'])
-        match_list = search_result[u'matches']
+        search_result = self.ro.search([(u'exact', u'bar', u'barbaz')])
+        match_list = search_result[u'resources']
         self.assertIsNot(0, len(match_list))
         self.assertIn(new_id, match_list[0][u'id'])
