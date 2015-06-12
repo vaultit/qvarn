@@ -44,7 +44,13 @@ class ReadOnlyStorage(object):
         return item
 
     def search(self, search_params):
-        '''Do a search.'''
+        '''Do a search.
+
+        ``search_params`` is a list of (matching rule, key, value)
+        tuples. The returned rows are those that match all the
+        conditions in the list.
+
+        '''
 
         tsw = TableSearchWalker(self._db, self._item_type, self._prototype, {})
         tsw.walk_item(self._prototype, self._prototype)
