@@ -81,6 +81,7 @@ pylint --ignore bottle.py \
        --disable invalid-name \
        --disable too-many-public-methods \
        --disable too-few-public-methods \
+       --disable too-many-arguments \
        --disable unused-argument \
        --disable star-args \
        --disable no-self-use \

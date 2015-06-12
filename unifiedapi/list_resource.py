@@ -100,6 +100,11 @@ class ListResource(object):
                 'method': 'DELETE',
                 'callback': self.delete_item,
             },
+            {
+                'path': self._path + '/search/<search_criteria:path>',
+                'method': 'GET',
+                'callback': self.get_matching_items,
+            },
         ]
 
         subitem_paths = []
@@ -134,11 +139,32 @@ class ListResource(object):
             ],
         }
 
+    def get_matching_items(self, search_criteria):
+        '''Serve GET /foos/search to list items matching search criteria.'''
+        unifiedapi.log_request()
+        ro = self._create_ro_storage()
+
+        criteria = search_criteria.split('/')
+        search_params = []
+
+        for i in range(len(criteria)):
+            if i % 3 == 0:
+                matching_rule = criteria[i]
+                if matching_rule not in [u'exact']:
+                    raise bottle.HTTPError(status=400)
+            elif i % 3 == 1:
+                search_field = criteria[i]
+            elif i % 3 == 2:
+                search_value = criteria[i]
+                search_param = (matching_rule, search_field, search_value)
+                search_params.append(search_param)
+
+        return ro.search(search_params)
+
     def post_item(self):
         '''Serve POST /foos to create a new item.'''
         unifiedapi.log_request()
         item = bottle.request.json
-
         unifiedapi.add_missing_item_fields(
             self._item_type, self._item_prototype, item)
 

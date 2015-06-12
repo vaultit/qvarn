@@ -128,16 +128,18 @@ class WriteWalker(unifiedapi.ItemWalker):
 
     def visit_main_str_list(self, item, field):
         table_name = self._db.make_table_name(self._item_type, field)
-        self._insert_str_list(table_name, self._item_id, None, item[field])
+        self._insert_str_list(table_name, field, self._item_id, None,
+                              item[field])
 
-    def _insert_str_list(self, table_name, item_id, dict_list_pos, strings):
+    def _insert_str_list(self, table_name, column_name, item_id, dict_list_pos,
+                         strings):
         prefix = [(u'id', item_id)]
         if dict_list_pos is not None:
             prefix.append((u'dict_list_pos', dict_list_pos))
         for i, str_value in enumerate(strings):
             columns = prefix + [
                 (u'list_pos', i),
-                (u'value', str_value),
+                (column_name, str_value),
             ]
             self._db.insert(table_name, *columns)
 
@@ -155,7 +157,8 @@ class WriteWalker(unifiedapi.ItemWalker):
         table_name = self._db.make_table_name(
             self._item_type, field, str_list_field)
         strings = item[field][pos][str_list_field]
-        self._insert_str_list(table_name, self._item_id, pos, strings)
+        self._insert_str_list(table_name, str_list_field, self._item_id,
+                              pos, strings)
 
 
 class DeleteWalker(unifiedapi.ItemWalker):

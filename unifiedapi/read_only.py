@@ -57,6 +57,53 @@ class ReadOnlyStorage(object):
         rw.walk_item(subitem, prototype)
         return subitem
 
+    def search(self, search_params):
+        '''Do a search.
+
+        ``search_params`` is a list of (matching rule, key, value)
+        tuples. The returned rows are those that match all the
+        conditions in the list.
+
+        '''
+
+        tsw = TableSearchWalker(self._db, self._item_type, self._prototype, {})
+        tsw.walk_item(self._prototype, self._prototype)
+
+        result = self._do_search(search_params, tsw.table_map)
+
+        return {
+            u'resources': [
+                {u'id': resource_id} for resource_id in result
+                ],
+            }
+
+    def _do_search(self, search_params, table_map):
+
+        final_result = set()
+        results_added = False
+
+        for i in range(len(search_params)):
+            result = set()
+            search_param = search_params[i]
+            field = unicode(search_param[1])
+            match = {}
+            match[field] = unicode(search_param[2])
+            table_names = table_map[field]
+            param_result = set()
+            for table_name in table_names:
+                if search_param[0] == 'exact':
+                    for row in self._db.select_matching_rows(
+                            table_name, [u'id'], match):
+                        result.add(row[u'id'])
+                param_result.update(result)
+            if results_added:
+                final_result.intersection_update(param_result)
+            else:
+                final_result.update(param_result)
+            results_added = True
+
+        return final_result
+
 
 class ItemDoesNotExist(unifiedapi.BackendException):
 
@@ -95,11 +142,11 @@ class ReadWalker(unifiedapi.ItemWalker):
 
     def visit_main_str_list(self, item, field):
         table_name = self._db.make_table_name(self._item_type, field)
-        item[field] = self._get_str_list(table_name, self._item_id)
+        item[field] = self._get_str_list(table_name, field, self._item_id)
 
-    def _get_str_list(self, table_name, item_id):
-        rows = self._get_list(table_name, item_id, [u'value'])
-        return [row[u'value'] for row in rows]
+    def _get_str_list(self, table_name, column_name, item_id):
+        rows = self._get_list(table_name, item_id, [column_name])
+        return [row[column_name] for row in rows]
 
     def _get_list(self, table_name, item_id, column_names):
         match = {
@@ -135,8 +182,67 @@ class ReadWalker(unifiedapi.ItemWalker):
             u'dict_list_pos': unicode(pos),
         }
         rows = self._db.select_matching_rows(
-            table_name, [u'list_pos', u'value'], match)
+            table_name, [u'list_pos', str_list_field], match)
 
         in_order = self._sort_rows(rows)
-        result = [row['value'] for row in in_order]
+        result = [row[str_list_field] for row in in_order]
         item[field][pos][str_list_field] = result
+
+
+class TableSearchWalker(unifiedapi.ItemWalker):
+
+    '''Visit every part of an item to find the correct parent item
+    for a selected item.'''
+
+    def __init__(self, db, item_type, proto_type, table_map):
+        self._db = db
+        self._item_type = item_type
+        self._proto_type = proto_type
+        self.table_map = table_map
+
+    def visit_main_dict(self, item, column_names):
+        for name in column_names:
+            if name in self.table_map:
+                table_set = self.table_map[name]  # pragma: no cover
+            else:
+                table_set = set()
+                self.table_map[name] = table_set
+
+            table_set.add(self._item_type)
+
+    def visit_main_str_list(self, item, field):
+        if field in self.table_map:
+            table_set = self.table_map[field]  # pragma: no cover
+        else:
+            table_set = set()
+            self.table_map[field] = table_set
+
+        table_set.add(self._db.make_table_name(self._item_type, field))
+
+    def visit_main_dict_list(self, item, field, column_names):
+        for name in column_names:
+            if name in self.table_map:
+                table_set = self.table_map[name]
+            else:
+                table_set = set()
+                self.table_map[name] = table_set
+            table_set.add(self._db.make_table_name(self._item_type, field))
+
+    def visit_dict_in_list(self, item, field, pos, column_names):
+        for name in column_names:
+            if name in self.table_map:
+                table_set = self.table_map[name]
+            else:
+                table_set = set()  # pragma: no cover
+                self.table_map[name] = table_set  # pragma: no cover
+            table_set.add(self._db.make_table_name(self._item_type, field))
+
+    def visit_dict_in_list_str_list(self, item, field, pos, str_list_field):
+        if str_list_field in self.table_map:
+            table_set = self.table_map[str_list_field]
+        else:
+            table_set = set()
+            self.table_map[str_list_field] = table_set
+
+        table_set.add(self._db.make_table_name(self._item_type, field,
+                                               str_list_field))

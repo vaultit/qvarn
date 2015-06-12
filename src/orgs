@@ -59,10 +59,10 @@ class CreateOrgsTables_v1(unifiedapi.StoragePreparationStep):
             u'org_names',
             (u'id', unicode),
             (u'list_pos', int),
-            (u'value', unicode))
+            (u'names', unicode))
 
         db.create_table(
-            u'org_gov_org_ids',
+            u'org_gov-org-ids',
             (u'id', unicode),
             (u'list_pos', int),
             (u'country', unicode),
@@ -84,11 +84,11 @@ class CreateOrgsTables_v1(unifiedapi.StoragePreparationStep):
             (u'post_area', unicode))
 
         db.create_table(
-            u'org_contacts_address_lines',
-            (u'id', int),
+            u'org_contacts_address-lines',
+            (u'id', unicode),
             (u'dict_list_pos', int),
             (u'list_pos', int),
-            (u'value', unicode))
+            (u'address-lines', unicode))
 
         db.create_table(
             u'org_sync',
