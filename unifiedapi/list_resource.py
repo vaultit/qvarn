@@ -109,7 +109,7 @@ class ListResource(object):
         return ro.get_item_ids()
 
     def get_matching_items(self, search_criteria):
-        '''Serve GET /foos/search to list all items matching search criteria.'''
+        '''Serve GET /foos/search to list items matching search criteria.'''
         unifiedapi.log_request()
         ro = self._create_ro_storage()
 
