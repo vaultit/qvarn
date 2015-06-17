@@ -56,8 +56,8 @@ Integration tests
 -----------------
 
 The API document contains integration tests ("yarns"). These are run
-from the `dev-team-docs/unified-api-doc` directory. These can be run
-manually:
+from the `dev-team-docs.git` repository's `unified-api-doc` directory.
+These can be run manually:
 
 * Start one of the backend applications, such as `src/persons`:
 
@@ -66,15 +66,10 @@ manually:
 
 * Run the relevant scenario for that backend application:
 
-        yarn -s yarn.sh --env API_URL=http://localhost:12765 \
-            <(sed '/^ *EXAMPLE/,/^ *$/d' *.yarn) \
-            --run "manage a person" -v
+        ./test-api http://127.0.0.1:12765 --run "manage a person" -v
 
     where `manage a person` is the scenario for testing `/persons` in
-    the API.
-
-(Someone should write a shell script to wrap the above yarn invocation
-so it's easier to run.)
+    the API. See the yarn files for other scenarios.
 
 
 Writing unit tests
