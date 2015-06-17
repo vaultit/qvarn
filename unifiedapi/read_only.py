@@ -57,17 +57,28 @@ class ReadOnlyStorage(object):
         rw.walk_item(subitem, prototype)
         return subitem
 
-    def search(self, search_params):
+    def search(self, search_params, show_params):
         '''Do a search.
 
         ``search_params`` is a list of (matching rule, key, value)
         tuples. The returned rows are those that match all the
         conditions in the list.
+        ``show_params`` is a list containing key fields included
+        in the result object. If it contains a single ``show_all``
+        string, all fields are returned.
 
         '''
 
         tsw = TableSearchWalker(self._db, self._item_type, self._prototype, {})
         tsw.walk_item(self._prototype, self._prototype)
+
+        subprotos = self._subitem_prototypes.get_all()
+        for subitem in subprotos:
+            subproto = subitem[1]
+            tsw = TableSearchWalker(
+                self._db, '_'.join([self._item_type, subitem[0]]),
+                subproto, tsw.table_map)
+            tsw.walk_item(subproto, subproto)
 
         result = self._do_search(search_params, tsw.table_map)
 
@@ -207,7 +218,6 @@ class TableSearchWalker(unifiedapi.ItemWalker):
             else:
                 table_set = set()
                 self.table_map[name] = table_set
-
             table_set.add(self._item_type)
 
     def visit_main_str_list(self, item, field):
@@ -216,7 +226,6 @@ class TableSearchWalker(unifiedapi.ItemWalker):
         else:
             table_set = set()
             self.table_map[field] = table_set
-
         table_set.add(self._db.make_table_name(self._item_type, field))
 
     def visit_main_dict_list(self, item, field, column_names):
@@ -243,6 +252,5 @@ class TableSearchWalker(unifiedapi.ItemWalker):
         else:
             table_set = set()
             self.table_map[str_list_field] = table_set
-
         table_set.add(self._db.make_table_name(self._item_type, field,
                                                str_list_field))
