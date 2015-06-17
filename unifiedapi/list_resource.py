@@ -146,11 +146,16 @@ class ListResource(object):
 
         criteria = search_criteria.split('/')
         search_params = []
+        show_params = []
 
         for i in range(len(criteria)):
             if i % 3 == 0:
-                matching_rule = criteria[i]
-                if matching_rule not in [u'exact']:
+                if criteria[i] in [u'exact']:
+                    matching_rule = criteria[i]
+                elif criteria[i] == u'show_all':
+                    show_params.append(criteria[i])
+                    break
+                else:
                     raise bottle.HTTPError(status=400)
             elif i % 3 == 1:
                 search_field = criteria[i]
@@ -159,7 +164,7 @@ class ListResource(object):
                 search_param = (matching_rule, search_field, search_value)
                 search_params.append(search_param)
 
-        return ro.search(search_params)
+        return ro.search(search_params, show_params)
 
     def post_item(self):
         '''Serve POST /foos to create a new item.'''
