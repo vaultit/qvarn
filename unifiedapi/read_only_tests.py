@@ -131,7 +131,7 @@ class ReadOnlyStorageTests(unittest.TestCase):
     def test_search_main_item(self):
         added = self.wo.add_item(self.item)
         new_id = added[u'id']
-        search_result = self.ro.search([(u'exact', u'foo', u'foobar')], {})
+        search_result = self.ro.search([(u'exact', u'foo', u'foobar')], [])
         self.assertEqual(search_result, {u'resources': [{u'id': new_id}]})
 
     def test_search_main_list(self):
@@ -144,14 +144,14 @@ class ReadOnlyStorageTests(unittest.TestCase):
         added = self.wo.add_item(self.item)
         new_id = added[u'id']
         search_result = self.ro.search([(u'exact', u'foo', u'foobar'),
-                                        (u'exact', u'bars', u'bar1')], {})
+                                        (u'exact', u'bars', u'bar1')], [])
         self.assertIn(new_id, search_result[u'resources'][0][u'id'])
 
     def test_search_multiple_conditions_from_same_table(self):
         added = self.wo.add_item(self.item)
         new_id = added[u'id']
         search_result = self.ro.search([(u'exact', u'foo', u'foobar'),
-                                        (u'exact', u'type', u'yo')], {})
+                                        (u'exact', u'type', u'yo')], [])
         self.assertIn(new_id, search_result[u'resources'][0][u'id'])
 
     def test_search_condition_with_multiple_targets(self):
