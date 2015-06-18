@@ -157,7 +157,16 @@ class ReadOnlyStorageTests(unittest.TestCase):
     def test_search_condition_with_multiple_targets(self):
         added = self.wo.add_item(self.item)
         new_id = added[u'id']
-        search_result = self.ro.search([(u'exact', u'bar', u'barbaz')], {})
+        search_result = self.ro.search([(u'exact', u'bar', u'barbaz')], [])
         match_list = search_result[u'resources']
         self.assertIsNot(0, len(match_list))
         self.assertIn(new_id, match_list[0][u'id'])
+
+    def test_search_with_show_all(self):
+        added = self.wo.add_item(self.item)
+        new_id = added[u'id']
+        search_result = self.ro.search(
+            [(u'exact', u'foo', u'foobar')], [u'show_all'])
+        match_list = search_result[u'resources']
+        self.assertIn(new_id, match_list[0][u'id'])
+        self.assertIn(u'barbaz', match_list[0][u'bar'])

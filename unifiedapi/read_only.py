@@ -81,10 +81,17 @@ class ReadOnlyStorage(object):
             tsw.walk_item(subproto, subproto)
 
         result = self._do_search(search_params, tsw.table_map)
-
-        return {
-            u'resources': [
-                {u'id': resource_id} for resource_id in result
+        if len(show_params) > 0:
+            if u'show_all' in show_params:
+                return {
+                    u'resources': [
+                        self.get_item(resource_id) for resource_id in result
+                    ],
+                }
+        else:
+            return {
+                u'resources': [
+                    {u'id': resource_id} for resource_id in result
                 ],
             }
 
