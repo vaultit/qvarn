@@ -14,6 +14,7 @@ class WriteOnlyStorageTests(unittest.TestCase):
     prototype = {
         u'type': u'',
         u'id': u'',
+        u'revision': u'',
         u'name': u'',
         u'aliases': [u''],
         u'addrs': [
@@ -51,6 +52,7 @@ class WriteOnlyStorageTests(unittest.TestCase):
             u'person',
             (u'type', unicode),
             (u'id', unicode),
+            (u'revision', unicode),
             (u'name', unicode))
         db.create_table(
             u'person_aliases',
@@ -92,19 +94,23 @@ class WriteOnlyStorageTests(unittest.TestCase):
         self.ro.set_subitem_prototype(
             self.person[u'type'], self.subitem_name, self.subitem_prototype)
 
-    def test_adds_item_and_invents_id(self):
+    def test_adds_item_and_invents_id_and_revision(self):
         added = self.wo.add_item(self.person)
 
         self.assertIn('id', added)
         self.assertEqual(type(added[u'id']), unicode)
 
+        self.assertIn('revision', added)
+        self.assertEqual(type(added[u'revision']), unicode)
+
         self.assertEqual(
-            sorted(self.person.keys() + [u'id']),
+            sorted(self.person.keys() + [u'id', u'revision']),
             sorted(added.keys()))
 
         self.assertEqual(
             sorted(self.person.items()),
-            sorted((k, v) for k, v in added.items() if k != u'id'))
+            sorted((k, v) for k, v in added.items()
+                   if k not in [u'id', u'revision']))
 
         obj = self.get_item_from_disk(added)
         self.assertEqual(added, obj)
@@ -121,6 +127,12 @@ class WriteOnlyStorageTests(unittest.TestCase):
         with_id = dict(self.person)
         with_id[u'id'] = u'abc'
         with self.assertRaises(unifiedapi.CannotAddWithId):
+            self.wo.add_item(with_id)
+
+    def test_refuses_to_add_item_with_revision(self):
+        with_id = dict(self.person)
+        with_id[u'revision'] = u'abc'
+        with self.assertRaises(unifiedapi.CannotAddWithRevision):
             self.wo.add_item(with_id)
 
     def test_updates_item(self):

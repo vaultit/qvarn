@@ -14,6 +14,7 @@ class ReadOnlyStorageTests(unittest.TestCase):
     prototype = {
         u'type': u'',
         u'id': u'',
+        u'revision': u'',
         u'foo': u'',
         u'bar': u'',
         u'bars': [u''],
@@ -53,6 +54,7 @@ class ReadOnlyStorageTests(unittest.TestCase):
             u'yo',
             (u'type', unicode),
             (u'id', unicode),
+            (u'revision', unicode),
             (u'foo', unicode),
             (u'bar', unicode))
         db.create_table(

@@ -4,6 +4,8 @@
 # All rights reserved.
 
 
+import random
+
 import unifiedapi
 
 
@@ -59,9 +61,12 @@ class WriteOnlyStorage(object):
 
         if u'id' in item:
             raise CannotAddWithId(id=item[u'id'])
+        if u'revision' in item:
+            raise CannotAddWithRevision(revision=item[u'revision'])
 
         added = dict(item)
         added[u'id'] = self._resource_id_generator.new_id(self._item_type)
+        added[u'revision'] = unicode(random.randint(0, 1024))  # FIXME
 
         self.update_item(added)
         for subitem_name, prototype in self._subitem_prototypes.get_all():
@@ -109,6 +114,11 @@ class WriteOnlyStorage(object):
 class CannotAddWithId(unifiedapi.BackendException):
 
     msg = "Object being added already has an id ({id})"
+
+
+class CannotAddWithRevision(unifiedapi.BackendException):
+
+    msg = "Object being added already has a revision ({revision})"
 
 
 class WriteWalker(unifiedapi.ItemWalker):
