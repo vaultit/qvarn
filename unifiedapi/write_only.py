@@ -68,10 +68,16 @@ class WriteOnlyStorage(object):
         added[u'id'] = self._resource_id_generator.new_id(self._item_type)
         added[u'revision'] = unicode(random.randint(0, 1024))  # FIXME
 
-        self.update_item(added)
+        self._insert_into_database(added)
         for subitem_name, prototype in self._subitem_prototypes.get_all():
             self.update_subitem(added[u'id'], subitem_name, prototype)
         return added
+
+    def _insert_into_database(self, item):
+        ww = WriteWalker(self._db, self._item_type, item[u'id'])
+        with self._db:
+            self._delete_item_in_transaction(item[u'id'])
+            ww.walk_item(item, self._prototype)
 
     def update_item(self, item):
         '''Update an existing item.
@@ -80,10 +86,10 @@ class WriteOnlyStorage(object):
 
         '''
 
-        ww = WriteWalker(self._db, self._item_type, item[u'id'])
-        with self._db:
-            self._delete_item_in_transaction(item[u'id'])
-            ww.walk_item(item, self._prototype)
+        updated = item.copy()
+        updated[u'revision'] = unicode(random.randint(0, 1024))  # FIXME
+        self._insert_into_database(updated)
+        return updated
 
     def update_subitem(self, item_id, subitem_name, subitem):
         prototype = self._subitem_prototypes.get(self._item_type, subitem_name)

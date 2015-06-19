@@ -139,9 +139,10 @@ class WriteOnlyStorageTests(unittest.TestCase):
         added = self.wo.add_item(self.person)
         person_v2 = dict(added)
         person_v2[u'name'] = u'Bruce Wayne'
-        self.wo.update_item(person_v2)
+        updated = self.wo.update_item(person_v2)
+        self.assertNotEqual(added[u'revision'], updated[u'revision'])
         obj = self.get_item_from_disk(added)
-        self.assertEqual(person_v2, obj)
+        self.assertEqual(updated, obj)
 
     def test_deletes_item(self):
         added = self.wo.add_item(self.person)
