@@ -4,8 +4,6 @@
 # All rights reserved.
 
 
-import random
-
 import unifiedapi
 
 
@@ -25,7 +23,8 @@ class WriteOnlyStorage(object):
         self._item_type = None
         self._prototype = None
         self._subitem_prototypes = unifiedapi.SubItemPrototypes()
-        self._resource_id_generator = unifiedapi.ResourceIdGenerator()
+        self._id_generator = unifiedapi.ResourceIdGenerator()
+        self._revision_id_type = 'revision id'
 
     def set_db(self, db):
         '''Set the database instance being used.'''
@@ -65,8 +64,8 @@ class WriteOnlyStorage(object):
             raise CannotAddWithRevision(revision=item[u'revision'])
 
         added = dict(item)
-        added[u'id'] = self._resource_id_generator.new_id(self._item_type)
-        added[u'revision'] = unicode(random.randint(0, 1024))  # FIXME
+        added[u'id'] = self._id_generator.new_id(self._item_type)
+        added[u'revision'] = self._id_generator.new_id(self._revision_id_type)
 
         with self._db:
             self._insert_item_into_database(added)
@@ -103,7 +102,8 @@ class WriteOnlyStorage(object):
                     update=item[u'revision'])
 
             updated = item.copy()
-            updated[u'revision'] = unicode(random.randint(0, 1024))  # FIXME
+            updated[u'revision'] = self._id_generator.new_id(
+                self._revision_id_type)
             self._insert_item_into_database(updated)
         return updated
 
@@ -125,7 +125,8 @@ class WriteOnlyStorage(object):
                     current=item[u'revision'],
                     update=revision)
             updated = item.copy()
-            updated[u'revision'] = unicode(random.randint(0, 1024))  # FIXME
+            updated[u'revision'] = self._id_generator.new_id(
+                self._revision_id_type)
             self._insert_item_into_database(updated)
             self._insert_subitem_into_database(item_id, subitem_name, subitem)
             return updated[u'revision']
