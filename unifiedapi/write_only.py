@@ -128,6 +128,7 @@ class WriteOnlyStorage(object):
             updated[u'revision'] = unicode(random.randint(0, 1024))  # FIXME
             self._insert_item_into_database(updated)
             self._insert_subitem_into_database(item_id, subitem_name, subitem)
+            return updated[u'revision']
 
     def _get_item(self, item_id):
         ro = unifiedapi.ReadOnlyStorage()
