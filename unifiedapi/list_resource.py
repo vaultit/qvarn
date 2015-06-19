@@ -261,13 +261,16 @@ class ListResource(object):
 
         iv = unifiedapi.ItemValidator()
         try:
+            if u'revision' not in subitem:
+                raise NoSubitemRevision(item_id=item_id)
+            revision = subitem.pop(u'revision')
             iv.validate_item(subitem_type, prototype, subitem)
         except unifiedapi.ValidationError as e:
             logging.error(u'Validation error: %s', e)
             raise bottle.HTTPError(status=400)
 
         wo = self._create_wo_storage()
-        wo.update_subitem(item_id, subitem_name, subitem)
+        wo.update_subitem(item_id, revision, subitem_name, subitem)
         return subitem
 
     def delete_item(self, item_id):
@@ -312,3 +315,8 @@ class NewItemHasIdAlready(unifiedapi.ValidationError):
 class ItemHasConflictingId(unifiedapi.ValidationError):
 
     msg = u'Updated item {wanted} has conflicting id {id}'
+
+
+class NoSubitemRevision(unifiedapi.ValidationError):
+
+    msg = u'Sub-item for {id} has no revision'

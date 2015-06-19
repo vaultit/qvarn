@@ -98,7 +98,9 @@ class WriteOnlyStorage(object):
             current = self._get_current_revision(item[u'id'])
             if current != item[u'revision']:
                 raise unifiedapi.WrongRevision(
-                    current=current, update=item[u'revision'])
+                    item_id=item[u'id'],
+                    current=current,
+                    update=item[u'revision'])
 
             updated = item.copy()
             updated[u'revision'] = unicode(random.randint(0, 1024))  # FIXME
@@ -114,9 +116,26 @@ class WriteOnlyStorage(object):
         for row in rows:
             return row[u'revision']
 
-    def update_subitem(self, item_id, subitem_name, subitem):
+    def update_subitem(self, item_id, revision, subitem_name, subitem):
         with self._db:
+            item = self._get_item(item_id)
+            if item[u'revision'] != revision:
+                raise unifiedapi.WrongRevision(
+                    item_id=item_id,
+                    current=item[u'revision'],
+                    update=revision)
+            updated = item.copy()
+            updated[u'revision'] = unicode(random.randint(0, 1024))  # FIXME
+            self._insert_item_into_database(updated)
             self._insert_subitem_into_database(item_id, subitem_name, subitem)
+
+    def _get_item(self, item_id):
+        ro = unifiedapi.ReadOnlyStorage()
+        ro.set_db(self._db)
+        ro.set_item_prototype(self._item_type, self._prototype)
+        for subitem_name, prototype in self._subitem_prototypes.get_all():
+            ro.set_subitem_prototype(self._item_type, subitem_name, prototype)
+        return ro.get_item(item_id)
 
     def delete_item(self, item_id):
         '''Delete an item given its id.'''
@@ -149,7 +168,7 @@ class CannotAddWithRevision(unifiedapi.BackendException):
 class WrongRevision(unifiedapi.BackendException):
 
     msg = (
-        "Object being updated has revision {current}, "
+        "Object being updated ({item_id}) has revision {current}, "
         "but update refers to ({update})")
 
 

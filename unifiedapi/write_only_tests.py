@@ -173,6 +173,20 @@ class WriteOnlyStorageTests(unittest.TestCase):
         subitem = {
             u'secret_identity': u'Peter Parker',
         }
-        self.wo.update_subitem(added[u'id'], self.subitem_name, subitem)
-        updated_subitem = self.ro.get_subitem(added[u'id'], self.subitem_name)
-        self.assertEqual(subitem, updated_subitem)
+        self.wo.update_subitem(
+            added[u'id'], added[u'revision'], self.subitem_name, subitem)
+        self.ro.get_subitem(added[u'id'], self.subitem_name)
+        updated_item = self.ro.get_item(added[u'id'])
+        self.assertNotEqual(updated_item[u'revision'], added[u'revision'])
+
+    def test_refuses_to_update_subitem_without_correct_revision(self):
+        added = self.wo.add_item(self.person)
+        subitem = {
+            u'secret_identity': u'Peter Parker',
+        }
+        with self.assertRaises(unifiedapi.WrongRevision):
+            self.wo.update_subitem(
+                added[u'id'], 'wrong-revision', self.subitem_name, subitem)
+
+        item = self.ro.get_item(added[u'id'])
+        self.assertEqual(item, added)
