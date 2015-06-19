@@ -12,6 +12,7 @@ import unifiedapi
 person_prototype = {
     u'type': u'',
     u'id': u'',
+    u'revision': u'',
     u'names': [
         {
             u'full_name': u'',
@@ -68,7 +69,8 @@ class CreatePersonsTables_v1(unifiedapi.StoragePreparationStep):
         db.create_table(
             u'person',
             (u'type', unicode),
-            (u'id', unicode))
+            (u'id', unicode),
+            (u'revision', unicode))
 
         db.create_table(
             u'person_names',
