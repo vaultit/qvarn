@@ -68,16 +68,24 @@ class WriteOnlyStorage(object):
         added[u'id'] = self._resource_id_generator.new_id(self._item_type)
         added[u'revision'] = unicode(random.randint(0, 1024))  # FIXME
 
-        self._insert_into_database(added)
-        for subitem_name, prototype in self._subitem_prototypes.get_all():
-            self.update_subitem(added[u'id'], subitem_name, prototype)
+        with self._db:
+            self._insert_item_into_database(added)
+            for subitem_name, prototype in self._subitem_prototypes.get_all():
+                self._insert_subitem_into_database(
+                    added[u'id'], subitem_name, prototype)
         return added
 
-    def _insert_into_database(self, item):
+    def _insert_item_into_database(self, item):
         ww = WriteWalker(self._db, self._item_type, item[u'id'])
-        with self._db:
-            self._delete_item_in_transaction(item[u'id'])
-            ww.walk_item(item, self._prototype)
+        self._delete_item_in_transaction(item[u'id'])
+        ww.walk_item(item, self._prototype)
+
+    def _insert_subitem_into_database(self, item_id, subitem_name, subitem):
+        prototype = self._subitem_prototypes.get(self._item_type, subitem_name)
+        table_name = u'%s_%s' % (self._item_type, subitem_name)
+        ww = WriteWalker(self._db, table_name, item_id)
+        self._delete_subitem_in_transaction(item_id, subitem_name)
+        ww.walk_item(subitem, prototype)
 
     def update_item(self, item):
         '''Update an existing item.
@@ -86,18 +94,29 @@ class WriteOnlyStorage(object):
 
         '''
 
-        updated = item.copy()
-        updated[u'revision'] = unicode(random.randint(0, 1024))  # FIXME
-        self._insert_into_database(updated)
+        with self._db:
+            current = self._get_current_revision(item[u'id'])
+            if current != item[u'revision']:
+                raise unifiedapi.WrongRevision(
+                    current=current, update=item[u'revision'])
+
+            updated = item.copy()
+            updated[u'revision'] = unicode(random.randint(0, 1024))  # FIXME
+            self._insert_item_into_database(updated)
         return updated
 
+    def _get_current_revision(self, item_id):
+        table_name = self._item_type
+        column_names = [u'revision']
+        match_columns = {u'id': item_id}
+        rows = self._db.select_matching_rows(
+            table_name, column_names, match_columns)
+        for row in rows:
+            return row[u'revision']
+
     def update_subitem(self, item_id, subitem_name, subitem):
-        prototype = self._subitem_prototypes.get(self._item_type, subitem_name)
-        table_name = u'%s_%s' % (self._item_type, subitem_name)
-        ww = WriteWalker(self._db, table_name, item_id)
         with self._db:
-            self._delete_subitem_in_transaction(item_id, subitem_name)
-            ww.walk_item(subitem, prototype)
+            self._insert_subitem_into_database(item_id, subitem_name, subitem)
 
     def delete_item(self, item_id):
         '''Delete an item given its id.'''
@@ -125,6 +144,13 @@ class CannotAddWithId(unifiedapi.BackendException):
 class CannotAddWithRevision(unifiedapi.BackendException):
 
     msg = "Object being added already has a revision ({revision})"
+
+
+class WrongRevision(unifiedapi.BackendException):
+
+    msg = (
+        "Object being updated has revision {current}, "
+        "but update refers to ({update})")
 
 
 class WriteWalker(unifiedapi.ItemWalker):

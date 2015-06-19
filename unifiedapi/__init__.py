@@ -12,7 +12,8 @@ from .storage_prep_step import StoragePreparationStep
 from .storage_prep import StoragePreparer
 from .subitem_protos import SubItemPrototypes
 from .write_only import (
-    WriteOnlyStorage, CannotAddWithId, CannotAddWithRevision)
+    WriteOnlyStorage, CannotAddWithId, CannotAddWithRevision,
+    WrongRevision)
 from .read_only import ReadOnlyStorage, ItemDoesNotExist
 from .backend_app import BackendApplication
 from .filler import add_missing_item_fields

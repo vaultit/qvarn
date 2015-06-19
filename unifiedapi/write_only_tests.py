@@ -144,6 +144,18 @@ class WriteOnlyStorageTests(unittest.TestCase):
         obj = self.get_item_from_disk(added)
         self.assertEqual(updated, obj)
 
+    def test_refuses_to_update_item_with_wrong_revision(self):
+        added = self.wo.add_item(self.person)
+        person_v2 = dict(added)
+        person_v2[u'name'] = u'Bruce Wayne'
+        person_v2[u'revision'] = 'this-is-not-the-latest-revision'
+
+        with self.assertRaises(unifiedapi.WrongRevision):
+            self.wo.update_item(person_v2)
+
+        obj = self.get_item_from_disk(added)
+        self.assertEqual(added, obj)
+
     def test_deletes_item(self):
         added = self.wo.add_item(self.person)
         self.wo.delete_item(added[u'id'])
