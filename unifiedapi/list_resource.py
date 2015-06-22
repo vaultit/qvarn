@@ -177,6 +177,7 @@ class ListResource(object):
         try:
             iv.validate_item(self._item_type, self._item_prototype, item)
             self._validate_no_id_given(item)
+            self._validate_no_revision_given(item)
             self._item_validator(item)
         except unifiedapi.ValidationError as e:
             logging.error(u'Validation error: %s', e)
@@ -193,6 +194,15 @@ class ListResource(object):
             # Filling in default values sets the id field to None, if
             # missing. Thus we accept that and just remove it here.
             del item[u'id']
+
+    def _validate_no_revision_given(self, item):
+        if u'revision' in item:
+            if item[u'revision'] is not None:
+                raise NewItemHasRevisionAlready(revision=item[u'revision'])
+
+            # Filling in default values sets the revision field to None, if
+            # missing. Thus we accept that and just remove it here.
+            del item[u'revision']
 
     def get_item(self, item_id):
         '''Serve GET /foos/123 to get an existing item.'''
@@ -215,10 +225,14 @@ class ListResource(object):
         ro = self._create_ro_storage()
         item_id = self._get_path_arg_as_unicode(item_id)
         try:
-            return ro.get_subitem(item_id, subitem_path)
+            subitem = ro.get_subitem(item_id, subitem_path)
         except unifiedapi.ItemDoesNotExist as e:
             logging.error(str(e), exc_info=True)
             raise bottle.HTTPError(status=404)
+
+        item = ro.get_item(item_id)
+        subitem[u'revision'] = item[u'revision']
+        return subitem
 
     def put_item(self, item_id):
         '''Serve PUT /foos/123 to update an item.'''
@@ -240,9 +254,14 @@ class ListResource(object):
             logging.error(u'Validation error: %s', e)
             raise bottle.HTTPError(status=400)
 
-        wo = self._create_wo_storage()
-        wo.update_item(item)
-        return item
+        try:
+            wo = self._create_wo_storage()
+            updated = wo.update_item(item)
+        except unifiedapi.WrongRevision as e:
+            logging.error(u'Validation error: %s', e)
+            raise bottle.HTTPError(status=409)
+
+        return updated
 
     def _validate_id_is_valid_if_given(self, item, item_id):
         if item[u'id'] not in (None, item_id):
@@ -261,13 +280,24 @@ class ListResource(object):
 
         iv = unifiedapi.ItemValidator()
         try:
+            if u'revision' not in subitem:
+                raise NoSubitemRevision(id=item_id)
+            revision = subitem.pop(u'revision')
             iv.validate_item(subitem_type, prototype, subitem)
+        except NoSubitemRevision as e:
+            logging.error(u'Validation error: %s', e)
+            raise bottle.HTTPError(status=409)
         except unifiedapi.ValidationError as e:
             logging.error(u'Validation error: %s', e)
             raise bottle.HTTPError(status=400)
 
-        wo = self._create_wo_storage()
-        wo.update_subitem(item_id, subitem_name, subitem)
+        try:
+            wo = self._create_wo_storage()
+            subitem[u'revision'] = wo.update_subitem(
+                item_id, revision, subitem_name, subitem)
+        except unifiedapi.WrongRevision as e:
+            logging.error(u'Validation error: %s', e)
+            raise bottle.HTTPError(status=409)
         return subitem
 
     def delete_item(self, item_id):
@@ -309,6 +339,18 @@ class NewItemHasIdAlready(unifiedapi.ValidationError):
     msg = u'New item has id already set ({id!r}), which is not allowed'
 
 
+class NewItemHasRevisionAlready(unifiedapi.ValidationError):
+
+    msg = (
+        u'New item has revision already set ({revision!r}), '
+        u'which is not allowed')
+
+
 class ItemHasConflictingId(unifiedapi.ValidationError):
 
     msg = u'Updated item {wanted} has conflicting id {id}'
+
+
+class NoSubitemRevision(unifiedapi.ValidationError):
+
+    msg = u'Sub-item for {id} has no revision'
