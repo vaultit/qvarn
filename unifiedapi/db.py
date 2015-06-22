@@ -47,7 +47,13 @@ class Database(object):
     '''
 
     def __init__(self, url):
-        self._conn = sqlite3.connect(url, isolation_level="IMMEDIATE")
+        self._conn = sqlite3.connect(
+            url,
+            isolation_level="IMMEDIATE",
+            detect_types=sqlite3.PARSE_DECLTYPES
+        )
+        sqlite3.register_adapter(bool, int)
+        sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
         self._conn.row_factory = sqlite3.Row
         self._in_transaction = False
 
