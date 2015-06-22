@@ -46,6 +46,27 @@ org_sync_prototype = {
 }
 
 
+listener_prototype = {
+    u'type': u'',
+    u'id': u'',
+    u'revision': u'',
+    u'notify_of_new': False,
+    u'listen_on': [u'']
+}
+
+
+notification_prototype = {
+    u'type': u'',
+    u'id': u'',
+    u'listener_id': u'',
+    u'revision': u'',
+    u'resource_id': u'',
+    u'resource_revision': u'',
+    u'resource_change': u'',
+    u'last_modified': 0
+}
+
+
 class CreateOrgsTables_v1(unifiedapi.StoragePreparationStep):
 
     def run(self, db):
@@ -98,6 +119,30 @@ class CreateOrgsTables_v1(unifiedapi.StoragePreparationStep):
             (u'sync_id', unicode),
             (u'sync_revision', unicode))
 
+        db.create_table(
+            u'listener',
+            (u'type', unicode),
+            (u'id', unicode),
+            (u'revision', unicode),
+            (u'notify_of_new', bool))
+
+        db.create_table(
+            u'listener_listen_on',
+            (u'id', unicode),
+            (u'list_pos', int),
+            (u'listen_on', unicode))
+
+        db.create_table(
+            u'notification',
+            (u'type', unicode),
+            (u'id', unicode),
+            (u'listener_id', unicode),
+            (u'revision', unicode),
+            (u'resource_id', unicode),
+            (u'resource_revision', unicode),
+            (u'resource_change', unicode),
+            (u'last_modified', int))
+
 
 class NamelessOrg(unifiedapi.ValidationError):
 
@@ -119,6 +164,8 @@ if __name__ == '__main__':
     resource.set_item_prototype(org_prototype)
     resource.set_item_validator(validate_org)
     resource.set_subitem_prototype(u'sync', org_sync_prototype)
+    resource.set_listener_prototype(listener_prototype)
+    resource.set_notification_prototype(notification_prototype)
     resource.set_storage_preparer(prep)
 
     app = unifiedapi.BackendApplication()
