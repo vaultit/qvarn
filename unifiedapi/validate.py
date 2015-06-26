@@ -37,7 +37,7 @@ class ItemValidator(object):
         '''Validate an item.
 
         If there is any problem, a subclass of the
-        ``ValidatationError`` exception is raised. Otherwise, no value
+        ``ValidationError`` exception is raised. Otherwise, no value
         is returned.
 
         '''

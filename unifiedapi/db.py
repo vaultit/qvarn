@@ -84,6 +84,7 @@ class Database(object):
         assert self._in_transaction
 
         type_name = {
+            buffer: u'BLOB',
             int: u'INTEGER',
             unicode: u'TEXT',
             bool: u'BOOLEAN',
@@ -115,7 +116,7 @@ class Database(object):
         assert self._in_transaction
 
         for name, value in columns:
-            assert value is None or type(value) in (unicode, int, bool)
+            assert value is None or type(value) in (unicode, int, bool, buffer)
 
         values = {}
         for name, value in columns:
