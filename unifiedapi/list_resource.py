@@ -538,8 +538,8 @@ class ListResource(object):
         '''
         ro = self._create_resource_ro_storage(
             u'listener', self._listener_prototype)
-        # TODO 1 is for sqlite (True). Change to True when handled in db.
-        listener_resources = ro.search([(u'exact', u'notify_of_new', 1)], [])
+        listener_resources = ro.search(
+            [(u'exact', u'notify_of_new', True)], [])
 
         wo = self._create_resource_wo_storage(
             u'notification', self._notification_prototype)

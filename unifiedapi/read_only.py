@@ -105,7 +105,7 @@ class ReadOnlyStorage(object):
             search_param = search_params[i]
             field = unicode(search_param[1])
             match = {}
-            match[field] = unicode(search_param[2])
+            match[field] = self._format_search_param(search_param[2])
             table_names = table_map[field]
             param_result = set()
             for table_name in table_names:
@@ -121,6 +121,14 @@ class ReadOnlyStorage(object):
             results_added = True
 
         return final_result
+
+    def _format_search_param(self, search_param):
+        search_param = unicode(search_param)
+        if search_param.lower() == u'true':
+            return True
+        if search_param.lower() == u'false':
+            return False
+        return search_param
 
 
 class ItemDoesNotExist(unifiedapi.BackendException):
