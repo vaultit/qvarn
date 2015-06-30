@@ -21,17 +21,17 @@ def add_missing_item_fields(item_type, prototype, item):
 
     _fill_in_dict_fields(prototype, item)
 
-    for field_name in prototype:
-        if _is_list_of_dicts(prototype[field_name]):
-            for some_dict in item[field_name]:
-                if type(some_dict) is dict:
-                    _fill_in_dict_fields(prototype[field_name][0], some_dict)
-
 
 def _fill_in_dict_fields(proto_dict, some_dict):
     for field_name in proto_dict:
         if field_name not in some_dict:
             some_dict[field_name] = _default_value(proto_dict, field_name)
+
+    for field_name in proto_dict:
+        if _is_list_of_dicts(proto_dict[field_name]):
+            for field in some_dict[field_name]:
+                if type(field) is dict:
+                    _fill_in_dict_fields(proto_dict[field_name][0], field)
 
 
 def _default_value(proto, field_name):

@@ -26,6 +26,7 @@ class ReadOnlyStorageTests(unittest.TestCase):
                 u'bar': u'',
             },
         ],
+        u'bool': False
     }
 
     item = {
@@ -41,6 +42,7 @@ class ReadOnlyStorageTests(unittest.TestCase):
                 u'bar': u'bong',
             },
         ],
+        u'bool': True
     }
 
     subitem_name = u'secret'
@@ -56,7 +58,8 @@ class ReadOnlyStorageTests(unittest.TestCase):
             (u'id', unicode),
             (u'revision', unicode),
             (u'foo', unicode),
-            (u'bar', unicode))
+            (u'bar', unicode),
+            (u'bool', bool))
         db.create_table(
             u'yo_bars',
             (u'id', unicode),
@@ -172,3 +175,19 @@ class ReadOnlyStorageTests(unittest.TestCase):
         match_list = search_result[u'resources']
         self.assertIn(new_id, match_list[0][u'id'])
         self.assertIn(u'barbaz', match_list[0][u'bar'])
+
+    def test_search_with_boolean(self):
+        added = self.wo.add_item(self.item)
+        new_id = added[u'id']
+        search_result = self.ro.search(
+            [(u'exact', u'bool', True)], [u'show_all'])
+        match_list = search_result[u'resources']
+        self.assertIn(new_id, match_list[0][u'id'])
+        self.assertIn(u'barbaz', match_list[0][u'bar'])
+
+    def test_search_with_boolean_string(self):
+        self.wo.add_item(self.item)
+        search_result = self.ro.search(
+            [(u'exact', u'bool', 'false')], [u'show_all'])
+        match_list = search_result[u'resources']
+        self.assertEqual(match_list, [])
