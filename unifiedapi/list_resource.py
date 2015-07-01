@@ -414,7 +414,8 @@ class ListResource(object):
         ro = self._create_ro_storage()
         item_id = self._get_path_arg_as_unicode(item_id)
         try:
-            subitem = ro.get_subitem(item_id, u'document')
+#            subitem = ro.get_subitem(item_id, u'document')
+            subitem = ro.get_subitem(item_id, self._file_resource_name)
         except unifiedapi.ItemDoesNotExist as e:
             logging.error(str(e), exc_info=True)
             raise bottle.HTTPError(status=404)
@@ -552,7 +553,8 @@ class ListResource(object):
         try:
             wo = self._create_wo_storage()
             added[u'revision'] = wo.update_subitem(
-                item_id, revision, u'document', subitem)
+#                item_id, revision, u'document', subitem)
+                item_id, revision, self._file_resource_name, subitem)
         except unifiedapi.WrongRevision as e:
             logging.error(u'Validation error: %s', e)
             raise bottle.HTTPError(status=409)
