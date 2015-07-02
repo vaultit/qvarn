@@ -10,6 +10,7 @@ import sys
 
 from flup.server.fcgi import WSGIServer
 
+import unifiedapi
 import unifiedapi.bottle as bottle
 
 
@@ -66,6 +67,7 @@ class BackendApplication(object):
         '''Run the application.'''
         args = self._parse_command_line()
         self._setup_logging(args)
+        self._setup_auth(args)
         routes = self._prepare_resource(args)
         self.add_routes(routes)
         self._start_service(args)
@@ -94,6 +96,11 @@ class BackendApplication(object):
             metavar='FILE',
             help='use FILE as the SQLite3 database')
 
+        parser.add_argument(
+            '--introspection-url',
+            metavar='ADDR',
+            help='use ADDR as the authorisation introspection endpoint')
+
         return parser.parse_args()
 
     def _setup_logging(self, args):
@@ -103,6 +110,11 @@ class BackendApplication(object):
                 level=logging.DEBUG,
                 format='%(asctime)s %(levelname)s %(message)s')
             logging.info('{} starts'.format(sys.argv[0]))
+
+    def _setup_auth(self, args):
+        if args.introspection_url:
+            auth_plugin = unifiedapi.AuthPlugin(args.introspection_url)
+            self._app.install(auth_plugin)
 
     def _prepare_resource(self, args):
         return self._resource.prepare_resource(args.database)

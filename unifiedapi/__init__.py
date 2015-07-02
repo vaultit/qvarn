@@ -4,6 +4,7 @@
 # All rights reserved.
 
 
+from .auth_plugin import AuthPlugin
 from .exc import BackendException
 from .walker import ItemWalker
 from .validate import ItemValidator, ValidationError
