@@ -4,7 +4,6 @@
 # All rights reserved.
 
 
-from .auth_plugin import AuthPlugin
 from .exc import BackendException
 from .walker import ItemWalker
 from .validate import ItemValidator, ValidationError
@@ -22,3 +21,5 @@ from .util import log_request
 from .simple_resource import SimpleResource
 from .list_resource import ListResource
 from .idgen import ResourceIdGenerator
+from .auth_check_plugin import AuthCheckPlugin
+from .auth_scope_plugin import AuthScopePlugin

@@ -113,8 +113,10 @@ class BackendApplication(object):
 
     def _setup_auth(self, args):
         if args.introspection_url:
-            auth_plugin = unifiedapi.AuthPlugin(args.introspection_url)
-            self._app.install(auth_plugin)
+            auth_check_plugin = unifiedapi.AuthCheckPlugin(args.introspection_url)
+            auth_scope_plugin = unifiedapi.AuthScopePlugin()
+            self._app.install(auth_check_plugin)
+            self._app.install(auth_scope_plugin)
 
     def _prepare_resource(self, args):
         return self._resource.prepare_resource(args.database)
