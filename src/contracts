@@ -35,7 +35,7 @@ contract_prototype = {
             ],
         },
     ],
-    u'right_to_work_basis': u''
+    u'right_to_work_based_on': u''
 }
 
 
@@ -69,7 +69,7 @@ class CreateContractsTables_v1(unifiedapi.StoragePreparationStep):
             (u'id', unicode),
             (u'revision', unicode),
             (u'contract_type', unicode),
-            (u'right_to_work_basis', unicode))
+            (u'right_to_work_based_on', unicode))
 
         db.create_table(
             u'contract_contract_parties',
@@ -141,9 +141,9 @@ class InvalidPartyType(unifiedapi.ValidationError):
     msg = u'Contract {id} contract party party type is invalid'
 
 
-class InvalidRightToWorkBasis(unifiedapi.ValidationError):
+class InvalidRightToWorkBasedOn(unifiedapi.ValidationError):
 
-    msg = u'Contract {id} contract party party type is invalid'
+    msg = u'Contract {id} right to work based on is invalid'
 
 
 def validate_contract(obj):
@@ -157,9 +157,9 @@ def validate_contract(obj):
         for party in obj[u'contract_parties']:
             if not party[u'type'] in [u'inductor', u'inductee']:
                 raise InvalidPartyType(id=obj[u'id'])
-    if not obj[u'right_to_work_basis'] in [u'eea_citizen',
+    if not obj[u'right_to_work_based_on'] in [u'eea_citizen',
                                            u'residence_permit', u'other']:
-        raise InvalidRightToWorkBasis(id=obj[u'id'])
+        raise InvalidRightToWorkBasedOn(id=obj[u'id'])
 
 
 if __name__ == '__main__':
