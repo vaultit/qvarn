@@ -9,6 +9,7 @@
 
 import logging
 import time
+import urllib
 
 import unifiedapi
 import unifiedapi.bottle as bottle
@@ -285,7 +286,7 @@ class ListResource(object):
             elif i % 3 == 1:
                 search_field = criteria[i]
             elif i % 3 == 2:
-                search_value = criteria[i]
+                search_value = urllib.unquote(criteria[i])
                 search_param = (matching_rule, search_field, search_value)
                 search_params.append(search_param)
 
