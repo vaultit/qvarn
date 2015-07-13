@@ -158,7 +158,7 @@ def validate_contract(obj):
             if not party[u'type'] in [u'inductor', u'inductee']:
                 raise InvalidPartyType(id=obj[u'id'])
     if not obj[u'right_to_work_based_on'] in [u'eea_citizen',
-                                           u'residence_permit', u'other']:
+                                              u'residence_permit', u'other']:
         raise InvalidRightToWorkBasedOn(id=obj[u'id'])
 
 
