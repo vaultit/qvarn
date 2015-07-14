@@ -72,6 +72,10 @@ pep8  --exclude=bottle.py unifiedapi/*.py src/*
 #
 #       missing-docstring               docstrings are good, but it's too
 #                                       too much to require them everywhere
+#
+#       fixme                           allow TODO and FIXME comments, these
+#                                       these are often useful reminder for
+#                                       things to be optimized or changed later
 
 pylint --ignore bottle.py \
        --rcfile /dev/null \
@@ -87,5 +91,6 @@ pylint --ignore bottle.py \
        --disable no-self-use \
        --disable cyclic-import \
        --disable missing-docstring \
+       --disable fixme \
        \
        unifiedapi src/*

@@ -35,3 +35,7 @@ unifiedapi/simple_resource.py
 # require mocking and verifying that the right log function gets called,
 # and that's not worth the effort).
 unifiedapi/util.py
+
+# TODO
+unifiedapi/auth_check_plugin.py
+unifiedapi/auth_scope_plugin.py

@@ -21,7 +21,7 @@ class AuthCheckPlugin(object):
         # TODO add user id to scope
 
     def _get_access_token(self):
-        if not u'Authorization' in bottle.request.headers:
+        if u'Authorization' not in bottle.request.headers:
             raise bottle.HTTPError(status=401)
         auth_header_value = bottle.request.headers[u'Authorization']
         auth_header_values = auth_header_value.split(u' ')
@@ -33,7 +33,6 @@ class AuthCheckPlugin(object):
     def _validate_token(self, access_token):
         # TODO detect and validate jwt tokens locally
         return self._validate_token_remote(access_token)
-
 
     def _validate_token_remote(self, access_token):
         # TODO remove verify when certificates have been sorted out
