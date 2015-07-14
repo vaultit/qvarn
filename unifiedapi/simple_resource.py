@@ -2,6 +2,7 @@
 #
 # Copyright 2015 Suomen Tilaajavastuu Oy
 # All rights reserved.
+import unifiedapi
 
 
 class SimpleResource(object):
@@ -28,6 +29,11 @@ class SimpleResource(object):
             {
                 'path': self._path,
                 'method': 'GET',
-                'callback': self._callback
+                'callback': self._callback,
+                # Do not check authorization for simple resources
+                'skip': [
+                    unifiedapi.AuthCheckPlugin,
+                    unifiedapi.AuthScopePlugin
+                ]
             },
         ]
