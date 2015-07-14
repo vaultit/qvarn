@@ -16,9 +16,9 @@ class AuthCheckPlugin(object):
 
     def _check_authorization(self):
         access_token = self._get_access_token()
-        scopes = self._get_authorised_scopes(access_token)
-        # TODO add user id
-        bottle.request.environ.set('scopes', scopes)
+        result = self._validate_token(access_token)
+        bottle.request.environ[u'scopes'] = result[u'scopes']
+        # TODO add user id to scope
 
     def _get_access_token(self):
         if not u'Authorization' in bottle.request.headers:
@@ -30,8 +30,13 @@ class AuthCheckPlugin(object):
             raise bottle.HTTPError(status=403)
         return auth_header_values[1]
 
-    def _get_authorised_scopes(self, access_token):
-        # TODO verify
+    def _validate_token(self, access_token):
+        # TODO detect and validate jwt tokens locally
+        return self._validate_token_remote(access_token)
+
+
+    def _validate_token_remote(self, access_token):
+        # TODO remove verify when certificates have been sorted out
         response = requests.get(
             self._introspection_url,
             params={u'token': access_token},
@@ -40,4 +45,6 @@ class AuthCheckPlugin(object):
         if not response.status_code == 200:
             raise bottle.HTTPError(status=403)
         response_content = response.json()
-        return response_content[u'scope'].split(' ')
+        return {
+            u'scopes': response_content[u'scope'].split(' ')
+        }

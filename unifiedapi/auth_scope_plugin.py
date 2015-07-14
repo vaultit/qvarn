@@ -11,8 +11,8 @@ class AuthScopePlugin(object):
             return callback(*args, **kwargs)
         return wrapper
 
-    def _check_scope():
-        scopes = bottle.request.environ.get('scopes')
+    def _check_scope(self):
+        scopes = bottle.request.environ['scopes']
         if not scopes:
             raise bottle.HTTPError(status=403)
         route_scope = self._get_current_scope()
