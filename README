@@ -29,12 +29,16 @@ details here).
   Interface. Debian package is `python-flup`.
 * [PyJWT][], JWT token encoding and decoding tools. Debian package is
   `python-jwt`.
+* [python-cryptography][], Python cryptography tools. Debian package is
+  `python-cryptography`.
 
 [CoverageTestRunner]: http://liw.fi/coverage-test-runner/
 [coverage.py]: http://nedbatchelder.com/code/coverage/
 [pep8]: http://pypi.python.org/pypi/pep8
 [pylint]: http://www.pylint.org/
 [flup]: http://www.saddi.com/software/flup/
+[PyJWT]: https://github.com/jpadilla/pyjwt/
+[python-cryptography]: https://cryptography.io/
 
 The code uses the [bottle.py][] framework for web applications.
 However, since the code targets Python 7.x, which has an ancient
