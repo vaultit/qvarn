@@ -227,7 +227,6 @@ class ListResource(object):
 
     def get_items(self):
         '''Serve GET /foos to list all items.'''
-        unifiedapi.log_request()
         ro = self._create_ro_storage()
         return {
             'resources': [
@@ -237,7 +236,6 @@ class ListResource(object):
 
     def get_listeners(self):
         '''Serve GET /foos/listeners to list all listeners.'''
-        unifiedapi.log_request()
         ro = self._create_resource_ro_storage(
             u'listener', self._listener_prototype)
         return {
@@ -251,7 +249,6 @@ class ListResource(object):
 
         Lists all notifications.
         '''
-        unifiedapi.log_request()
         ro = self._create_resource_ro_storage(
             u'notification', self._notification_prototype)
         # Horribly inefficient start
@@ -267,7 +264,6 @@ class ListResource(object):
 
     def get_matching_items(self, search_criteria):
         '''Serve GET /foos/search to list items matching search criteria.'''
-        unifiedapi.log_request()
         ro = self._create_ro_storage()
 
         criteria = search_criteria.split('/')
@@ -294,7 +290,6 @@ class ListResource(object):
 
     def post_item(self):
         '''Serve POST /foos to create a new item.'''
-        unifiedapi.log_request()
         item = bottle.request.json
         unifiedapi.add_missing_item_fields(
             self._item_type, self._item_prototype, item)
@@ -316,7 +311,6 @@ class ListResource(object):
 
     def post_listener(self):
         '''Serve POST /foos/listeners to create a new listener.'''
-        unifiedapi.log_request()
         listener = bottle.request.json
         unifiedapi.add_missing_item_fields(
             u'listener', self._listener_prototype, listener)
@@ -354,7 +348,6 @@ class ListResource(object):
 
     def get_item(self, item_id):
         '''Serve GET /foos/123 to get an existing item.'''
-        unifiedapi.log_request()
         ro = self._create_ro_storage()
         item_id = self._get_path_arg_as_unicode(item_id)
         try:
@@ -365,7 +358,6 @@ class ListResource(object):
 
     def get_listener(self, listener_id):
         '''Serve GET /foos/listeners/123 to get an existing listener.'''
-        unifiedapi.log_request()
         ro = self._create_resource_ro_storage(
             u'listener', self._listener_prototype)
         listener_id = self._get_path_arg_as_unicode(listener_id)
@@ -380,7 +372,6 @@ class ListResource(object):
 
         Gets an existing notification.
         '''
-        unifiedapi.log_request()
         ro = self._create_resource_ro_storage(
             u'notification', self._notification_prototype)
         notification_id = self._get_path_arg_as_unicode(notification_id)
@@ -396,7 +387,6 @@ class ListResource(object):
 
     def get_subitem(self, item_id, subitem_path):
         '''Serve GET /foos/123/subitem.'''
-        unifiedapi.log_request()
         ro = self._create_ro_storage()
         item_id = self._get_path_arg_as_unicode(item_id)
         try:
@@ -411,7 +401,6 @@ class ListResource(object):
 
     def get_file(self, item_id):
         '''Serve GET /foos/123/<file_resource_name> to get a file.'''
-        unifiedapi.log_request()
         ro = self._create_ro_storage()
         item_id = self._get_path_arg_as_unicode(item_id)
         try:
@@ -427,7 +416,6 @@ class ListResource(object):
 
     def put_item(self, item_id):
         '''Serve PUT /foos/123 to update an item.'''
-        unifiedapi.log_request()
 
         item_id = self._get_path_arg_as_unicode(item_id)
         item = bottle.request.json
@@ -457,7 +445,6 @@ class ListResource(object):
 
     def put_listener(self, listener_id):
         '''Serve PUT /foos/listeners/123 to update a listener.'''
-        unifiedapi.log_request()
 
         listener_id = self._get_path_arg_as_unicode(listener_id)
         listener = bottle.request.json
@@ -490,7 +477,6 @@ class ListResource(object):
 
     def put_subitem(self, item_id, subitem_name):
         '''Serve PUT /foos/123/subitem to update a subitem.'''
-        unifiedapi.log_request()
 
         item_id = self._get_path_arg_as_unicode(item_id)
         subitem = bottle.request.json
@@ -526,7 +512,6 @@ class ListResource(object):
 
     def put_file(self, item_id):
         '''Serve PUT /foos/123/<file_resource_name> to update a file.'''
-        unifiedapi.log_request()
         item_id = self._get_path_arg_as_unicode(item_id)
 
         try:
@@ -562,7 +547,6 @@ class ListResource(object):
 
     def delete_item(self, item_id):
         '''Serve DELETE /foos/123 to delete an item.'''
-        unifiedapi.log_request()
         wo = self._create_wo_storage()
         item_id = self._get_path_arg_as_unicode(item_id)
         try:
@@ -574,7 +558,6 @@ class ListResource(object):
 
     def delete_listener(self, listener_id):
         '''Serve DELETE /foos/listeners/123 to delete a listener.'''
-        unifiedapi.log_request()
         wo_listener = self._create_resource_wo_storage(
             u'listener', self._listener_prototype)
         listener_id = self._get_path_arg_as_unicode(listener_id)
@@ -601,7 +584,6 @@ class ListResource(object):
 
         Deletes a notification.
         '''
-        unifiedapi.log_request()
         wo = self._create_resource_wo_storage(
             u'notification', self._notification_prototype)
         notification_id = self._get_path_arg_as_unicode(notification_id)

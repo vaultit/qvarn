@@ -24,3 +24,4 @@ from .idgen import ResourceIdGenerator
 from .auth_plugin import AuthPlugin
 from .auth_validator import (
     AuthValidator, AuthenticationError, AuthorizationError)
+from .logging_plugin import LoggingPlugin

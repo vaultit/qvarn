@@ -66,8 +66,9 @@ class BackendApplication(object):
     def run(self):
         '''Run the application.'''
         args = self._parse_command_line()
-        self._setup_logging(args)
         self._setup_auth(args)
+        # Logging should be the last plugin
+        self._setup_logging(args)
         routes = self._prepare_resource(args)
         self.add_routes(routes)
         self._start_service(args)
@@ -115,6 +116,8 @@ class BackendApplication(object):
                 level=logging.DEBUG,
                 format='%(asctime)s %(levelname)s %(message)s')
             logging.info('{} starts'.format(sys.argv[0]))
+        logging_plugin = unifiedapi.LoggingPlugin()
+        self._app.install(logging_plugin)
 
     def _setup_auth(self, args):
         if args.token_validation_key and args.token_issuer:
