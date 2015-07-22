@@ -13,7 +13,8 @@ Depends: ${python:Depends}, ${misc:Depends},
  python (>= 2.6),
  haproxy,
  lighttpd,
- python-flup
+ python-flup,
+ python-jwt
 Description: services provided by Suomen Tilaajavastuu
  This is the backend implementation of the "Unified API" specified for the
  services provided by Suomen Tilaajavastuu.
