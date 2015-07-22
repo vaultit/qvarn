@@ -27,6 +27,8 @@ details here).
   packages have those names.)
 * [flup][], an implementation of the Python Web Server Gateway
   Interface. Debian package is `python-flup`.
+* [PyJWT][], JWT token encoding and decoding tools. Debian package is
+  `python-jwt`.
 
 [CoverageTestRunner]: http://liw.fi/coverage-test-runner/
 [coverage.py]: http://nedbatchelder.com/code/coverage/
