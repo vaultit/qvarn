@@ -14,6 +14,9 @@ class SimpleResource(object):
 
     Parameterise this class with the ``set_path`` method.
 
+    !IMPORTANT! Authorization to simple resources is not checked. They should
+                only contain public information.
+
     '''
 
     def __init__(self):
@@ -32,8 +35,7 @@ class SimpleResource(object):
                 'callback': self._callback,
                 # Do not check authorization for simple resources
                 'skip': [
-                    unifiedapi.AuthCheckPlugin,
-                    unifiedapi.AuthScopePlugin
+                    unifiedapi.AuthPlugin
                 ]
             },
         ]

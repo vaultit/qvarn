@@ -30,12 +30,11 @@ unifiedapi/backend_app.py
 unifiedapi/list_resource.py
 unifiedapi/simple_resource.py
 
-# This currently only includes a method to log an HTTP request. That's
-# something that it doesn't make a lot sense to unit test (it'd just
-# require mocking and verifying that the right log function gets called,
-# and that's not worth the effort).
-unifiedapi/util.py
+# This only logs an HTTP request. That's something that it doesn't make a lot
+# sense to unit test (it'd just require mocking and verifying that the right
+# log function gets called, and that's not worth the effort).
+unifiedapi/log_plugin.py
 
-# TODO
-unifiedapi/auth_check_plugin.py
-unifiedapi/auth_scope_plugin.py
+# Does not contain much logic, logic is mostly separated to AuthValidator and
+# util.py
+unifiedapi/auth_plugin.py

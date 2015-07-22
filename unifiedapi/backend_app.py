@@ -97,9 +97,14 @@ class BackendApplication(object):
             help='use FILE as the SQLite3 database')
 
         parser.add_argument(
-            '--introspection-url',
+            '--token-validation-key',
+            metavar='KEY',
+            help='use KEY as the access token validation key')
+
+        parser.add_argument(
+            '--token-issuer',
             metavar='ADDR',
-            help='use ADDR as the authorisation introspection endpoint')
+            help='use ADDR as the access token issuer url')
 
         return parser.parse_args()
 
@@ -112,12 +117,10 @@ class BackendApplication(object):
             logging.info('{} starts'.format(sys.argv[0]))
 
     def _setup_auth(self, args):
-        if args.introspection_url:
-            auth_check_plugin = unifiedapi.AuthCheckPlugin(
-                args.introspection_url)
-            auth_scope_plugin = unifiedapi.AuthScopePlugin()
-            self._app.install(auth_check_plugin)
-            self._app.install(auth_scope_plugin)
+        if args.token_validation_key and args.token_issuer:
+            auth_plugin = unifiedapi.AuthPlugin(
+                args.token_validation_key, args.token_issuer)
+            self._app.install(auth_plugin)
 
     def _prepare_resource(self, args):
         return self._resource.prepare_resource(args.database)

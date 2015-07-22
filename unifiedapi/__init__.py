@@ -17,9 +17,10 @@ from .write_only import (
 from .read_only import ReadOnlyStorage, ItemDoesNotExist
 from .backend_app import BackendApplication
 from .filler import add_missing_item_fields
-from .util import log_request
+from .util import route_to_scope
 from .simple_resource import SimpleResource
 from .list_resource import ListResource
 from .idgen import ResourceIdGenerator
-from .auth_check_plugin import AuthCheckPlugin
-from .auth_scope_plugin import AuthScopePlugin
+from .auth_plugin import AuthPlugin
+from .auth_validator import (
+    AuthValidator, AuthenticationError, AuthorizationError)
