@@ -15,7 +15,7 @@ Development environment
 -----------------------
 
 You need various tools to develop and/or run the software. It's
-easiest to do this on Debian (version 7.x, code name wheezy). It may
+easiest to do this on Debian (version 8.x, code name jessie). It may
 be possible to run the code in other environments (if so, please add
 details here).
 
@@ -31,6 +31,7 @@ details here).
   `python-jwt`.
 * [python-cryptography][], Python cryptography tools. Debian package is
   `python-cryptography`.
+* [Bottle][], Python Web Framework. Debian package is `python-bottle`.
 
 [CoverageTestRunner]: http://liw.fi/coverage-test-runner/
 [coverage.py]: http://nedbatchelder.com/code/coverage/
@@ -39,14 +40,7 @@ details here).
 [flup]: http://www.saddi.com/software/flup/
 [PyJWT]: https://github.com/jpadilla/pyjwt/
 [python-cryptography]: https://cryptography.io/
-
-The code uses the [bottle.py][] framework for web applications.
-However, since the code targets Python 7.x, which has an ancient
-version, version 0.12 of bottle.py is embedded in the source tree
-(`unifieadpi/bottle.py`).
-
-[bottle.py]: http://bottlepy.org/docs/dev/index.html
-
+[Bottle]: http://bottlepy.org/
 
 Building and running unit tests
 -------------------------------

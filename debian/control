@@ -15,7 +15,8 @@ Depends: ${python:Depends}, ${misc:Depends},
  lighttpd,
  python-flup,
  python-jwt,
- python-cryptography
+ python-cryptography,
+ python-bottle
 Description: services provided by Suomen Tilaajavastuu
  This is the backend implementation of the "Unified API" specified for the
  services provided by Suomen Tilaajavastuu.
