@@ -5,7 +5,7 @@
 
 
 import unifiedapi
-import unifiedapi.bottle as bottle
+import bottle
 
 
 class AuthPlugin(object):

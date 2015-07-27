@@ -1,6 +1,6 @@
 import logging
 
-import unifiedapi.bottle as bottle
+import bottle
 
 
 class LoggingPlugin(object):

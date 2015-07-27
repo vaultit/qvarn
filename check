@@ -25,7 +25,7 @@ rm -f .coverage
 # PEP8 specification. See https://www.python.org/dev/peps/pep-0008/ for
 # details.
 
-pep8  --exclude=bottle.py unifiedapi/*.py src/*
+pep8 unifiedapi/*.py src/*
 
 
 # Use pylint to find errors and more style issues. Note that pylint
@@ -77,8 +77,7 @@ pep8  --exclude=bottle.py unifiedapi/*.py src/*
 #                                       these are often useful reminder for
 #                                       things to be optimized or changed later
 
-pylint --ignore bottle.py \
-       --rcfile /dev/null \
+pylint --rcfile /dev/null \
        --persistent no \
        --reports no \
        --min-similarity-lines=9999 \

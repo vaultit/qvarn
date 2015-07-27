@@ -11,7 +11,7 @@ import sys
 from flup.server.fcgi import WSGIServer
 
 import unifiedapi
-import unifiedapi.bottle as bottle
+import bottle
 
 
 class BackendApplication(object):

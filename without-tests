@@ -10,10 +10,6 @@ setup.py
 # this.
 unifiedapi/__init__.py
 
-# Our own copy of bottle.py. This is not our code, so we do not have
-# unit tests for it.
-unifiedapi/bottle.py
-
 # The database abstraction layer. This is meant to be simple and obvious
 # enough that unit tests are not needed.
 unifiedapi/db.py

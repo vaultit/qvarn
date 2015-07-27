@@ -12,7 +12,7 @@ import time
 import urllib
 
 import unifiedapi
-import unifiedapi.bottle as bottle
+import bottle
 
 
 class ListResource(object):
