@@ -1,4 +1,4 @@
-# auth_check_plugin.py - checks request authorization for accessed scope
+# auth_plugin.py - checks request authorization
 #
 # Copyright 2015 Suomen Tilaajavastuu Oy
 # All rights reserved.
