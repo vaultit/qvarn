@@ -349,7 +349,6 @@ class ListResource(object):
     def get_item(self, item_id):
         '''Serve GET /foos/123 to get an existing item.'''
         ro = self._create_ro_storage()
-        item_id = self._get_path_arg_as_unicode(item_id)
         try:
             return ro.get_item(item_id)
         except unifiedapi.ItemDoesNotExist as e:
@@ -360,7 +359,6 @@ class ListResource(object):
         '''Serve GET /foos/listeners/123 to get an existing listener.'''
         ro = self._create_resource_ro_storage(
             u'listener', self._listener_prototype)
-        listener_id = self._get_path_arg_as_unicode(listener_id)
         try:
             return ro.get_item(listener_id)
         except unifiedapi.ItemDoesNotExist as e:
@@ -374,21 +372,15 @@ class ListResource(object):
         '''
         ro = self._create_resource_ro_storage(
             u'notification', self._notification_prototype)
-        notification_id = self._get_path_arg_as_unicode(notification_id)
         try:
             return ro.get_item(notification_id)
         except unifiedapi.ItemDoesNotExist as e:
             logging.error(str(e), exc_info=True)
             raise bottle.HTTPError(status=404)
 
-    def _get_path_arg_as_unicode(self, item_id):
-        # bottle.py gives as args from paths as str, we need them as unicode.
-        return unicode(item_id)
-
     def get_subitem(self, item_id, subitem_path):
         '''Serve GET /foos/123/subitem.'''
         ro = self._create_ro_storage()
-        item_id = self._get_path_arg_as_unicode(item_id)
         try:
             subitem = ro.get_subitem(item_id, subitem_path)
         except unifiedapi.ItemDoesNotExist as e:
@@ -402,7 +394,6 @@ class ListResource(object):
     def get_file(self, item_id):
         '''Serve GET /foos/123/<file_resource_name> to get a file.'''
         ro = self._create_ro_storage()
-        item_id = self._get_path_arg_as_unicode(item_id)
         try:
             subitem = ro.get_subitem(item_id, self._file_resource_name)
         except unifiedapi.ItemDoesNotExist as e:
@@ -417,7 +408,6 @@ class ListResource(object):
     def put_item(self, item_id):
         '''Serve PUT /foos/123 to update an item.'''
 
-        item_id = self._get_path_arg_as_unicode(item_id)
         item = bottle.request.json
 
         unifiedapi.add_missing_item_fields(
@@ -446,7 +436,6 @@ class ListResource(object):
     def put_listener(self, listener_id):
         '''Serve PUT /foos/listeners/123 to update a listener.'''
 
-        listener_id = self._get_path_arg_as_unicode(listener_id)
         listener = bottle.request.json
 
         unifiedapi.add_missing_item_fields(
@@ -478,7 +467,6 @@ class ListResource(object):
     def put_subitem(self, item_id, subitem_name):
         '''Serve PUT /foos/123/subitem to update a subitem.'''
 
-        item_id = self._get_path_arg_as_unicode(item_id)
         subitem = bottle.request.json
 
         subitem_type = u'%s_%s' % (self._item_type, subitem_name)
@@ -512,7 +500,6 @@ class ListResource(object):
 
     def put_file(self, item_id):
         '''Serve PUT /foos/123/<file_resource_name> to update a file.'''
-        item_id = self._get_path_arg_as_unicode(item_id)
 
         try:
             if bottle.request.content_length < 0:
@@ -548,7 +535,6 @@ class ListResource(object):
     def delete_item(self, item_id):
         '''Serve DELETE /foos/123 to delete an item.'''
         wo = self._create_wo_storage()
-        item_id = self._get_path_arg_as_unicode(item_id)
         try:
             wo.delete_item(item_id)
             self._add_deleted_notifications(item_id)
@@ -560,7 +546,6 @@ class ListResource(object):
         '''Serve DELETE /foos/listeners/123 to delete a listener.'''
         wo_listener = self._create_resource_wo_storage(
             u'listener', self._listener_prototype)
-        listener_id = self._get_path_arg_as_unicode(listener_id)
         try:
             wo_listener.delete_item(listener_id)
         except unifiedapi.ItemDoesNotExist as e:
@@ -586,7 +571,6 @@ class ListResource(object):
         '''
         wo = self._create_resource_wo_storage(
             u'notification', self._notification_prototype)
-        notification_id = self._get_path_arg_as_unicode(notification_id)
         try:
             wo.delete_item(notification_id)
         except unifiedapi.ItemDoesNotExist as e:
