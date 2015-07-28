@@ -226,6 +226,6 @@ if __name__ == '__main__':
     resource.set_subitem_prototype(u'sync', person_sync_prototype)
     resource.set_listener_prototype(listener_prototype)
     resource.set_notification_prototype(notification_prototype)
-    app.set_resource(resource)
+    app.add_resource(resource)
 
     app.run()

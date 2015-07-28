@@ -26,7 +26,7 @@ def main():
     resource.set_path(u'/version', version)
 
     app = unifiedapi.BackendApplication()
-    app.set_resource(resource)
+    app.add_resource(resource)
     app.run()
 
 

@@ -25,10 +25,10 @@ class BackendApplication(object):
     class.
 
     This class is parameterised by calling the ``set_storage_preparer``,
-    ``set_resource`` and ``add_routes`` methods. The application actually
-    starts when the ``run`` method is called. The resource set with
-    ``set_resource`` MUST have a ``prepare_resource`` method, which gets
-    as its parameter the URI to the database, and returns a representation
+    ``add_resource`` and ``add_routes`` methods. The application actually
+    starts when the ``run`` method is called. The resources added with
+    ``add_resource`` MUST have a ``prepare_resource`` method, which gets
+    as its parameter the database, and returns a representation
     of routes suitable to be given to ``add_routes``. The resource object
     does not need to call ``add_routes`` directly.
 
@@ -38,21 +38,21 @@ class BackendApplication(object):
         self._app = bottle.app()
         self._db = None
         self._preparer = None
-        self._resource = None
+        self._resources = []
 
     def set_storage_preparer(self, preparer):
         '''Set the storage preparer.'''
         self._preparer = preparer
 
-    def set_resource(self, resource):
-        '''Set the resource this application serves.
+    def add_resource(self, resource):
+        '''Adds a resource that this application serves.
 
-        The resource is represented by a class that has a
+        A resource is represented by a class that has a
         ``prepare_resource`` method.
 
         '''
 
-        self._resource = resource
+        self._resources.append(resource)
 
     def add_routes(self, routes):
         '''Add routes to the application.
@@ -77,7 +77,7 @@ class BackendApplication(object):
         self._app.install(unifiedapi.ArgsFormatPlugin())
         # Logging should be the last plugin
         self._setup_logging(args)
-        routes = self._prepare_resource()
+        routes = self._prepare_resources()
         self.add_routes(routes)
         self._start_service(args)
 
@@ -140,8 +140,11 @@ class BackendApplication(object):
                 args.token_validation_key, args.token_issuer)
             self._app.install(auth_plugin)
 
-    def _prepare_resource(self):
-        return self._resource.prepare_resource(self._db)
+    def _prepare_resources(self):
+        routes = []
+        for resource in self._resources:
+            routes += resource.prepare_resource(self._db)
+        return routes
 
     def _start_service(self, args):
         if not self._start_debug_server(args):
