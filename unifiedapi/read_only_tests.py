@@ -99,14 +99,14 @@ class ReadOnlyStorageTests(unittest.TestCase):
 
         prep = unifiedapi.StoragePreparer()
         prep.add_step(u'create-tables', self.create_tables)
+        with db:
+            prep.run(db)
 
         self.wo = unifiedapi.WriteOnlyStorage()
         self.wo.set_db(db)
         self.wo.set_item_prototype(self.item[u'type'], self.prototype)
         self.wo.set_subitem_prototype(
             self.item[u'type'], self.subitem_name, self.subitem_prototype)
-        self.wo.set_preparer(prep)
-        self.wo.prepare()
 
     def test_lists_no_items_initially(self):
         self.assertEqual(self.ro.get_item_ids(), [])

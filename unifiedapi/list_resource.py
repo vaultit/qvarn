@@ -38,7 +38,6 @@ class ListResource(object):
         self._subitem_prototypes = unifiedapi.SubItemPrototypes()
         self._listener_prototype = None
         self._notification_prototype = None
-        self._preparer = None
         self.database = None
         self._file_resource_name = None
 
@@ -77,10 +76,6 @@ class ListResource(object):
         '''Set the prototype for a notification.'''
         self._notification_prototype = notification_prototype
 
-    def set_storage_preparer(self, preparer):
-        '''Set the storage preparer.'''
-        self._preparer = preparer
-
     def set_file_resource_name(self, resource_name):
         '''Set the file resource name.
 
@@ -88,13 +83,10 @@ class ListResource(object):
         '''
         self._file_resource_name = resource_name
 
-    def prepare_resource(self, database_url):
+    def prepare_resource(self, database):
         '''Prepare the resource for action.'''
 
-        self.database = database_url
-
-        # Make sure the database exists.
-        self._create_wo_storage()
+        self.database = database
 
         item_paths = [
             {
@@ -654,8 +646,7 @@ class ListResource(object):
         ro.set_item_prototype(self._item_type, self._item_prototype)
         for subitem_name, prototype in self._subitem_prototypes.get_all():
             ro.set_subitem_prototype(self._item_type, subitem_name, prototype)
-        db = unifiedapi.open_disk_database(self.database)
-        ro.set_db(db)
+        ro.set_db(self.database)
         return ro
 
     def _create_wo_storage(self):
@@ -663,30 +654,19 @@ class ListResource(object):
         wo.set_item_prototype(self._item_type, self._item_prototype)
         for subitem_name, prototype in self._subitem_prototypes.get_all():
             wo.set_subitem_prototype(self._item_type, subitem_name, prototype)
-        wo.set_preparer(self._preparer)
-
-        db = unifiedapi.open_disk_database(self.database)
-        wo.set_db(db)
-        wo.prepare()
-
+        wo.set_db(self.database)
         return wo
 
     def _create_resource_ro_storage(self, resource_name, prototype):
         ro = unifiedapi.ReadOnlyStorage()
         ro.set_item_prototype(resource_name, prototype)
-        db = unifiedapi.open_disk_database(self.database)
-        ro.set_db(db)
+        ro.set_db(self.database)
         return ro
 
     def _create_resource_wo_storage(self, resource_name, prototype):
         wo = unifiedapi.WriteOnlyStorage()
         wo.set_item_prototype(resource_name, prototype)
-        wo.set_preparer(self._preparer)
-
-        db = unifiedapi.open_disk_database(self.database)
-        wo.set_db(db)
-        wo.prepare()
-
+        wo.set_db(self.database)
         return wo
 
 

@@ -80,13 +80,13 @@ class WriteOnlyStorageTests(unittest.TestCase):
 
         prep = unifiedapi.StoragePreparer()
         prep.add_step(u'create', self.create_tables)
+        with db:
+            prep.run(db)
         self.wo = unifiedapi.WriteOnlyStorage()
         self.wo.set_db(db)
         self.wo.set_item_prototype(self.person[u'type'], self.prototype)
         self.wo.set_subitem_prototype(
             self.person[u'type'], self.subitem_name, self.subitem_prototype)
-        self.wo.set_preparer(prep)
-        self.wo.prepare()
 
         self.ro = unifiedapi.ReadOnlyStorage()
         self.ro.set_db(db)

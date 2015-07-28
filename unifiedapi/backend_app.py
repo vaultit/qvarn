@@ -24,19 +24,25 @@ class BackendApplication(object):
     expected to all have the same external interface, provided by this
     class.
 
-    This class is parameterised by calling the ``set_resource`` and
-    ``add_routes`` methods. The application actually starts when the
-    ``run`` method is called. The resource set with ``set_resource``
-    MUST have a ``prepare_resource`` method, which gets as its
-    parameter the URI to the database, and returns a represetation of
-    routes suitable to be given to ``add_routes``. The resource object
+    This class is parameterised by calling the ``set_storage_preparer``,
+    ``set_resource`` and ``add_routes`` methods. The application actually
+    starts when the ``run`` method is called. The resource set with
+    ``set_resource`` MUST have a ``prepare_resource`` method, which gets
+    as its parameter the URI to the database, and returns a representation
+    of routes suitable to be given to ``add_routes``. The resource object
     does not need to call ``add_routes`` directly.
 
     '''
 
     def __init__(self):
         self._app = bottle.app()
+        self._db = None
+        self._preparer = None
         self._resource = None
+
+    def set_storage_preparer(self, preparer):
+        '''Set the storage preparer.'''
+        self._preparer = preparer
 
     def set_resource(self, resource):
         '''Set the resource this application serves.
@@ -66,11 +72,12 @@ class BackendApplication(object):
     def run(self):
         '''Run the application.'''
         args = self._parse_command_line()
+        self._setup_storage(args)
         self._setup_auth(args)
         self._app.install(unifiedapi.ArgsFormatPlugin())
         # Logging should be the last plugin
         self._setup_logging(args)
-        routes = self._prepare_resource(args)
+        routes = self._prepare_resource()
         self.add_routes(routes)
         self._start_service(args)
 
@@ -110,6 +117,13 @@ class BackendApplication(object):
 
         return parser.parse_args()
 
+    def _setup_storage(self, args):
+        '''Prepare the database for use.'''
+        self._db = unifiedapi.open_disk_database(args.database)
+        assert self._preparer
+        with self._db:
+            self._preparer.run(self._db)
+
     def _setup_logging(self, args):
         if args.log:
             logging.basicConfig(
@@ -126,8 +140,8 @@ class BackendApplication(object):
                 args.token_validation_key, args.token_issuer)
             self._app.install(auth_plugin)
 
-    def _prepare_resource(self, args):
-        return self._resource.prepare_resource(args.database)
+    def _prepare_resource(self):
+        return self._resource.prepare_resource(self._db)
 
     def _start_service(self, args):
         if not self._start_debug_server(args):

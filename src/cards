@@ -136,8 +136,11 @@ def validate_card(obj):
 
 
 if __name__ == '__main__':
+    app = unifiedapi.BackendApplication()
+
     prep = unifiedapi.StoragePreparer()
     prep.add_step(u'create_cards_tables_v1', CreateCardsTables_v1())
+    app.set_storage_preparer(prep)
 
     resource = unifiedapi.ListResource()
     resource.set_path(u'/cards')
@@ -147,8 +150,6 @@ if __name__ == '__main__':
     resource.set_subitem_prototype(u'sync', card_sync_prototype)
     resource.set_listener_prototype(listener_prototype)
     resource.set_notification_prototype(notification_prototype)
-    resource.set_storage_preparer(prep)
-
-    app = unifiedapi.BackendApplication()
     app.set_resource(resource)
+
     app.run()

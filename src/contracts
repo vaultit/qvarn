@@ -163,8 +163,11 @@ def validate_contract(obj):
 
 
 if __name__ == '__main__':
+    app = unifiedapi.BackendApplication()
+
     prep = unifiedapi.StoragePreparer()
     prep.add_step(u'create-contracts-tables-v1', CreateContractsTables_v1())
+    app.set_storage_preparer(prep)
 
     resource = unifiedapi.ListResource()
     resource.set_path(u'/contracts')
@@ -174,8 +177,6 @@ if __name__ == '__main__':
     resource.set_file_resource_name(u'document')
     resource.set_listener_prototype(listener_prototype)
     resource.set_notification_prototype(notification_prototype)
-    resource.set_storage_preparer(prep)
-
-    app = unifiedapi.BackendApplication()
     app.set_resource(resource)
+
     app.run()
