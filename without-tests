@@ -20,11 +20,12 @@ unifiedapi/db.py
 # level tests, to avoid having to mock the universe.
 unifiedapi/backend_app.py
 
-# Classes for simple ("/version") and list-style ("/persons") resources.
+# Classes for different resources.
 # These don't do enough things that make sense to unit test. These get
 # tested properly by system level tests, especially the API test suite.
 unifiedapi/list_resource.py
 unifiedapi/simple_resource.py
+unifiedapi/listener_resource.py
 
 # This only logs an HTTP request. That's something that it doesn't make a lot
 # sense to unit test (it'd just require mocking and verifying that the right

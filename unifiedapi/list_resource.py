@@ -8,7 +8,6 @@
 
 
 import logging
-import time
 import urllib
 
 import unifiedapi
@@ -36,8 +35,7 @@ class ListResource(object):
         self._item_prototype = None
         self._item_validator = None
         self._subitem_prototypes = unifiedapi.SubItemPrototypes()
-        self._listener_prototype = None
-        self._notification_prototype = None
+        self._listener = None
         self.database = None
         self._file_resource_name = None
 
@@ -68,13 +66,14 @@ class ListResource(object):
         '''Set prototype for a subitem.'''
         self._subitem_prototypes.add(self._item_type, subitem_name, prototype)
 
-    def set_listener_prototype(self, listener_prototype):
-        '''Set the prototype for a listener.'''
-        self._listener_prototype = listener_prototype
+    def set_listener(self, listener):
+        '''Set the listener for this resource.
 
-    def set_notification_prototype(self, notification_prototype):
-        '''Set the prototype for a notification.'''
-        self._notification_prototype = notification_prototype
+        A listener must have methods ``notify_create``, ``notify_update``
+        and ``notify_delete``. ListenerResource implements these methods
+        and has a more detailed description of them.
+        '''
+        self._listener = listener
 
     def set_file_resource_name(self, resource_name):
         '''Set the file resource name.
@@ -141,60 +140,6 @@ class ListResource(object):
                 }
             ])
 
-        listeners_path = self._path + '/listeners'
-        listener_paths = [
-            {
-                'path': listeners_path,
-                'method': 'GET',
-                'callback': self.get_listeners,
-            },
-            {
-                'path': listeners_path,
-                'method': 'POST',
-                'callback': self.post_listener,
-            },
-            {
-                'path': listeners_path + '/<listener_id>',
-                'method': 'GET',
-                'callback': self.get_listener,
-            },
-            {
-                'path': listeners_path + '/<listener_id>',
-                'method': 'PUT',
-                'callback': self.put_listener,
-            },
-            {
-                'path': listeners_path + '/<listener_id>',
-                'method': 'DELETE',
-                'callback': self.delete_listener,
-            }
-        ]
-
-        notifications_path = listeners_path + '/<listener_id>/notifications'
-        notification_paths = [
-            {
-                'path': notifications_path,
-                'method': 'GET',
-                'callback': self.get_notifications,
-            },
-            {
-                'path':
-                notifications_path + '/<notification_id>',
-                'method': 'GET',
-                'callback':
-                lambda listener_id, notification_id:
-                self.get_notification(notification_id),
-            },
-            {
-                'path':
-                notifications_path + '/<notification_id>',
-                'method': 'DELETE',
-                'callback':
-                lambda listener_id, notification_id:
-                self.delete_notification(notification_id),
-            }
-        ]
-
         file_paths = []
         if self._file_resource_name:
             self.set_subitem_prototype(self._file_resource_name, {
@@ -214,8 +159,7 @@ class ListResource(object):
                 },
             ]
 
-        return item_paths + subitem_paths + listener_paths + \
-            notification_paths + file_paths
+        return item_paths + subitem_paths + file_paths
 
     def get_items(self):
         '''Serve GET /foos to list all items.'''
@@ -225,34 +169,6 @@ class ListResource(object):
                 {'id': resource_id} for resource_id in ro.get_item_ids()
             ],
         }
-
-    def get_listeners(self):
-        '''Serve GET /foos/listeners to list all listeners.'''
-        ro = self._create_resource_ro_storage(
-            u'listener', self._listener_prototype)
-        return {
-            'resources': [
-                {'id': resource_id} for resource_id in ro.get_item_ids()
-            ],
-        }
-
-    def get_notifications(self, listener_id):
-        '''Serve GET /foos/listeners/123/notifications.
-
-        Lists all notifications.
-        '''
-        ro = self._create_resource_ro_storage(
-            u'notification', self._notification_prototype)
-        # Horribly inefficient start
-        result = ro.search(
-            [(u'exact', u'listener_id', listener_id)], [u'show_all'])
-        result[u'resources'].sort(
-            key=lambda resource: resource[u'last_modified'])
-        result[u'resources'] = [
-            {u'id': resource[u'id']} for resource in result[u'resources']
-        ]
-        # Horribly inefficient end
-        return result
 
     def get_matching_items(self, search_criteria):
         '''Serve GET /foos/search to list items matching search criteria.'''
@@ -298,27 +214,8 @@ class ListResource(object):
 
         wo = self._create_wo_storage()
         added = wo.add_item(item)
-        self._add_created_notifications(added)
+        self._listener.notify_create(added[u'id'], added[u'revision'])
         return added
-
-    def post_listener(self):
-        '''Serve POST /foos/listeners to create a new listener.'''
-        listener = bottle.request.json
-        unifiedapi.add_missing_item_fields(
-            u'listener', self._listener_prototype, listener)
-
-        iv = unifiedapi.ItemValidator()
-        try:
-            iv.validate_item(u'listener', self._listener_prototype, listener)
-            self._validate_no_id_given(listener)
-            self._validate_no_revision_given(listener)
-        except unifiedapi.ValidationError as e:
-            logging.error(u'Validation error: %s', e)
-            raise bottle.HTTPError(status=400)
-
-        wo = self._create_resource_wo_storage(
-            u'listener', self._listener_prototype)
-        return wo.add_item(listener)
 
     def _validate_no_id_given(self, item):
         if u'id' in item:
@@ -343,29 +240,6 @@ class ListResource(object):
         ro = self._create_ro_storage()
         try:
             return ro.get_item(item_id)
-        except unifiedapi.ItemDoesNotExist as e:
-            logging.error(str(e), exc_info=True)
-            raise bottle.HTTPError(status=404)
-
-    def get_listener(self, listener_id):
-        '''Serve GET /foos/listeners/123 to get an existing listener.'''
-        ro = self._create_resource_ro_storage(
-            u'listener', self._listener_prototype)
-        try:
-            return ro.get_item(listener_id)
-        except unifiedapi.ItemDoesNotExist as e:
-            logging.error(str(e), exc_info=True)
-            raise bottle.HTTPError(status=404)
-
-    def get_notification(self, notification_id):
-        '''Serve GET /foos/listeners/123/notifications/123.
-
-        Gets an existing notification.
-        '''
-        ro = self._create_resource_ro_storage(
-            u'notification', self._notification_prototype)
-        try:
-            return ro.get_item(notification_id)
         except unifiedapi.ItemDoesNotExist as e:
             logging.error(str(e), exc_info=True)
             raise bottle.HTTPError(status=404)
@@ -422,34 +296,7 @@ class ListResource(object):
             logging.error(u'Validation error: %s', e)
             raise bottle.HTTPError(status=409)
 
-        self._add_updated_notifications(updated)
-        return updated
-
-    def put_listener(self, listener_id):
-        '''Serve PUT /foos/listeners/123 to update a listener.'''
-
-        listener = bottle.request.json
-
-        unifiedapi.add_missing_item_fields(
-            u'listener', self._listener_prototype, listener)
-
-        iv = unifiedapi.ItemValidator()
-        try:
-            iv.validate_item(u'listener', self._listener_prototype, listener)
-            self._validate_id_is_valid_if_given(listener, listener_id)
-            listener[u'id'] = listener_id
-        except unifiedapi.ValidationError as e:
-            logging.error(u'Validation error: %s', e)
-            raise bottle.HTTPError(status=400)
-
-        try:
-            wo = self._create_resource_wo_storage(
-                u'listener', self._listener_prototype)
-            updated = wo.update_item(listener)
-        except unifiedapi.WrongRevision as e:
-            logging.error(u'Validation error: %s', e)
-            raise bottle.HTTPError(status=409)
-
+        self._listener.notify_update(updated[u'id'], updated[u'revision'])
         return updated
 
     def _validate_id_is_valid_if_given(self, item, item_id):
@@ -487,7 +334,7 @@ class ListResource(object):
             raise bottle.HTTPError(status=409)
         updated = dict(subitem)
         updated.update({u'id': item_id})
-        self._add_updated_notifications(updated)
+        self._listener.notify_update(updated[u'id'], updated[u'revision'])
         return subitem
 
     def put_file(self, item_id):
@@ -521,7 +368,7 @@ class ListResource(object):
         except unifiedapi.WrongRevision as e:
             logging.error(u'Validation error: %s', e)
             raise bottle.HTTPError(status=409)
-        self._add_updated_notifications(added)
+        self._listener.notify_update(added[u'id'], added[u'revision'])
         return added
 
     def delete_item(self, item_id):
@@ -529,117 +376,10 @@ class ListResource(object):
         wo = self._create_wo_storage()
         try:
             wo.delete_item(item_id)
-            self._add_deleted_notifications(item_id)
+            self._listener.notify_delete(item_id)
         except unifiedapi.ItemDoesNotExist as e:
             logging.error(str(e), exc_info=True)
             raise bottle.HTTPError(status=404)
-
-    def delete_listener(self, listener_id):
-        '''Serve DELETE /foos/listeners/123 to delete a listener.'''
-        wo_listener = self._create_resource_wo_storage(
-            u'listener', self._listener_prototype)
-        try:
-            wo_listener.delete_item(listener_id)
-        except unifiedapi.ItemDoesNotExist as e:
-            logging.error(str(e), exc_info=True)
-            raise bottle.HTTPError(status=404)
-
-        ro = self._create_resource_ro_storage(
-            u'notification', self._notification_prototype)
-        notification_resources = ro.search(
-            [(u'exact', u'listener_id', listener_id)], [])
-        wo_notification = self._create_resource_wo_storage(
-            u'notification', self._notification_prototype)
-        for notification in notification_resources[u'resources']:
-            try:
-                wo_notification.delete_item(notification[u'id'])
-            except unifiedapi.ItemDoesNotExist as e:
-                logging.error(str(e), exc_info=True)
-
-    def delete_notification(self, notification_id):
-        '''Serve DELETE /foos/listeners/123/notifications/123.
-
-        Deletes a notification.
-        '''
-        wo = self._create_resource_wo_storage(
-            u'notification', self._notification_prototype)
-        try:
-            wo.delete_item(notification_id)
-        except unifiedapi.ItemDoesNotExist as e:
-            logging.error(str(e), exc_info=True)
-            raise bottle.HTTPError(status=404)
-
-    def _add_created_notifications(self, created_item):
-        '''Adds a created notification.
-
-        Notification is added for every listener that has notify_of_new
-        enabled.
-        '''
-        ro = self._create_resource_ro_storage(
-            u'listener', self._listener_prototype)
-        listener_resources = ro.search(
-            [(u'exact', u'notify_of_new', True)], [])
-
-        wo = self._create_resource_wo_storage(
-            u'notification', self._notification_prototype)
-        for listener in listener_resources[u'resources']:
-            notification = {
-                u'type': u'notification',
-                u'listener_id': listener[u'id'],
-                u'resource_id': created_item[u'id'],
-                u'resource_revision': created_item[u'revision'],
-                u'resource_change': u'created',
-                u'last_modified': int(time.time() * 1000000)
-            }
-            wo.add_item(notification)
-
-    def _add_updated_notifications(self, updated_item):
-        '''Adds an updated notification.
-
-        Notification is added for every listener that is listening on
-        the updated item id.
-        '''
-        ro = self._create_resource_ro_storage(
-            u'listener', self._listener_prototype)
-        listener_resources = ro.search(
-            [(u'exact', u'listen_on', updated_item[u'id'])], [])
-
-        wo = self._create_resource_wo_storage(
-            u'notification', self._notification_prototype)
-        for listener in listener_resources[u'resources']:
-            notification = {
-                u'type': u'notification',
-                u'listener_id': listener[u'id'],
-                u'resource_id': updated_item[u'id'],
-                u'resource_revision': updated_item[u'revision'],
-                u'resource_change': u'updated',
-                u'last_modified': int(time.time() * 1000000)
-            }
-            wo.add_item(notification)
-
-    def _add_deleted_notifications(self, deleted_item_id):
-        '''Adds an deleted notification.
-
-        Notification is added for every listener that is listening on
-        the updated item id.
-        '''
-        ro = self._create_resource_ro_storage(
-            u'listener', self._listener_prototype)
-        listener_resources = ro.search(
-            [(u'exact', u'listen_on', deleted_item_id)], [])
-
-        wo = self._create_resource_wo_storage(
-            u'notification', self._notification_prototype)
-        for listener in listener_resources[u'resources']:
-            notification = {
-                u'type': u'notification',
-                u'listener_id': listener[u'id'],
-                u'resource_id': deleted_item_id,
-                u'resource_revision': None,
-                u'resource_change': u'deleted',
-                u'last_modified': int(time.time() * 1000000)
-            }
-            wo.add_item(notification)
 
     def _create_ro_storage(self):
         ro = unifiedapi.ReadOnlyStorage()
