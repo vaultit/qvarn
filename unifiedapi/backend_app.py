@@ -67,6 +67,7 @@ class BackendApplication(object):
         '''Run the application.'''
         args = self._parse_command_line()
         self._setup_auth(args)
+        self._app.install(unifiedapi.ArgsFormatPlugin())
         # Logging should be the last plugin
         self._setup_logging(args)
         routes = self._prepare_resource(args)
