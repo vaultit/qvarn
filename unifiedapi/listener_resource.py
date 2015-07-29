@@ -1,4 +1,4 @@
-# list_resource.py - implement API for multi-item resources such as /persons
+# listener_resource.py - implements API for listener and notification resources
 #
 # Copyright 2015 Suomen Tilaajavastuu Oy
 # All rights reserved.
