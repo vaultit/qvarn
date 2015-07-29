@@ -89,6 +89,7 @@ class ListResource(object):
                 'path': self._path,
                 'method': 'POST',
                 'callback': self.post_item,
+                'apply': unifiedapi.BasicValidationPlugin(),
             },
             {
                 'path': self._path + '/<item_id>',
@@ -99,6 +100,7 @@ class ListResource(object):
                 'path': self._path + '/<item_id>',
                 'method': 'PUT',
                 'callback': self.put_item,
+                'apply': unifiedapi.BasicValidationPlugin(u'item_id'),
             },
             {
                 'path': self._path + '/<item_id>',
@@ -129,6 +131,7 @@ class ListResource(object):
                     'callback':
                     lambda item_id, x=subitem_name:
                     self.put_subitem(item_id, x),
+                    'apply': unifiedapi.BasicValidationPlugin(u'item_id'),
                 }
             ])
 
@@ -178,35 +181,20 @@ class ListResource(object):
         iv = unifiedapi.ItemValidator()
         try:
             iv.validate_item(self._item_type, self._item_prototype, item)
-            self._validate_no_id_given(item)
-            self._validate_no_revision_given(item)
             self._item_validator(item)
         except unifiedapi.ValidationError as e:
             logging.error(u'Validation error: %s', e)
             raise bottle.HTTPError(status=400)
 
+        # Filling in default values sets the fields to None, if
+        # missing. Thus we accept that and just remove it here.
+        del item[u'id']
+        del item[u'revision']
+
         wo = self._create_wo_storage()
         added = wo.add_item(item)
         self._listener.notify_create(added[u'id'], added[u'revision'])
         return added
-
-    def _validate_no_id_given(self, item):
-        if u'id' in item:
-            if item[u'id'] is not None:
-                raise NewItemHasIdAlready(id=item[u'id'])
-
-            # Filling in default values sets the id field to None, if
-            # missing. Thus we accept that and just remove it here.
-            del item[u'id']
-
-    def _validate_no_revision_given(self, item):
-        if u'revision' in item:
-            if item[u'revision'] is not None:
-                raise NewItemHasRevisionAlready(revision=item[u'revision'])
-
-            # Filling in default values sets the revision field to None, if
-            # missing. Thus we accept that and just remove it here.
-            del item[u'revision']
 
     def get_item(self, item_id):
         '''Serve GET /foos/123 to get an existing item.'''
@@ -241,7 +229,6 @@ class ListResource(object):
         iv = unifiedapi.ItemValidator()
         try:
             iv.validate_item(self._item_type, self._item_prototype, item)
-            self._validate_id_is_valid_if_given(item, item_id)
             item[u'id'] = item_id
             self._item_validator(item)
         except unifiedapi.ValidationError as e:
@@ -258,10 +245,6 @@ class ListResource(object):
         self._listener.notify_update(updated[u'id'], updated[u'revision'])
         return updated
 
-    def _validate_id_is_valid_if_given(self, item, item_id):
-        if item[u'id'] not in (None, item_id):
-            raise ItemHasConflictingId(id=item[u'id'], wanted=item_id)
-
     def put_subitem(self, item_id, subitem_name):
         '''Serve PUT /foos/123/subitem to update a subitem.'''
 
@@ -273,13 +256,8 @@ class ListResource(object):
 
         iv = unifiedapi.ItemValidator()
         try:
-            if u'revision' not in subitem:
-                raise NoSubitemRevision(id=item_id)
             revision = subitem.pop(u'revision')
             iv.validate_item(subitem_type, prototype, subitem)
-        except NoSubitemRevision as e:
-            logging.error(u'Validation error: %s', e)
-            raise bottle.HTTPError(status=409)
         except unifiedapi.ValidationError as e:
             logging.error(u'Validation error: %s', e)
             raise bottle.HTTPError(status=400)
@@ -333,25 +311,3 @@ class ListResource(object):
         wo.set_item_prototype(resource_name, prototype)
         wo.set_db(self.database)
         return wo
-
-
-class NewItemHasIdAlready(unifiedapi.ValidationError):
-
-    msg = u'New item has id already set ({id!r}), which is not allowed'
-
-
-class NewItemHasRevisionAlready(unifiedapi.ValidationError):
-
-    msg = (
-        u'New item has revision already set ({revision!r}), '
-        u'which is not allowed')
-
-
-class ItemHasConflictingId(unifiedapi.ValidationError):
-
-    msg = u'Updated item {wanted} has conflicting id {id}'
-
-
-class NoSubitemRevision(unifiedapi.ValidationError):
-
-    msg = u'Sub-item for {id} has no revision'

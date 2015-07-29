@@ -81,6 +81,7 @@ class ListenerResource(object):
                 'path': listeners_path,
                 'method': 'POST',
                 'callback': self.post_listener,
+                'apply': unifiedapi.BasicValidationPlugin(),
             },
             {
                 'path': listeners_path + '/<listener_id>',
@@ -91,6 +92,7 @@ class ListenerResource(object):
                 'path': listeners_path + '/<listener_id>',
                 'method': 'PUT',
                 'callback': self.put_listener,
+                'apply': unifiedapi.BasicValidationPlugin(u'listener_id'),
             },
             {
                 'path': listeners_path + '/<listener_id>',
@@ -163,33 +165,18 @@ class ListenerResource(object):
         iv = unifiedapi.ItemValidator()
         try:
             iv.validate_item(u'listener', listener_prototype, listener)
-            self._validate_no_id_given(listener)
-            self._validate_no_revision_given(listener)
         except unifiedapi.ValidationError as e:
             logging.error(u'Validation error: %s', e)
             raise bottle.HTTPError(status=400)
 
+        # Filling in default values sets the id field to None, if
+        # missing. Thus we accept that and just remove it here.
+        del listener[u'id']
+        del listener[u'revision']
+
         wo = self._create_resource_wo_storage(
             u'listener', listener_prototype)
         return wo.add_item(listener)
-
-    def _validate_no_id_given(self, item):
-        if u'id' in item:
-            if item[u'id'] is not None:
-                raise NewItemHasIdAlready(id=item[u'id'])
-
-            # Filling in default values sets the id field to None, if
-            # missing. Thus we accept that and just remove it here.
-            del item[u'id']
-
-    def _validate_no_revision_given(self, item):
-        if u'revision' in item:
-            if item[u'revision'] is not None:
-                raise NewItemHasRevisionAlready(revision=item[u'revision'])
-
-            # Filling in default values sets the revision field to None, if
-            # missing. Thus we accept that and just remove it here.
-            del item[u'revision']
 
     def get_listener(self, listener_id):
         '''Serve GET /foos/listeners/123 to get an existing listener.'''
@@ -225,7 +212,6 @@ class ListenerResource(object):
         iv = unifiedapi.ItemValidator()
         try:
             iv.validate_item(u'listener', listener_prototype, listener)
-            self._validate_id_is_valid_if_given(listener, listener_id)
             listener[u'id'] = listener_id
         except unifiedapi.ValidationError as e:
             logging.error(u'Validation error: %s', e)
@@ -240,10 +226,6 @@ class ListenerResource(object):
             raise bottle.HTTPError(status=409)
 
         return updated
-
-    def _validate_id_is_valid_if_given(self, item, item_id):
-        if item[u'id'] not in (None, item_id):
-            raise ItemHasConflictingId(id=item[u'id'], wanted=item_id)
 
     def delete_listener(self, listener_id):
         '''Serve DELETE /foos/listeners/123 to delete a listener.'''
@@ -363,35 +345,3 @@ class ListenerResource(object):
         wo.set_item_prototype(resource_name, prototype)
         wo.set_db(self.database)
         return wo
-
-
-class NewItemHasIdAlready(unifiedapi.ValidationError):
-
-    msg = u'New item has id already set ({id!r}), which is not allowed'
-
-
-class NewItemHasRevisionAlready(unifiedapi.ValidationError):
-
-    msg = (
-        u'New item has revision already set ({revision!r}), '
-        u'which is not allowed')
-
-
-class ItemHasConflictingId(unifiedapi.ValidationError):
-
-    msg = u'Updated item {wanted} has conflicting id {id}'
-
-
-class NoSubitemRevision(unifiedapi.ValidationError):
-
-    msg = u'Sub-item for {id} has no revision'
-
-
-class InvalidContentLength(unifiedapi.ValidationError):
-
-    msg = u'Request for {id} has invalid Content-Length header set'
-
-
-class InvalidContentType(unifiedapi.ValidationError):
-
-    msg = u'Request for {id} has invalid Content-Type header set'
