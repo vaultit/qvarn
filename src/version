@@ -22,11 +22,15 @@ def version():
 
 
 def main():
+    app = unifiedapi.BackendApplication()
+
+    prep = unifiedapi.StoragePreparer()
+    app.set_storage_preparer(prep)
+
     resource = unifiedapi.SimpleResource()
     resource.set_path(u'/version', version)
-
-    app = unifiedapi.BackendApplication()
     app.add_resource(resource)
+
     app.run()
 
 
