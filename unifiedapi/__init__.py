@@ -27,3 +27,4 @@ from .auth_validator import (
 from .logging_plugin import LoggingPlugin
 from .args_format_plugin import ArgsFormatPlugin
 from .listener_resource import ListenerResource
+from .file_resource import FileResource

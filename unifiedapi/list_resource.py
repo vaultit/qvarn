@@ -37,7 +37,6 @@ class ListResource(object):
         self._subitem_prototypes = unifiedapi.SubItemPrototypes()
         self._listener = None
         self.database = None
-        self._file_resource_name = None
 
     def set_path(self, path):
         '''Set path of the top level resource, e.g., /persons.'''
@@ -74,13 +73,6 @@ class ListResource(object):
         and has a more detailed description of them.
         '''
         self._listener = listener
-
-    def set_file_resource_name(self, resource_name):
-        '''Set the file resource name.
-
-        File PUT and GET are enabled if this is set.
-        '''
-        self._file_resource_name = resource_name
 
     def prepare_resource(self, database):
         '''Prepare the resource for action.'''
@@ -140,26 +132,7 @@ class ListResource(object):
                 }
             ])
 
-        file_paths = []
-        if self._file_resource_name:
-            self.set_subitem_prototype(self._file_resource_name, {
-                u'body': u'', u'content_type': u''
-            })
-            resource_name = self._file_resource_name
-            file_paths = [
-                {
-                    'path': self._path + '/<item_id>/' + resource_name,
-                    'method': 'GET',
-                    'callback': self.get_file,
-                },
-                {
-                    'path': self._path + '/<item_id>/' + resource_name,
-                    'method': 'PUT',
-                    'callback': self.put_file,
-                },
-            ]
-
-        return item_paths + subitem_paths + file_paths
+        return item_paths + subitem_paths
 
     def get_items(self):
         '''Serve GET /foos to list all items.'''
@@ -257,20 +230,6 @@ class ListResource(object):
         subitem[u'revision'] = item[u'revision']
         return subitem
 
-    def get_file(self, item_id):
-        '''Serve GET /foos/123/<file_resource_name> to get a file.'''
-        ro = self._create_ro_storage()
-        try:
-            subitem = ro.get_subitem(item_id, self._file_resource_name)
-        except unifiedapi.ItemDoesNotExist as e:
-            logging.error(str(e), exc_info=True)
-            raise bottle.HTTPError(status=404)
-
-        item = ro.get_item(item_id)
-        bottle.response.set_header('Revision', item[u'revision'])
-        bottle.response.set_header('Content-Type', subitem[u'content_type'])
-        return subitem[u'body']
-
     def put_item(self, item_id):
         '''Serve PUT /foos/123 to update an item.'''
 
@@ -337,40 +296,6 @@ class ListResource(object):
         self._listener.notify_update(updated[u'id'], updated[u'revision'])
         return subitem
 
-    def put_file(self, item_id):
-        '''Serve PUT /foos/123/<file_resource_name> to update a file.'''
-
-        try:
-            if bottle.request.content_length < 0:
-                raise InvalidContentLength(id=item_id)
-            if not bottle.request.content_type:
-                raise InvalidContentType(id=item_id)
-            if u'revision' not in bottle.request.headers:
-                raise NoSubitemRevision(id=item_id)
-            revision = bottle.request.headers[u'revision']
-        except (InvalidContentLength,
-                InvalidContentType, NoSubitemRevision) as e:
-            logging.error(u'Validation error: %s', e)
-            raise bottle.HTTPError(status=409)
-
-        subitem = {
-            u'id': item_id,
-            u'body': buffer(bottle.request.body.read()),
-            u'content_type': unicode(bottle.request.content_type)
-        }
-
-        added = {u'id': item_id}
-
-        try:
-            wo = self._create_wo_storage()
-            added[u'revision'] = wo.update_subitem(
-                item_id, revision, self._file_resource_name, subitem)
-        except unifiedapi.WrongRevision as e:
-            logging.error(u'Validation error: %s', e)
-            raise bottle.HTTPError(status=409)
-        self._listener.notify_update(added[u'id'], added[u'revision'])
-        return added
-
     def delete_item(self, item_id):
         '''Serve DELETE /foos/123 to delete an item.'''
         wo = self._create_wo_storage()
@@ -430,13 +355,3 @@ class ItemHasConflictingId(unifiedapi.ValidationError):
 class NoSubitemRevision(unifiedapi.ValidationError):
 
     msg = u'Sub-item for {id} has no revision'
-
-
-class InvalidContentLength(unifiedapi.ValidationError):
-
-    msg = u'Request for {id} has invalid Content-Length header set'
-
-
-class InvalidContentType(unifiedapi.ValidationError):
-
-    msg = u'Request for {id} has invalid Content-Type header set'
