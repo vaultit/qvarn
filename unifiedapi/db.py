@@ -50,7 +50,8 @@ class Database(object):
         self._conn = sqlite3.connect(
             url,
             isolation_level="IMMEDIATE",
-            detect_types=sqlite3.PARSE_DECLTYPES
+            detect_types=sqlite3.PARSE_DECLTYPES,
+            check_same_thread=False
         )
         sqlite3.register_adapter(bool, int)
         sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
