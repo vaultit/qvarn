@@ -33,11 +33,11 @@ class AuthValidatorTests(unittest.TestCase):
         self.auth_validator = unifiedapi.AuthValidator()
 
     def test_no_authorization_header_errors_raises(self):
-        with self.assertRaises(unifiedapi.AuthenticationError):
+        with self.assertRaises(unifiedapi.Unauthorized):
             self.auth_validator.get_access_token_from_headers({})
 
     def test_invalid_authorization_header_format_raises(self):
-        with self.assertRaises(unifiedapi.AuthorizationError):
+        with self.assertRaises(unifiedapi.Forbidden):
             self.auth_validator.get_access_token_from_headers({
                 'Authorization': 'Fail tokentoken'
             })
@@ -61,7 +61,7 @@ class AuthValidatorTests(unittest.TestCase):
         secret = u'secret'
         token = get_valid_token()
         encoded_token = jwt.encode(token, secret, algorithm='HS512')
-        with self.assertRaises(unifiedapi.AuthorizationError):
+        with self.assertRaises(unifiedapi.Forbidden):
             self.auth_validator.validate_token(
                 encoded_token,
                 secret,
@@ -72,7 +72,7 @@ class AuthValidatorTests(unittest.TestCase):
         token = get_valid_token()
         del token[u'sub']
         encoded_token = jwt.encode(token, secret, algorithm='HS512')
-        with self.assertRaises(unifiedapi.AuthorizationError):
+        with self.assertRaises(unifiedapi.Forbidden):
             self.auth_validator.validate_token(
                 encoded_token,
                 secret,

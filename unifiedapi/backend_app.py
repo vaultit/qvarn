@@ -72,11 +72,13 @@ class BackendApplication(object):
     def run(self):
         '''Run the application.'''
         args = self._parse_command_line()
+        # Logging should be the first plugin (outermost wrapper)
+        self._setup_logging(args)
+        # Error catching should also be as high as possible to catch all
+        self._app.install(unifiedapi.ErrorTransformPlugin())
         self._setup_storage(args)
         self._setup_auth(args)
         self._app.install(unifiedapi.ArgsFormatPlugin())
-        # Logging should be the last plugin
-        self._setup_logging(args)
         routes = self._prepare_resources()
         self.add_routes(routes)
         self._start_service(args)

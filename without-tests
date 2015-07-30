@@ -36,7 +36,12 @@ unifiedapi/logging_plugin.py
 # TODO
 unifiedapi/args_format_plugin.py
 unifiedapi/basic_validation_plugin.py
+unifiedapi/error_transform_plugin.py
 
 # Does not contain much logic, logic is mostly separated to AuthValidator and
 # util.py
 unifiedapi/auth_plugin.py
+
+# Contains only subclasses of BackendException that don't add any additional
+# functionality.
+unifiedapi/http_statuses.py

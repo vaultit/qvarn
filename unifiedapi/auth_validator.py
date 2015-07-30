@@ -6,13 +6,7 @@
 
 import jwt
 
-
-class AuthenticationError(Exception):
-    pass
-
-
-class AuthorizationError(Exception):
-    pass
+import unifiedapi
 
 
 class AuthValidator(object):
@@ -27,12 +21,12 @@ class AuthValidator(object):
         '''
         # Header has to be present in the form "Authorization: Bearer token"
         if u'Authorization' not in headers:
-            raise AuthenticationError()
+            raise AuthorizationHeaderMissing()
         auth_header_value = headers[u'Authorization']
         auth_header_values = auth_header_value.split(u' ')
         if not len(auth_header_values) == 2 or \
            not auth_header_values[0].lower() == 'bearer':
-            raise AuthorizationError()
+            raise InvalidAuthorizationHeaderFormat()
         return auth_header_values[1]
 
     def validate_token(self, access_token, token_validation_key, issuer):
@@ -56,11 +50,26 @@ class AuthValidator(object):
                 issuer=issuer)
             # Additionally always require sub field (subject)
             if u'sub' not in payload:
-                raise AuthorizationError()
+                raise InvalidAccessTokenError()
             return {
                 u'scopes': payload[u'scope'].split(' '),
                 u'user_id': payload[u'sub'],
                 u'client_id': payload[u'aud']
             }
         except jwt.InvalidTokenError:
-            raise AuthorizationError()
+            raise InvalidAccessTokenError()
+
+
+class AuthorizationHeaderMissing(unifiedapi.Unauthorized):
+
+    msg = u'Authorization header is missing'
+
+
+class InvalidAuthorizationHeaderFormat(unifiedapi.Forbidden):
+
+    msg = u'Authorization header is in invalid format'
+
+
+class InvalidAccessTokenError(unifiedapi.Forbidden):
+
+    msg = u'Access token is invalid'

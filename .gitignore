@@ -8,4 +8,4 @@ debian/unified-api-backend.postinst.debhelper
 debian/unified-api-backend.prerm.debhelper
 debian/unified-api-backend.substvars
 debian/unified-api-backend/
-
+*.log

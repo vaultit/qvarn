@@ -23,26 +23,21 @@ class AuthPlugin(object):
         return wrapper
 
     def _check_auth(self):
-        try:
-            access_token = self._auth_validator.get_access_token_from_headers(
-                bottle.request.headers)
-            result = self._auth_validator.validate_token(
-                access_token, self._token_validation_key, self._token_issuer)
-            bottle.request.environ[u'scopes'] = result[u'scopes']
-            bottle.request.environ[u'client_id'] = result[u'client_id']
-            bottle.request.environ[u'user_id'] = result[u'user_id']
-        except unifiedapi.AuthenticationError:
-            raise bottle.HTTPError(status=401)
-        except unifiedapi.AuthorizationError:
-            raise bottle.HTTPError(status=403)
+        access_token = self._auth_validator.get_access_token_from_headers(
+            bottle.request.headers)
+        result = self._auth_validator.validate_token(
+            access_token, self._token_validation_key, self._token_issuer)
+        bottle.request.environ[u'scopes'] = result[u'scopes']
+        bottle.request.environ[u'client_id'] = result[u'client_id']
+        bottle.request.environ[u'user_id'] = result[u'user_id']
 
     def _check_scope(self):
         scopes = bottle.request.environ['scopes']
         if not scopes:
-            raise bottle.HTTPError(status=403)
+            raise unifiedapi.Forbidden()
         route_scope = self._get_current_scope()
         if route_scope not in scopes:
-            raise bottle.HTTPError(status=403)
+            raise unifiedapi.Forbidden()
 
     def _get_current_scope(self):
         route_rule = bottle.request.route.rule
