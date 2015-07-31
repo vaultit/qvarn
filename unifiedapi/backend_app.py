@@ -133,6 +133,11 @@ class BackendApplication(object):
                 level=logging.DEBUG,
                 format='%(asctime)s %(levelname)s %(message)s')
             logging.info('{} starts'.format(sys.argv[0]))
+        else:
+            logging.basicConfig(
+                level=logging.DEBUG,
+                format='%(asctime)s %(levelname)s %(message)s')
+            logging.info('{} starts'.format(sys.argv[0]))
         logging_plugin = unifiedapi.LoggingPlugin()
         self._app.install(logging_plugin)
 
@@ -155,7 +160,7 @@ class BackendApplication(object):
 
     def _start_debug_server(self, args):
         if args.host is not None and args.port is not None:
-            self._app.run(host=args.host, port=args.port)
+            self._app.run(host=args.host, port=args.port, quiet=True)
             return True
 
     def _start_wsgi_server(self, args):
