@@ -11,7 +11,11 @@ import unifiedapi
 
 class ErrorTransformPlugin(object):
 
-    '''Catches unifiedapi HTTPErrors and returns error as JSON instead.'''
+    '''Catches unifiedapi HTTPError and returns error as dict instead.
+
+    Uses BackendException error attribute as the to-be-JSONified dict and also
+    sets the response error status code to HTTPError status_code.
+    '''
 
     def apply(self, callback, route):
         def wrapper(*args, **kwargs):
@@ -20,5 +24,5 @@ class ErrorTransformPlugin(object):
                 return result
             except unifiedapi.HTTPError, e:
                 bottle.response.status = e.status_code
-                return {u'error': u'error'}
+                return e.error
         return wrapper

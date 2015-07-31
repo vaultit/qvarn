@@ -118,11 +118,6 @@ class WriteOnlyStorageTests(unittest.TestCase):
     def get_item_from_disk(self, item):
         return self.ro.get_item(item[u'id'])
 
-    def test_exception_message_contains_id(self):
-        obj_id = u'this is unlikely in an error message'
-        e = unifiedapi.CannotAddWithId(id=obj_id)
-        self.assertIn(obj_id, unicode(e))
-
     def test_refuses_to_add_item_with_id(self):
         with_id = dict(self.person)
         with_id[u'id'] = u'abc'

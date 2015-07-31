@@ -111,11 +111,6 @@ class ReadOnlyStorageTests(unittest.TestCase):
     def test_lists_no_items_initially(self):
         self.assertEqual(self.ro.get_item_ids(), [])
 
-    def test_error_mentions_id(self):
-        obj_id = u'this string is unlikely in an error message'
-        e = unifiedapi.ItemDoesNotExist(id=obj_id)
-        self.assertIn(obj_id, unicode(e))
-
     def test_raises_error_when_item_does_not_exist(self):
         with self.assertRaises(unifiedapi.ItemDoesNotExist):
             self.ro.get_item(u'does-not-exist')

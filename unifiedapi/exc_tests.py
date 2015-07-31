@@ -11,19 +11,31 @@ import unifiedapi
 
 class DummyException(unifiedapi.BackendException):
 
-    msg = u'dummy msg {param}'
+    msg = u'dummy msg'
+
+
+class AnotherDummyException(unifiedapi.BackendException):
+
+    msg = u'another dummy msg'
 
 
 class BackendExceptionTests(unittest.TestCase):
 
-    def test_stores_keyword_arguments(self):
+    def test_stores_keyword_arguments_in_error(self):
         e = DummyException(param=123)
-        self.assertEqual(e.kwargs, {'param': 123})
+        self.assertIn(u'param', e.error)
+        self.assertEqual(e.error[u'param'], 123)
 
-    def test_raises_exception_if_keyword_argument_is_missing(self):
-        with self.assertRaises(KeyError):
-            DummyException()
+    def test_generates_error_code(self):
+        e = DummyException()
+        self.assertIn(u'error_code', e.error)
 
-    def test_formats_as_string(self):
-        e = DummyException(param=123)
-        self.assertIn('123', str(e))
+    def test_generates_same_error_code_for_objects_of_same_class(self):
+        e = DummyException()
+        e2 = DummyException(test=u'Nope')
+        self.assertEqual(e.error[u'error_code'], e2.error[u'error_code'])
+
+    def test_generates_different_error_codes_for_different_subclass_objs(self):
+        e = DummyException()
+        e2 = AnotherDummyException()
+        self.assertNotEqual(e.error[u'error_code'], e2.error[u'error_code'])
