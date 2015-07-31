@@ -145,21 +145,19 @@ class WriteOnlyStorage(object):
         dw.walk_item(prototype, prototype)
 
 
-class CannotAddWithId(unifiedapi.BackendException):
+class CannotAddWithId(unifiedapi.BadRequest):
 
-    msg = "Object being added already has an id ({id})"
-
-
-class CannotAddWithRevision(unifiedapi.BackendException):
-
-    msg = "Object being added already has a revision ({revision})"
+    msg = u"Object being added already has an id"
 
 
-class WrongRevision(unifiedapi.BackendException):
+class CannotAddWithRevision(unifiedapi.BadRequest):
 
-    msg = (
-        "Object being updated ({item_id}) has revision {current}, "
-        "but update refers to ({update})")
+    msg = u"Object being added already has a revision"
+
+
+class WrongRevision(unifiedapi.Conflict):
+
+    msg = "Update revision does not match the revision of object being updated"
 
 
 class WriteWalker(unifiedapi.ItemWalker):

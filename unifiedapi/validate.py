@@ -66,21 +66,21 @@ class ItemValidator(object):
 
     def _validate_is_dict(self, thing):
         if type(thing) is not dict:
-            raise ItemMustBeDict(type=type(thing))
+            raise ItemMustBeDict(conflicting_type=type(thing))
 
     def _validate_has_type_field(self, thing):
         if u'type' not in thing:
-            raise MustHaveTypeField(thing=thing)
+            raise MustHaveTypeField(item=thing)
 
     def _validate_same_fields(self, prototype, item):
         allowed_keys = set(prototype.keys())
         actual_keys = set(item.keys())
         missing_keys = allowed_keys.difference(actual_keys)
         if missing_keys:
-            raise RequiredKeysMissing(keys=missing_keys)
+            raise RequiredKeysMissing(required_keys=list(missing_keys))
         extra_keys = actual_keys.difference(allowed_keys)
         if extra_keys:
-            raise UnknownKeys(keys=extra_keys)
+            raise UnknownKeys(unknown_keys=list(extra_keys))
 
     def _validate_type_field(self, item, required_type):
         if item[u'type'] != required_type:
@@ -105,15 +105,16 @@ class ItemValidator(object):
             return
         if type(proto_value) != type(item_value):
             raise WrongTypeValue(
-                proto_type=type(proto_value), item_type=type(item_value))
+                expected_type=type(proto_value),
+                conflicting_type=type(item_value))
 
     def _validate_list_value(self, proto_value, item_value):
         if len(proto_value) != 1:
-            raise PrototypeListMustHaveOneValue(proto=proto_value)
+            raise PrototypeListMustHaveOneValue(item=proto_value)
         if type(proto_value[0]) not in (unicode, dict):
-            raise PrototypeListMustHaveStringsOrDicts(proto=proto_value)
+            raise PrototypeListMustHaveStringsOrDicts(prototype=proto_value)
         if type(item_value) is not list:
-            raise ItemMustHaveList(type=type(item_value))
+            raise ItemMustHaveList(conflicting_type=type(item_value))
         if type(proto_value[0]) is unicode:
             self._validate_list_of_strings(item_value)
         elif type(proto_value[0]) is dict:
@@ -122,7 +123,8 @@ class ItemValidator(object):
     def _validate_list_of_strings(self, item_value):
         for i, value in enumerate(item_value):
             if type(value) is not unicode:
-                raise ItemListMustContainStrings(pos=i, value=value)
+                raise ItemListMustContainStrings(
+                    position=i, conflicting_value=value)
 
     def _validate_list_of_dicts(self, proto_value, item_value):
         for i, value in enumerate(item_value):
@@ -131,63 +133,61 @@ class ItemValidator(object):
             self._validate_dict(proto_value[0], value)
 
 
-class ValidationError(unifiedapi.BackendException):
+class ValidationError(unifiedapi.BadRequest):
 
-    pass
+    msg = u'Item validation failed'
 
 
 class ItemMustBeDict(ValidationError):
 
-    msg = u'The item must be a mapping object (dict), not {type}'
+    msg = u'The item must be a mapping object (dict)'
 
 
 class RequiredKeysMissing(ValidationError):
 
-    msg = u'Required keys missing from item: {keys}'
+    msg = u'Required keys missing from item'
 
 
 class UnknownKeys(ValidationError):
 
-    msg = u'Unknown keys in item: {keys}'
+    msg = u'Unknown keys in item'
 
 
 class WrongTypeValue(ValidationError):
 
-    msg = (u'Item has a value of the wrong type: '
-           '{proto_type} expected, instead of {item_type}.')
+    msg = u'Item has a value of the wrong type'
 
 
 class PrototypeListMustHaveOneValue(ValidationError):
 
-    msg = u'Prototype lists must have exactly one item: {proto}'
+    msg = u'Prototype lists must have exactly one item'
 
 
 class PrototypeListMustHaveStringsOrDicts(ValidationError):
 
-    msg = u'Prototype lists must have a string or dict value: {proto}'
+    msg = u'Prototype lists must have a string or dict value'
 
 
 class ItemMustHaveList(ValidationError):
 
-    msg = u'Item must have a list value, not {type}'
+    msg = u'Item must have a list value'
 
 
 class ItemListMustContainStrings(ValidationError):
 
-    msg = (u'The list must contain strings, '
-           u'but position {pos} has value {value}')
+    msg = u'The list must contain strings'
 
 
 class ItemHasWrongType(ValidationError):
 
-    msg = u'Item has type {type}, but {required_type} was expected'
+    msg = u'Item has wrong type'
 
 
 class MustHaveTypeField(ValidationError):
 
-    msg = u'Type field is missing: {thing!r}'
+    msg = u'Type field is missing'
 
 
 class InvalidValueInPrototype(ValidationError):
 
-    msg = u'Item prototype has field {field} with bad type {type}'
+    msg = u'Item prototype has field with bad type'

@@ -13,12 +13,8 @@ class HTTPError(unifiedapi.BackendException):
     '''Base class for HTTP client errors (4xx).
 
     Subclasses MUST define an attribute ``status_code``.
-
-    This error should not be used directly which is why its status code is set
-    to 500 (server error).
     '''
 
-    status_code = 500
     msg = u'Internal server error'
 
 
@@ -106,6 +102,18 @@ class Conflict(HTTPError):
 
     status_code = 409
     msg = u'Conflict'
+
+
+class LengthRequired(HTTPError):
+
+    '''
+    The server refuses to accept the request without a defined Content- Length.
+    The client MAY repeat the request if it adds a valid Content-Length header
+    field containing the length of the message-body in the request message.
+    '''
+
+    status_code = 411
+    msg = u'Length required'
 
 
 class UnsupportedMediaType(HTTPError):

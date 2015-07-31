@@ -101,17 +101,13 @@ class FileResource(object):
     def put_file(self, item_id):
         '''Serve PUT /foos/123/<file_resource_name> to update a file.'''
 
-        try:
-            if bottle.request.content_length < 0:
-                raise InvalidContentLength(id=item_id)
-            if not bottle.request.content_type:
-                raise InvalidContentType(id=item_id)
-            if u'revision' not in bottle.request.headers:
-                raise NoSubitemRevision(id=item_id)
-            revision = bottle.request.headers[u'revision']
-        except (InvalidContentLength,
-                InvalidContentType, NoSubitemRevision) as e:
-            raise bottle.HTTPError(status=409)
+        if bottle.request.content_length < 0:
+            raise ContentLengthMissing(item_id=item_id)
+        if not bottle.request.content_type:
+            raise InvalidContentType(item_id=item_id)
+        if u'revision' not in bottle.request.headers:
+            raise unifiedapi.NoItemRevision(item_id=item_id)
+        revision = bottle.request.headers[u'revision']
 
         subitem = {
             u'id': item_id,
@@ -121,12 +117,9 @@ class FileResource(object):
 
         added = {u'id': item_id}
 
-        try:
-            wo = self._create_wo_storage()
-            added[u'revision'] = wo.update_subitem(
-                item_id, revision, self._file_resource_name, subitem)
-        except unifiedapi.WrongRevision as e:
-            raise bottle.HTTPError(status=409)
+        wo = self._create_wo_storage()
+        added[u'revision'] = wo.update_subitem(
+            item_id, revision, self._file_resource_name, subitem)
         self._listener.notify_update(added[u'id'], added[u'revision'])
         return added
 
@@ -147,16 +140,11 @@ class FileResource(object):
         return wo
 
 
-class NoSubitemRevision(unifiedapi.ValidationError):
+class ContentLengthMissing(unifiedapi.LengthRequired):
 
-    msg = u'Sub-item for {id} has no revision'
-
-
-class InvalidContentLength(unifiedapi.ValidationError):
-
-    msg = u'Request for {id} has invalid Content-Length header set'
+    msg = u'Content-Length header is missing'
 
 
-class InvalidContentType(unifiedapi.ValidationError):
+class InvalidContentType(unifiedapi.UnsupportedMediaType):
 
-    msg = u'Request for {id} has invalid Content-Type header set'
+    msg = u'Content-Type header is invalid'

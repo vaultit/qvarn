@@ -23,7 +23,13 @@ class BackendException(Exception):
     (It's the job of the presentation layer to break it into lines, if
     need be.)
 
+    All BackendExceptions are converted to user and machine readable messages
+    with matching HTTP status codes. This error should not be used directly
+    which is why its status code is set to 500 (internal server error).
     '''
+
+    status_code = 500
+    msg = u'Internal server error'
 
     def __init__(self, **kwargs):
         super(BackendException, self).__init__(self)

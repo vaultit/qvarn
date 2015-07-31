@@ -7,9 +7,11 @@
 from .exc import BackendException
 from .http_statuses import (
     HTTPError, BadRequest, Unauthorized, Forbidden, NotFound, Conflict,
-    UnsupportedMediaType)
+    LengthRequired, UnsupportedMediaType)
 from .walker import ItemWalker
 from .validate import ItemValidator, ValidationError
+from .basic_validation_plugin import (
+    BasicValidationPlugin, NoItemRevision, ContentTypeIsNotJSON)
 from .db import open_disk_database, open_memory_database
 from .storage_prep_step import StoragePreparationStep
 from .storage_prep import StoragePreparer
@@ -29,6 +31,6 @@ from .auth_validator import AuthValidator
 from .logging_plugin import LoggingPlugin
 from .args_format_plugin import ArgsFormatPlugin
 from .listener_resource import ListenerResource
-from .file_resource import FileResource
-from .basic_validation_plugin import BasicValidationPlugin
+from .file_resource import (
+    FileResource, ContentLengthMissing, InvalidContentType)
 from .error_transform_plugin import ErrorTransformPlugin

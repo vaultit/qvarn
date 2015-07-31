@@ -161,7 +161,7 @@ class ListResource(object):
                     show_params.append(criteria[i])
                     break
                 else:
-                    raise bottle.HTTPError(status=400)
+                    raise unifiedapi.BadRequest()
             elif i % 3 == 1:
                 search_field = criteria[i]
             elif i % 3 == 2:
@@ -178,11 +178,8 @@ class ListResource(object):
             self._item_type, self._item_prototype, item)
 
         iv = unifiedapi.ItemValidator()
-        try:
-            iv.validate_item(self._item_type, self._item_prototype, item)
-            self._item_validator(item)
-        except unifiedapi.ValidationError as e:
-            raise bottle.HTTPError(status=400)
+        iv.validate_item(self._item_type, self._item_prototype, item)
+        self._item_validator(item)
 
         # Filling in default values sets the fields to None, if
         # missing. Thus we accept that and just remove it here.
@@ -217,18 +214,12 @@ class ListResource(object):
             self._item_type, self._item_prototype, item)
 
         iv = unifiedapi.ItemValidator()
-        try:
-            iv.validate_item(self._item_type, self._item_prototype, item)
-            item[u'id'] = item_id
-            self._item_validator(item)
-        except unifiedapi.ValidationError as e:
-            raise bottle.HTTPError(status=400)
+        iv.validate_item(self._item_type, self._item_prototype, item)
+        item[u'id'] = item_id
+        self._item_validator(item)
 
-        try:
-            wo = self._create_wo_storage()
-            updated = wo.update_item(item)
-        except unifiedapi.WrongRevision as e:
-            raise bottle.HTTPError(status=409)
+        wo = self._create_wo_storage()
+        updated = wo.update_item(item)
 
         self._listener.notify_update(updated[u'id'], updated[u'revision'])
         return updated
@@ -243,18 +234,13 @@ class ListResource(object):
         unifiedapi.add_missing_item_fields(subitem_type, prototype, subitem)
 
         iv = unifiedapi.ItemValidator()
-        try:
-            revision = subitem.pop(u'revision')
-            iv.validate_item(subitem_type, prototype, subitem)
-        except unifiedapi.ValidationError as e:
-            raise bottle.HTTPError(status=400)
+        revision = subitem.pop(u'revision')
+        iv.validate_item(subitem_type, prototype, subitem)
 
-        try:
-            wo = self._create_wo_storage()
-            subitem[u'revision'] = wo.update_subitem(
-                item_id, revision, subitem_name, subitem)
-        except unifiedapi.WrongRevision as e:
-            raise bottle.HTTPError(status=409)
+        wo = self._create_wo_storage()
+        subitem[u'revision'] = wo.update_subitem(
+            item_id, revision, subitem_name, subitem)
+
         updated = dict(subitem)
         updated.update({u'id': item_id})
         self._listener.notify_update(updated[u'id'], updated[u'revision'])

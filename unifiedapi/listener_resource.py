@@ -162,10 +162,7 @@ class ListenerResource(object):
             u'listener', listener_prototype, listener)
 
         iv = unifiedapi.ItemValidator()
-        try:
-            iv.validate_item(u'listener', listener_prototype, listener)
-        except unifiedapi.ValidationError as e:
-            raise bottle.HTTPError(status=400)
+        iv.validate_item(u'listener', listener_prototype, listener)
 
         # Filling in default values sets the id field to None, if
         # missing. Thus we accept that and just remove it here.
@@ -200,18 +197,12 @@ class ListenerResource(object):
             u'listener', listener_prototype, listener)
 
         iv = unifiedapi.ItemValidator()
-        try:
-            iv.validate_item(u'listener', listener_prototype, listener)
-            listener[u'id'] = listener_id
-        except unifiedapi.ValidationError as e:
-            raise bottle.HTTPError(status=400)
+        iv.validate_item(u'listener', listener_prototype, listener)
+        listener[u'id'] = listener_id
 
-        try:
-            wo = self._create_resource_wo_storage(
-                u'listener', listener_prototype)
-            updated = wo.update_item(listener)
-        except unifiedapi.WrongRevision as e:
-            raise bottle.HTTPError(status=409)
+        wo = self._create_resource_wo_storage(
+            u'listener', listener_prototype)
+        updated = wo.update_item(listener)
 
         return updated
 
@@ -230,7 +221,7 @@ class ListenerResource(object):
         for notification in notification_resources[u'resources']:
             try:
                 wo_notification.delete_item(notification[u'id'])
-            except unifiedapi.ItemDoesNotExist as e:
+            except unifiedapi.ItemDoesNotExist:
                 # Try to delete all anyway
                 pass
 
