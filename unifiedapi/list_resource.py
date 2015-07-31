@@ -197,18 +197,12 @@ class ListResource(object):
     def get_item(self, item_id):
         '''Serve GET /foos/123 to get an existing item.'''
         ro = self._create_ro_storage()
-        try:
-            return ro.get_item(item_id)
-        except unifiedapi.ItemDoesNotExist as e:
-            raise bottle.HTTPError(status=404)
+        return ro.get_item(item_id)
 
     def get_subitem(self, item_id, subitem_path):
         '''Serve GET /foos/123/subitem.'''
         ro = self._create_ro_storage()
-        try:
-            subitem = ro.get_subitem(item_id, subitem_path)
-        except unifiedapi.ItemDoesNotExist as e:
-            raise bottle.HTTPError(status=404)
+        subitem = ro.get_subitem(item_id, subitem_path)
 
         item = ro.get_item(item_id)
         subitem[u'revision'] = item[u'revision']
@@ -269,11 +263,8 @@ class ListResource(object):
     def delete_item(self, item_id):
         '''Serve DELETE /foos/123 to delete an item.'''
         wo = self._create_wo_storage()
-        try:
-            wo.delete_item(item_id)
-            self._listener.notify_delete(item_id)
-        except unifiedapi.ItemDoesNotExist as e:
-            raise bottle.HTTPError(status=404)
+        wo.delete_item(item_id)
+        self._listener.notify_delete(item_id)
 
     def _create_ro_storage(self):
         ro = unifiedapi.ReadOnlyStorage()

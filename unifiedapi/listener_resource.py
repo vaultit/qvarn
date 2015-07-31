@@ -180,10 +180,7 @@ class ListenerResource(object):
         '''Serve GET /foos/listeners/123 to get an existing listener.'''
         ro = self._create_resource_ro_storage(
             u'listener', listener_prototype)
-        try:
-            return ro.get_item(listener_id)
-        except unifiedapi.ItemDoesNotExist as e:
-            raise bottle.HTTPError(status=404)
+        return ro.get_item(listener_id)
 
     def get_notification(self, notification_id):
         '''Serve GET /foos/listeners/123/notifications/123.
@@ -192,10 +189,7 @@ class ListenerResource(object):
         '''
         ro = self._create_resource_ro_storage(
             u'notification', notification_prototype)
-        try:
-            return ro.get_item(notification_id)
-        except unifiedapi.ItemDoesNotExist as e:
-            raise bottle.HTTPError(status=404)
+        return ro.get_item(notification_id)
 
     def put_listener(self, listener_id):
         '''Serve PUT /foos/listeners/123 to update a listener.'''
@@ -225,10 +219,7 @@ class ListenerResource(object):
         '''Serve DELETE /foos/listeners/123 to delete a listener.'''
         wo_listener = self._create_resource_wo_storage(
             u'listener', listener_prototype)
-        try:
-            wo_listener.delete_item(listener_id)
-        except unifiedapi.ItemDoesNotExist as e:
-            raise bottle.HTTPError(status=404)
+        wo_listener.delete_item(listener_id)
 
         ro = self._create_resource_ro_storage(
             u'notification', notification_prototype)
@@ -240,7 +231,7 @@ class ListenerResource(object):
             try:
                 wo_notification.delete_item(notification[u'id'])
             except unifiedapi.ItemDoesNotExist as e:
-                # TODO
+                # Try to delete all anyway
                 pass
 
     def delete_notification(self, notification_id):
@@ -250,10 +241,7 @@ class ListenerResource(object):
         '''
         wo = self._create_resource_wo_storage(
             u'notification', notification_prototype)
-        try:
-            wo.delete_item(notification_id)
-        except unifiedapi.ItemDoesNotExist as e:
-            raise bottle.HTTPError(status=404)
+        wo.delete_item(notification_id)
 
     def notify_create(self, item_id, item_revision):
         '''Adds a created notification.

@@ -91,10 +91,7 @@ class FileResource(object):
     def get_file(self, item_id):
         '''Serve GET /foos/123/<file_resource_name> to get a file.'''
         ro = self._create_ro_storage()
-        try:
-            subitem = ro.get_subitem(item_id, self._file_resource_name)
-        except unifiedapi.ItemDoesNotExist as e:
-            raise bottle.HTTPError(status=404)
+        subitem = ro.get_subitem(item_id, self._file_resource_name)
 
         item = ro.get_item(item_id)
         bottle.response.set_header('Revision', item[u'revision'])

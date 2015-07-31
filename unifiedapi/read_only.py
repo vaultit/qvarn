@@ -131,9 +131,9 @@ class ReadOnlyStorage(object):
         return search_param
 
 
-class ItemDoesNotExist(unifiedapi.BackendException):
+class ItemDoesNotExist(unifiedapi.NotFound):
 
-    msg = u'Item {id} does not exist'
+    msg = u'Item does not exist'
 
 
 class ReadWalker(unifiedapi.ItemWalker):
@@ -164,7 +164,7 @@ class ReadWalker(unifiedapi.ItemWalker):
         for row in rows:
             # If we don't have any columns, return an empty dict.
             return row if column_names else {}
-        raise ItemDoesNotExist(id=item_id)
+        raise ItemDoesNotExist(item_id=item_id)
 
     def visit_main_str_list(self, item, field):
         table_name = self._db.make_table_name(self._item_type, field)
