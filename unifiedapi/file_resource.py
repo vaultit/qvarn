@@ -8,8 +8,6 @@
 '''File resources in the HTTP API.'''
 
 
-import logging
-
 import unifiedapi
 import bottle
 
@@ -96,7 +94,6 @@ class FileResource(object):
         try:
             subitem = ro.get_subitem(item_id, self._file_resource_name)
         except unifiedapi.ItemDoesNotExist as e:
-            logging.error(str(e), exc_info=True)
             raise bottle.HTTPError(status=404)
 
         item = ro.get_item(item_id)
@@ -117,7 +114,6 @@ class FileResource(object):
             revision = bottle.request.headers[u'revision']
         except (InvalidContentLength,
                 InvalidContentType, NoSubitemRevision) as e:
-            logging.error(u'Validation error: %s', e)
             raise bottle.HTTPError(status=409)
 
         subitem = {
@@ -133,7 +129,6 @@ class FileResource(object):
             added[u'revision'] = wo.update_subitem(
                 item_id, revision, self._file_resource_name, subitem)
         except unifiedapi.WrongRevision as e:
-            logging.error(u'Validation error: %s', e)
             raise bottle.HTTPError(status=409)
         self._listener.notify_update(added[u'id'], added[u'revision'])
         return added

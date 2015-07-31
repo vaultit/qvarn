@@ -7,7 +7,6 @@
 '''Multi-item resources in the HTTP API.'''
 
 
-import logging
 import urllib
 
 import unifiedapi
@@ -183,7 +182,6 @@ class ListResource(object):
             iv.validate_item(self._item_type, self._item_prototype, item)
             self._item_validator(item)
         except unifiedapi.ValidationError as e:
-            logging.error(u'Validation error: %s', e)
             raise bottle.HTTPError(status=400)
 
         # Filling in default values sets the fields to None, if
@@ -202,7 +200,6 @@ class ListResource(object):
         try:
             return ro.get_item(item_id)
         except unifiedapi.ItemDoesNotExist as e:
-            logging.error(str(e), exc_info=True)
             raise bottle.HTTPError(status=404)
 
     def get_subitem(self, item_id, subitem_path):
@@ -211,7 +208,6 @@ class ListResource(object):
         try:
             subitem = ro.get_subitem(item_id, subitem_path)
         except unifiedapi.ItemDoesNotExist as e:
-            logging.error(str(e), exc_info=True)
             raise bottle.HTTPError(status=404)
 
         item = ro.get_item(item_id)
@@ -232,14 +228,12 @@ class ListResource(object):
             item[u'id'] = item_id
             self._item_validator(item)
         except unifiedapi.ValidationError as e:
-            logging.error(u'Validation error: %s', e)
             raise bottle.HTTPError(status=400)
 
         try:
             wo = self._create_wo_storage()
             updated = wo.update_item(item)
         except unifiedapi.WrongRevision as e:
-            logging.error(u'Validation error: %s', e)
             raise bottle.HTTPError(status=409)
 
         self._listener.notify_update(updated[u'id'], updated[u'revision'])
@@ -259,7 +253,6 @@ class ListResource(object):
             revision = subitem.pop(u'revision')
             iv.validate_item(subitem_type, prototype, subitem)
         except unifiedapi.ValidationError as e:
-            logging.error(u'Validation error: %s', e)
             raise bottle.HTTPError(status=400)
 
         try:
@@ -267,7 +260,6 @@ class ListResource(object):
             subitem[u'revision'] = wo.update_subitem(
                 item_id, revision, subitem_name, subitem)
         except unifiedapi.WrongRevision as e:
-            logging.error(u'Validation error: %s', e)
             raise bottle.HTTPError(status=409)
         updated = dict(subitem)
         updated.update({u'id': item_id})
@@ -281,7 +273,6 @@ class ListResource(object):
             wo.delete_item(item_id)
             self._listener.notify_delete(item_id)
         except unifiedapi.ItemDoesNotExist as e:
-            logging.error(str(e), exc_info=True)
             raise bottle.HTTPError(status=404)
 
     def _create_ro_storage(self):

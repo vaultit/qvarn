@@ -7,7 +7,6 @@
 '''Listener and notification resources in the HTTP API.'''
 
 
-import logging
 import time
 
 import unifiedapi
@@ -166,7 +165,6 @@ class ListenerResource(object):
         try:
             iv.validate_item(u'listener', listener_prototype, listener)
         except unifiedapi.ValidationError as e:
-            logging.error(u'Validation error: %s', e)
             raise bottle.HTTPError(status=400)
 
         # Filling in default values sets the id field to None, if
@@ -185,7 +183,6 @@ class ListenerResource(object):
         try:
             return ro.get_item(listener_id)
         except unifiedapi.ItemDoesNotExist as e:
-            logging.error(str(e), exc_info=True)
             raise bottle.HTTPError(status=404)
 
     def get_notification(self, notification_id):
@@ -198,7 +195,6 @@ class ListenerResource(object):
         try:
             return ro.get_item(notification_id)
         except unifiedapi.ItemDoesNotExist as e:
-            logging.error(str(e), exc_info=True)
             raise bottle.HTTPError(status=404)
 
     def put_listener(self, listener_id):
@@ -214,7 +210,6 @@ class ListenerResource(object):
             iv.validate_item(u'listener', listener_prototype, listener)
             listener[u'id'] = listener_id
         except unifiedapi.ValidationError as e:
-            logging.error(u'Validation error: %s', e)
             raise bottle.HTTPError(status=400)
 
         try:
@@ -222,7 +217,6 @@ class ListenerResource(object):
                 u'listener', listener_prototype)
             updated = wo.update_item(listener)
         except unifiedapi.WrongRevision as e:
-            logging.error(u'Validation error: %s', e)
             raise bottle.HTTPError(status=409)
 
         return updated
@@ -234,7 +228,6 @@ class ListenerResource(object):
         try:
             wo_listener.delete_item(listener_id)
         except unifiedapi.ItemDoesNotExist as e:
-            logging.error(str(e), exc_info=True)
             raise bottle.HTTPError(status=404)
 
         ro = self._create_resource_ro_storage(
@@ -247,7 +240,8 @@ class ListenerResource(object):
             try:
                 wo_notification.delete_item(notification[u'id'])
             except unifiedapi.ItemDoesNotExist as e:
-                logging.error(str(e), exc_info=True)
+                # TODO
+                pass
 
     def delete_notification(self, notification_id):
         '''Serve DELETE /foos/listeners/123/notifications/123.
@@ -259,7 +253,6 @@ class ListenerResource(object):
         try:
             wo.delete_item(notification_id)
         except unifiedapi.ItemDoesNotExist as e:
-            logging.error(str(e), exc_info=True)
             raise bottle.HTTPError(status=404)
 
     def notify_create(self, item_id, item_revision):
