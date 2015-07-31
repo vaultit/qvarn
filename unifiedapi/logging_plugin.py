@@ -8,7 +8,9 @@ class LoggingPlugin(object):
     def apply(self, callback, route):
         def wrapper(*args, **kwargs):
             self._log_request()
-            return callback(*args, **kwargs)
+            data = callback(*args, **kwargs)
+            self._log_response(data)
+            return data
         return wrapper
 
     def _log_request(self):
@@ -18,3 +20,10 @@ class LoggingPlugin(object):
             u'Request: %s %s (args: %r)', r.method, r.path, r.url_args)
         if r.method in ('POST', 'PUT') and r.json:
             logging.info(u'Request body (JSON): %r', r.json)
+
+    def _log_response(self, data):
+        r = bottle.response
+        logging.info(
+            u'Response: %s', r.status)
+        if type(data) is dict:
+            logging.info(u'Response body (JSON): %r', data)
