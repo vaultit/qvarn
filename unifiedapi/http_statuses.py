@@ -19,6 +19,7 @@ class HTTPError(unifiedapi.BackendException):
     '''
 
     status_code = 500
+    msg = u'Internal server error'
 
 
 class BadRequest(HTTPError):
@@ -29,6 +30,7 @@ class BadRequest(HTTPError):
     '''
 
     status_code = 400
+    msg = u'Bad request'
 
 
 class Unauthorized(HTTPError):
@@ -47,6 +49,7 @@ class Unauthorized(HTTPError):
     '''
 
     status_code = 401
+    msg = u'Unauthorized'
 
 
 class Forbidden(HTTPError):
@@ -62,6 +65,7 @@ class Forbidden(HTTPError):
     '''
 
     status_code = 403
+    msg = u'Forbidden'
 
 
 class NotFound(HTTPError):
@@ -77,6 +81,7 @@ class NotFound(HTTPError):
     '''
 
     status_code = 404
+    msg = u'Not found'
 
 
 class Conflict(HTTPError):
@@ -100,6 +105,7 @@ class Conflict(HTTPError):
     '''
 
     status_code = 409
+    msg = u'Conflict'
 
 
 class UnsupportedMediaType(HTTPError):
@@ -111,3 +117,4 @@ class UnsupportedMediaType(HTTPError):
     '''
 
     status_code = 415
+    msg = u'Unsupported media type'
