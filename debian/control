@@ -14,8 +14,8 @@ Depends: ${python:Depends}, ${misc:Depends},
  haproxy,
  lighttpd,
  python-flup,
- python-jwt,
- python-cryptography,
+ python-jwt (>= 1.3.0),
+ python-cryptography (>= 0.8),
  python-bottle
 Description: services provided by Suomen Tilaajavastuu
  This is the backend implementation of the "Unified API" specified for the
