@@ -189,6 +189,9 @@ class ListResource(object):
         wo = self._create_wo_storage()
         added = wo.add_item(item)
         self._listener.notify_create(added[u'id'], added[u'revision'])
+        resource_path = u'%s/%s' % (bottle.request.url, added[u'id'])
+        bottle.response.headers['Location'] = resource_path
+        bottle.response.status = 201
         return added
 
     def get_item(self, item_id):
