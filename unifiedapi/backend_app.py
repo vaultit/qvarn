@@ -78,7 +78,7 @@ class BackendApplication(object):
         self._app.install(unifiedapi.ErrorTransformPlugin())
         self._setup_storage(args)
         self._setup_auth(args)
-        self._app.install(unifiedapi.ArgsFormatPlugin())
+        self._app.install(unifiedapi.StringToUnicodePlugin())
         routes = self._prepare_resources()
         self.add_routes(routes)
         self._start_service(args)

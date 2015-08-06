@@ -29,7 +29,7 @@ from .idgen import ResourceIdGenerator
 from .auth_plugin import AuthPlugin
 from .auth_validator import AuthValidator
 from .logging_plugin import LoggingPlugin
-from .args_format_plugin import ArgsFormatPlugin
+from .string_to_unicode_plugin import StringToUnicodePlugin
 from .listener_resource import ListenerResource
 from .file_resource import (
     FileResource, ContentLengthMissing, InvalidContentType)
