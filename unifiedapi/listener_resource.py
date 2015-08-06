@@ -8,9 +8,10 @@
 
 
 import time
+import urlparse
+import bottle
 
 import unifiedapi
-import bottle
 
 
 listener_prototype = {
@@ -171,7 +172,13 @@ class ListenerResource(object):
 
         wo = self._create_resource_wo_storage(
             u'listener', listener_prototype)
-        return wo.add_item(listener)
+        added = wo.add_item(listener)
+        resource_path = u'%s/listeners/%s' % (self._path, added[u'id'])
+        resource_url = urlparse.urljoin(
+            bottle.request.url, resource_path)
+        bottle.response.headers['Location'] = resource_url
+        bottle.response.status = 201
+        return added
 
     def get_listener(self, listener_id):
         '''Serve GET /foos/listeners/123 to get an existing listener.'''
