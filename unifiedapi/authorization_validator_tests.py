@@ -52,10 +52,22 @@ class AuthorizationValidatorTests(unittest.TestCase):
         secret = u'secret'
         token = get_valid_token()
         encoded_token = jwt.encode(token, secret, algorithm='HS512')
-        self.authorization_validator.validate_token(
+        result = self.authorization_validator.validate_token(
             encoded_token,
             secret,
             token[u'iss'])
+        self.assertEqual(
+            result,
+            {
+                u'scopes': [
+                    u'openid',
+                    u'person_resource_id',
+                    u'uapi_orgs_get', u'uapi_orgs_post'
+                ],
+                u'user_id': u'useridhash',
+                u'client_id':
+                    u'@!1E2D.4C48.2272.F616!0001!CC3B.680A!0008!C2A9.C9A2'
+            })
 
     def test_token_validation_with_invalid_issuer(self):
         secret = u'secret'
