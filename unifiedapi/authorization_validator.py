@@ -28,7 +28,7 @@ class AuthorizationValidator(object):
             raise AuthorizationHeaderMissing()
         authorization_header_value = headers[u'Authorization']
         authorization_header_values = authorization_header_value.split(u' ')
-        if not len(authorization_header_values) == 2 or \
+        if len(authorization_header_values) != 2 or \
            not authorization_header_values[0].lower() == 'bearer':
             raise InvalidAuthorizationHeaderFormat()
         return authorization_header_values[1]
