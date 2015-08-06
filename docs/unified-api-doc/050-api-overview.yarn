@@ -1,0 +1,1163 @@
+API overview
+============
+
+This chapter gives a brief introduction to the way the API works: its
+general principles of design and operation. It provides some code
+examples (which will be tested automatically). The goal of this
+chapter is to give a programmer a good feeling of how the API is to be
+used.
+
+The storage backend provides an API for programmatic use. All
+applications use the same API, including the ones developed by Suomen
+Tilaajavastuu Oy itself. This chapter gives an overview of the API,
+and covers its principles of design and operation. It does not go into
+depth of how each API call functions; that will be covered by the
+[API reference](#API-reference) chapter.
+
+The API can be summarised as "RESTful API over HTTPS and using JSON".
+All calls to the API are done over TLS-encrypted HTTP, and the API
+design follows the RESTful principles, and structured data is encoded
+as JSON.
+
+
+Overview of data model behind resources
+---------------------------------------
+
+This chapter section gives an overview of the various entities forming
+the data model behind the API, and their connections with each other.
+The details of each entity resource are described in the section for
+each resource.
+
+![API data model](data-model.eps)
+
+The data model has the following entities:
+
+* `person` --- a real person. Typically an employee of an organisation,
+  or a user of the API.
+* `org` --- an organisation of any kind (corporation, association, city,
+  etc).
+* `project` --- an undertaking for which data needs to be collected as
+  if it were an entity; for example, work done on construction sites
+  may need to be reported together for tax purposes
+* `card` --- a card for identifying a person, typically a VALTTI card
+  issued by Suomen Tilaajavastuu
+* `competence` --- describe a formal or informal competence of a person
+
+Each entity is accessible via the API as a separate URL.
+
+
+Example: Retrieve the service implementation version
+----------------------------------------------------
+
+Some API calls are entirely public. One such call is the version of
+the API and its implementation. Here's an example of how to use that
+call. This demonstrates how the API is used in simple cases. First of
+all, you need to make an HTTPS request. On a Unix command line, the
+`curl` tool works fine:
+
+    EXAMPLE
+    curl https://api-demo.tilaajavastuu.fi/version
+
+The result is a JSON dictionary:
+
+    EXAMPLE
+    {
+        "api": {
+            "version": "5.2"
+        },
+        "implementation": {
+            "name": "alfred-pennington",
+            "version": "2014-12-05"
+        }
+    }
+
+The JSON result is typically reasonably self-explanatory, once one has
+an understanding of the services. However, each API call is documented
+in detail in the [API reference](#API-reference) chapter.
+
+
+Consistency
+-----------
+
+The API provides **eventual consistency.** For example, when updating a
+resource with `PUT /orgs/123` with a new address, it is not guaranteed
+that an immediately following `GET /orgs/123` returns the new address.
+However, the new address is returned soon, typically within seconds,
+though no guarantees are given. This is because there may be multiple
+independent hosts implementing the `/orgs` resources, and
+synchronisation of changes to the data between them may take a while.
+The API does not guarantee that the synchronisation has happened
+before it returns a success code to the `PUT` call.
+
+Note that the API implementation does guarantee that when the `PUT`
+call returns, the changed data has been stored persistently.
+
+The API does not guarantee that references between resources are or
+stay valid. For example, a contract resource between two organisations
+can be added without either organisation existing. The validity is
+checked when it is needed, not during updates. For example, a report
+about contracts requires the organisations to exist, and if they
+don't, the report will indicate an error.
+
+
+Update conflicts and resource revisions
+---------------------------------------
+
+The API provides no locking of resources, or transactions that update
+multiple resources. It does provide a way to detect conflicting
+updates to the same resource.
+
+Every resource carries a `revision` attribute. This is a unique
+identifier that identifies a particular version of the resource. When
+updating a resource, the update must identify the revision it updates.
+If it is not the current revision, the update fails.
+A revision identifier is unique, but otherwise arbitrary string, and
+the API client should not try to use it except to compare for
+equality.
+
+For example, assume the `/foos/123` resource looks like this:
+
+    EXAMPLE
+    {
+        "id": "123",
+        "type": "foo",
+        "revision": "cafe",
+        "name": "The Blue Sky Foo"
+    }
+
+When an API client requests the resource (`GET /foos/123`), it gets
+the above revision id. When client A updates the resource, it sends
+the following JSON record (`PUT /foos/123`):
+
+    EXAMPLE
+    {
+        "revision": "cafe",
+        "name": "The Red Sea Foo"
+    }
+
+The `id` and `type` fields are optional in the update, but the
+`revision` field MUST be there. After this is processed, the revision
+id is changed by the API backend:
+
+    EXAMPLE
+    {
+        "id": "123",
+        "type": "foo",
+        "revision": "f00d",
+        "name": "The Red SeaFoo"
+    }
+
+If client B now also tries to update the resource, but provides the
+old revision id (`"revision": "cafe"` instead of `"revision":
+"f00d"`), then B's update will fail with an HTTP status code 409
+("Conflict"). Client B can handle such a situation by retrieving the
+latest revision, and asking the user to change that instead.
+
+
+### Tests
+
+We create a new person and update them with valid and invalid revisions.
+
+    SCENARIO manage a person with revisions
+
+Client has needed access rights for persons resource.
+
+    GIVEN client has access to scopes
+    ... "uapi_persons_post uapi_persons_id_put"
+
+Create a person.
+
+    WHEN client POSTs /persons with
+    ... {"names": [{"full_name": "James Bond"},
+    ...            {"full_name": "Alfred E. Newman"}]}
+    THEN HTTP status code is 200
+    AND result has key "id" containing a string, saved as $ID1
+    AND result has key "revision" containing a string, saved as $REV1
+
+Update a person.
+
+    WHEN client PUTs /persons/$ID1 with
+    ... {
+    ...     "revision": "$REV1",
+    ...     "names": [{"full_name": "M"}]
+    ... }
+    THEN HTTP status code is 200
+    AND result has key "revision" containing a string, saved as $REV3
+
+Try to update the record with the old revision.
+
+    WHEN client PUTs /persons/$ID1 with
+    ... {
+    ...     "revision": "$REV1",
+    ...     "names": [{"full_name": "M"}]
+    ... }
+    THEN HTTP status code is 409
+
+
+Conventions
+-----------
+
+Each resource is described below in its own section. To keep things brief, the
+following conventions are followed.
+
+* The API is rooted at a **base URL**. This URL may differ between, say,
+  production and beta versions. The base URL might be, for example,
+  `https://api.example.com/1.0`, where `1.0` is a version number. All
+  API resource endpoints are named as paths below the base URL, so
+  that if the endpoint is `/orgs`, the actual URL might be
+  `http://api.example.com/1.0/orgs`.
+
+* For each resource, the **HTTP methods** that work with it are
+  specified: `GET`, `PUT`, `POST`, `DELETE`. Since the API follows
+  RESTful conventions, the actual call is always the same, and to
+  avoid repetition, the descriptions are not repeated for each
+  resource.
+
+* All requests that provide data, provide it as a **JSON document** in
+  the request body. The `Content-Type` is `application/json` and the
+  character set is UTF-8.
+
+* All responses that provide data, provide it as a JSON document in
+  the body. If there is an error (HTTP status code in the 400 or 500
+  range), the body may contain free-form text intended for a human
+  instead. The character set is UTF-8.
+
+* When retrieving a list of resources, such as with `GET /foos`, the
+  result has the following structure:
+
+        {
+            "resources": [
+                {
+                    "id": "cafef00d",
+                    ...
+                }
+            ]
+        }
+
+  More top level fields may be added later. The fields for each
+  resource are dependent on the query, but will always include the
+  resource `id` field.
+
+* A new resource is added with `POST /foos`, with the new resource
+  provided in the body of the request as a JSON document. The response
+  is a copy of the new resource, with the common fields filled in. The
+  request MUST provide the `type` field, and MUST NOT provide the `id`
+  or `revision` fields.
+
+* An individual instance of a `foo` is accessed as `GET /foos/123`,
+  where `123` is the identifier of the resource.
+
+* A resource is modified with `PUT` to the resource's own URL. The
+  whole resource is replaced with a new version. It is not possible to
+  update only individual attributes of a resource. Missing attributes
+  are treated as empty. The new version MUST reference the current
+  version with the same `revision` identifier field. The request MUST
+  also provide the `id` and `type` fields with the correct values.
+
+* A resource is deleted with `DELETE`. The resource will no longer be
+  accessible.
+
+* Countries are stored using an [ISO 3166-1 alpha-2][ISO3166]
+  two-letter country code, in upper case. If a country is not in the
+  standard, contact Tilaajavastuu and we will assign a custom code to
+  use instead.
+
+* Dates and timestamps are stored using [ISO 8601][ISO8601] formats. Resource
+  attributes may be just a date, or also include a timestamp. A date
+  is always stored as `YYYY-MM-DD`, and a timestamp as
+  `YYYY-MM-DDTHH:MM:SS+HH:MM`, i.e., the time zone is always included
+  as plus or minus some number of hours and minutes. Time zone names
+  are not used, including the `Z` suffix, for uniformity.
+
+    When dates or timestamps are paired to indicate a range of time, the
+    end time can be null, to indicate "not ended yet".
+
+[ISO3166]: http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
+[ISO8601]: http://en.wikipedia.org/wiki/ISO_8601
+
+
+### Tests
+
+We try to create a person with id and/or revision fields set.
+
+    SCENARIO correctly manage a person
+
+Client has needed access rights for persons resource.
+
+    GIVEN client has access to scopes
+    ... "uapi_persons_post uapi_persons_id_put"
+
+Fail to create a person with id field set.
+
+    WHEN client POSTs /persons with
+    ... {"id": "random",
+    ...  "names": [{"full_name": "James Bond"},
+    ...            {"full_name": "Alfred E. Newman"}]}
+    THEN HTTP status code is 400
+
+Fail to create a person with revision field set.
+
+    WHEN client POSTs /persons with
+    ... {"revision": "random",
+    ...  "names": [{"full_name": "James Bond"},
+    ...            {"full_name": "Alfred E. Newman"}]}
+    THEN HTTP status code is 400
+
+Fail to create a person with id and revision fields set.
+
+    WHEN client POSTs /persons with
+    ... {"id": "random",
+    ...  "revision": "random",
+    ...  "names": [{"full_name": "James Bond"},
+    ...            {"full_name": "Alfred E. Newman"}]}
+    THEN HTTP status code is 400
+
+Create a person without using id and revision fields.
+
+    WHEN client POSTs /persons with
+    ... {"names": [{"full_name": "James Bond"},
+    ...            {"full_name": "Alfred E. Newman"}]}
+    THEN HTTP status code is 200
+    AND result has key "id" containing a string, saved as $ID1
+    AND result has key "revision" containing a string, saved as $REV1
+
+Try to update a person with wrong id set.
+
+    WHEN client PUTs /persons/$ID1 with
+    ... {
+    ...     "id": "random",
+    ...     "revision": "$REV1",
+    ...     "names": [{"full_name": "M"}]
+    ... }
+    THEN HTTP status code is 400
+
+
+Handling names of people
+------------------------
+
+In the Finnish culture, names are almost always very simple: one to
+three given names, and one family name. For example, a Finnish man
+might be called "Matti Virtanen", where "Matti" is his given name and
+"Virtanen" is his family name. This is so common that a lot of
+computing systems hardcode the assumption that everyone has at least
+one given name and one family name, and also that everyone has only
+one name.
+
+This is cultural assumption that is not valid everywhere, and is not
+even always valid within Finland, given immigrants. See
+[Falsehoods Programmers Believe About Names](), a well-known article
+on some of the issues.
+
+[Falsehoods Programmers Believe About Names]: http://www.kalzumeus.com/2010/06/17/falsehoods-programmers-believe-about-names/
+
+For the API, we need to be more flexible in how we encode a person's
+name. The simplest way to do this is to just store one or more full
+names, and not try to split them into meaningful parts. However, this
+is not sufficient: it is sometimes necessary to interface with
+government and other systems that require providing the given and
+surnames separately. For this reason, we store the name in a more
+complicated way:
+
+* `full_name` --- We **always** store the full name.
+* `given_names`, `surnames` -- We **optionally** store given and
+  surnames separately from the full name. These are both lists of
+  individual names.
+* `sort_key` --- We **optionally** store a sort key, which is a form
+  of the full name to be used for ordering a list of people
+  alphabetically. Commonly, in the Finnish tradition, this is
+  "Lastname, Firstname", but it can be anything.
+
+The user interface is responsible for determining all the fields: the
+API implementation **doesn't deduce them**. The user interface can
+make suitable cultural assumptions to avoid having the user fill out
+all fields. For example, if the user interface knows that the name is
+Finnish, it can just ask for given and surnames, and then fill out the
+full name and the sort key accordingly.
+
+If the API implementation only has a full name stored for a person,
+and that person needs to be put into a report sent to an external
+service that requires given and surnames separately, this will trigger
+an error. The error will happen when the report is being sent: it is
+**not** a validation error when the person's information is originally
+entered into the system, since at that time it is not known which
+external system the person's name is going to be used with.
+
+
+Handling contact information {#contacts}
+----------------------------
+
+People and organisations, and possibly other resources, have contact
+information of various kinds. Physical and postal addresses are
+particularly difficult to encode in a way that is both
+machine-interpretable and generic. We use the following approach to
+encode one piece of contact information.
+
+The type of contact information is encoded in its own field:
+
+* `contact_type` --- the type of the contact; one of
+    - `phone` --- a phone number
+    - `address` --- a physical or postal address
+    - `email` --- an electronic mail address
+
+All types of contact have the following fields:
+
+* `contact_source` --- source of the contact information; this should
+  be the string `self` to indicate that the person or organisation
+  whose information it is has done the update, or else the name of the
+  other source (free form text)
+* `contact_timestamp` --- timestamp for when the contact was
+  added/updated last
+
+For phone numbers, the number is encoded in the following field:
+
+* `phone_number` --- a string giving the phone number, in whatever
+  form the user has provided
+
+Email addresses have the following field:
+
+* `email_address` --- the actual email address.
+
+Addresses are encoded with the following fields, all mandatory:
+
+* `full_address` --- a free form string, intended for a human to
+  interpret, with the full address
+* `country` --- a two-letter country code for the address
+
+Additionally, an address may be given in a somewhat more structured
+form:
+
+* `address_lines` --- **optional** list of address lines
+* `post_code` --- **optional** post code in the syntax appropriate for
+  the country
+* `post_area` --- **optional** name of the area corresponding to the
+  post code
+
+In an ideal world, we would encode a fully parsed address, but given
+the large amount of variance in addresses across Europe, that is too
+big a problem to solve at this time.
+
+Example of an address in Finland:
+
+    EXAMPLE
+    {
+        "full_address": "Tarvonsalmenkatu 17\n02600 Espoo",
+        "country": "FI",
+        "address_lines": ["Tarvonsalmenkatu 17"],
+        "post_code": "02600",
+        "post_area": "Espoo"
+    }
+
+Example of an address in the UK:
+
+    EXAMPLE
+    {
+        "full_address": "102 The Mill\nHigh St\nStalybridge\nSK15 1NS",
+        "country": "GB",
+        "address_lines": [
+            "102 The Mill",
+            "High St"
+        ],
+        "post_code": "SK15 1NS",
+        "post_area": "Stalybridge"
+    }
+
+
+Error handling {#error-handling}
+--------------
+
+The API uses HTTP status codes for reporting success or failure for an
+operation. The status code alone is always enough to indicate success
+or failure, but the response body may contain more information.
+
+The common error cases are:
+
+* **Connection refused** --- the API client can't connect to the API
+  provider. In this situation, the client should try again after a
+  reasonable time. If the problem persists, the API provider should be
+  notified out of band.
+
+* **Timeout** --- the API provider didn't respond in a reasonable time
+  to a client request. The API provider should be notified out of
+  band.
+
+* **400** (Bad Request) --- the client request is malformed,
+  incomplete, or otherwise unacceptable to the server. The client
+  should fix that and try again.
+
+* **401** (Unauthorized) --- the client did not authenticate correctly
+  to the API provider. The authentication may have expired, in which
+  case client the client should authenticate again. The credentials
+  may also be wrong, in which case the client should fix them and try
+  again.
+
+* **403** (Forbidden) --- the client is not allowed to use the
+  resource. The client shouldn't try again.
+
+* **404** (Not Found) --- the client tried to use a resource that
+  doesn't exist. The client shouldn't try again, unless it suspects a
+  timing problem between components of the API implementation getting
+  new data synchronised.
+
+* **405** (Method Not Allowed) --- the client tried to use an HTTP
+  method that isn't allowed for the resource, such as `DELETE /orgs`.
+  This indicates a client programming error.
+
+* **409** (Conflict) --- the client tried to update (`POST`) a
+  resource, but gave a `resource` field that wasn't the same as that
+  of the latest version of the resource. Client should retrieve the
+  latest version, make changes to that, and try updating again. The
+  latest revision is included as the body of the error response.
+
+* **500** (Internal Server Error) --- there is a bug in the API
+  provider. The API provider should be notified out of band. The
+  client shouldn't try again until notified that the problem is fixed.
+
+Any other HTTP status may also be used in the response. The above are
+the most common ones.
+
+Example: a failure to add a new organisation, when the user lacks the
+privileges to do so, might result in the following HTTP response:
+
+    EXAMPLE
+    401 Unauthorized
+    Content-type: text/html
+    <html> <body><p>Don't do that.</p></body> <html>
+
+
+Common attributes
+-----------------
+
+Every resource has some attributes. A resource is represented as a
+JSON object (key/value map), and attributes are keys in the object.
+Attribute names are always ASCII strings.
+
+A small number of attributes are common to all resources.
+
+* `type` --- the type of resource. For example, `org` or `person`.
+* `id` --- an **internal identifier**, which is unique within an API
+  instance. This identifier is generated by the API provider, and is
+  not used outside of the API, and isn't meaningful to users.. For
+  example, an organisation might have a unique registration number,
+  but this is not used within the API to identify the organisation.
+  Instead, a new identifier is generated by the API. This avoids
+  external identifiers that change (they always change).
+* `revision` --- the revision identifier of the version of the
+  resource
+
+
+Searches
+--------
+
+Unless otherwise specified, every top level resource (`/orgs`,
+`/persons`, etc.) can be searched for specific items. The usage
+pattern is as follows, assuming a resource `/foos`:
+
+* `GET /foos/search/CLAUSE` --- do a search for individual resources
+  of type `foo`. The search clause and the result are described below.
+
+The clause contains any number of the following search conditions,
+concatented in the URL path, which must all match a resource for it to
+be included in the result:
+
+* `/exact/KEY/VALUE` --- the resource matches if it has a field `KEY`
+  at any level, whose exact value is `VALUE`, or if the field value is
+  a list, the list contains a value that is exactly `VALUE`. Strings
+  are compared without case-sensitivity.
+
+* `/startswith/KEY/VALUE` --- like `exact`, but the value must be a
+  string that starts with the value.
+
+* `/contains/KEY/VALUE` --- like `exact`, but string fields use
+  sub-string matching (`VALUE` may occur anywhere in the resource's
+  value). Other types of fields are matched exactly.
+
+FIXME: Only the `exact` clause is currently implemented
+
+For details on matching, see below.
+
+Note: We'll add more conditions as they're needed, but we'll try to
+keep the conditions few, simple, and powerful, and rely on some
+client side logic to refine the results.
+
+The clause may also include the following to modify the result:
+
+* `/show/KEY` --- include the top level field `KEY` in the result.
+* `/show_all` --- include the whole the resource in the result.
+
+FIXME: The `show` clause is currently not implemented
+
+The result is a JSON object that looks like the following:
+
+    EXAMPLE
+    {
+        "resources": [
+            {
+                "id": "123"
+            }
+        ]
+    }
+
+In other words, the object has a single field `resources`, whose value
+is a list of dicts, and those dicts have the single field `id`. This
+is the default. If the `show` or `show_all` modifiers are used, more
+fields will be added to the dicts. With `show_all`, all the fields of
+the resource are added.
+
+Note that the result does not have `id`, `type`, or `revision` fields,
+as it is not a resource. Those fields may, however, be included in each
+returned match, if specified by `show` or `show_all`.
+
+### Matching rules in conditions
+
+The matching rules are:
+
+* A resource will only match if the API client can read it.
+
+* The key will match any attribute of a resource, at any level of the
+  resource including their sub-records.
+
+* The pattern value is a Boolean or a string, 'true' and 'false'
+  (case-insensitive) are converted to boolean values and can not be used to
+  match string fields.
+
+* The key in the pattern must match the attribute name in the resource
+  exactly.
+
+* Boolean values must match exactly.
+
+* String values match the pattern using case-insensitive matching. The
+  match may need to match the whole string, the beginning, or any part
+  of the string, depending on the search condition. For example, a
+  pattern `tilaajavastuu` with a condition `contains` would match a
+  string `Suomen Tilaajavastuu Oy`, but not with a condition `exact`.
+
+* A resource's list value matches the search pattern if any of the
+  list items matches the pattern.
+
+* A key/value map matches the search pattern if any of the values
+  matches the pattern.
+
+### Examples
+
+* `GET /orgs/search/exact/is_luotettava_kumppani_member/true` would
+  match any organisation whose `is_luotettava_kumppani_member`
+  attribute is `true`. If the organisation has any other value for
+  that attribute it does not match.
+
+* `GET /persons/search/contains/full_name/bond` would match any person
+  whose full name contains the substring `bond`.
+
+* `GET
+  /persons/search/contains/full_name/bond/exact/given_names/james`
+  would match any person whose full name contains the substring
+  `bond`, but only if their have a given name of James.
+
+* `GET /persons/search/exact/gov_id/SN 00 70 07` would match any
+  person with a key `gov_id` whose value is `SN 00 70 07`, at
+  any level of the data in the person's information.
+
+### Notes
+
+* The search URLs are not listed for each resource separately.
+
+### Tests
+
+We create a new person and do some searches for that person using
+different criteria.
+
+    SCENARIO search a person
+
+Client has needed access rights for person resource.
+
+    GIVEN client has access to scopes
+    ... "uapi_persons_post uapi_persons_id_private_put
+    ...  uapi_persons_search_id_get"
+
+Create a test person with sufficient amount of diverse data.
+
+    WHEN client POSTs /persons with
+    ... {"names": [{"full_name": "James Bond",
+    ...             "sort_key": "Bond, James",
+    ...		    "given_names": ["James"],
+    ...		    "surnames": ["Bond"]}]}
+    THEN result has key "id" containing a string, saved as $ID1
+    THEN result has key "revision" containing a string, saved as $REV1
+
+    WHEN client PUTs /persons/$ID1/private with
+    ... {
+    ...     "date_of_birth": "1920-11-11",
+    ...     "revision": "$REV1",
+    ...     "gov_ids": [
+    ...         {
+    ...             "country": "GB",
+    ...             "id_type": "ssn",
+    ...             "gov_id": "SN 00 70 07"
+    ...         }
+    ...     ],
+    ...     "nationalities": ["GB"],
+    ...     "residences": [
+    ...         {
+    ...             "country": "GB",
+    ...             "location": "London"
+    ...         }
+    ...     ],
+    ...     "contacts": [
+    ...         {
+    ...             "contact_type": "phone",
+    ...             "contact_source": "self",
+    ...             "contact_timestamp": "2038-02-28T01:02:03+0400",
+    ...             "phone_number": "+358 4321"
+    ...         },
+    ...         {
+    ...             "contact_type": "email",
+    ...             "contact_source": "self",
+    ...             "contact_timestamp": "2038-02-28T01:02:03+0400",
+    ...             "email_address": "james.bond@sis.gov.uk"
+    ...         },
+    ...         {
+    ...             "contact_type": "address",
+    ...             "contact_source": "self",
+    ...             "contact_timestamp": "2038-02-28T01:02:03+0400",
+    ...             "country": "GB",
+    ...             "full_address": "61 Horsen Ferry Road\\nLondon S1",
+    ...             "address_lines": ["61 Horsen Ferry Road"],
+    ...             "post_code": "S1",
+    ...             "post_area": "London"
+    ...         }
+    ...     ]
+    ... }
+    THEN HTTP status code is 200
+
+Perform search with a simple parameter inside a list.
+
+    WHEN client GETs /persons/search/exact/full_name/James%20Bond
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+
+Perform search with a list parameter inside a list.
+
+    WHEN client GETs /persons/search/exact/given_names/James
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+
+Perform search with a simple parameter inside a sub-record.
+
+    WHEN client GETs /persons/search/exact/date_of_birth/1920-11-11
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+
+
+We create a new organisation and do a search for that organisation.
+
+    SCENARIO search an organisation
+
+Client has needed access rights for orgs resource.
+
+    GIVEN client has access to scopes
+    ... "uapi_orgs_post uapi_orgs_search_id_get"
+
+    WHEN client POSTs /orgs with
+    ... {"names": ["Suomen Tilaajavastuu Oy"],
+    ... "country": "FI",
+    ... "is_luotettava_kumppani_member": false
+    ... }
+    THEN HTTP status code is 200
+    THEN result has key "id" containing a string, saved as $ID2
+
+    WHEN client POSTs /orgs with
+    ... {"names": ["Suomen Tilaajavastuu Oy"],
+    ... "country": "FI",
+    ... "is_luotettava_kumppani_member": true
+    ... }
+    THEN HTTP status code is 200
+    THEN result has key "id" containing a string, saved as $ID3
+
+Perform search with a boolean value.
+
+    WHEN client GETs /orgs/search/exact/is_luotettava_kumppani_member/true
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID3"}
+
+    WHEN client GETs /orgs/search/exact/is_luotettava_kumppani_member/False
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID2"}
+
+File resources
+--------------
+
+Some resources, e.g. contracts, allow files to be associated with them. The
+file content is transfered in the HTTP request body instead of JSON so some
+special rules apply:
+
+* Header `Content-Type` specifies the media type of the uploaded file.
+
+* Header `Revision` specifies the current item revision.
+
+The response to file attachment PUT is in JSON format and contains only the
+`id` and `revision` fields.
+
+A resource that has no associated document responds to HTTP GET with status
+code 404. Otherwise HTTP GET will return the file contents in response body
+with headers `Content-Type` and `Revision` set.
+
+### Examples
+
+* A successful `PUT /contracts/123/document` with headers `Content-Type:
+  application/pdf` and `Revision: an-excellent-revision` and PDF contents in
+  the request body would return a JSON dictionary
+  `{"id": "123", "revision": "a-new-revision"}`
+
+
+Change notifications
+--------------------
+
+The API allows a client to register to be notified of changes to
+specific resources or resource types. This avoids the need to have the
+client check every resource repeatedly to check for updates.
+
+The notifications use a message box design, rather than callbacks to
+the API client. There are **no callbacks** to the API client. The API
+client needs to poll its messages at a frequency that suits it. This
+is to avoid having to arrange and maintain access through firewalls,
+NAT, and other complications. The API client needs to be able to
+access the API anyway, and the same access can be used to query for
+messages.
+
+The message boxes are per top-level resource. The API client does need
+to poll multiple notification message boxes if it needs notifications
+from multiple top-level resources.
+
+### Listeners
+
+Each top-level resource that is a collection of resources (e.g.,
+`/orgs`, `/persons`, but not `/version`) has a listener interface:
+
+* `GET /orgs/listeners` --- list all listener objects the caller has
+  access to
+* `POST /orgs/listeners` --- create a new listener. The body is a
+  `listener` object, as described below.
+* `PUT /orgs/listeners/123` --- update a listener, e.g., to add new
+  resources to listen to.
+* `DELETE /orgs/listeners/123` --- delete a listener.
+
+Note: Only the API client itself should have access to its listener,
+but it should be possible to add multiple listeners. This is not yet
+specified, as it ties into the authentication and authorisation
+framework that is still a work in progress.
+
+A **listener object** looks like this:
+
+    EXAMPLE
+    {
+        "type": "listener",
+        "id": "abcd",
+        "revision": "kuhg",
+        "notify_of_new": true,
+        "listen_on": [
+            "678"
+        ]
+    }
+
+The fields in a listener object have the following meanings:
+
+* `type`, `id`, `revision` --- as usual.
+* `notify_of_new` --- set to `true` if the listener should be notified
+  of new resources (e.g., new organisations). It will only be notified
+  of new resources it can access.
+* `listen_on` --- a list of resources the listener is interested in.
+  Note that new resources are **not added** automatically to the list:
+  the client needs to add them itself. An API client may only listen
+  on resources it can access.
+
+### Message box for notifications
+
+Each listener has a message box for notifications:
+
+* `GET /orgs/listeners/123/notifications` --- list of all notification
+  messages for the listener.
+* `GET /orgs/listeners/123/notifications/567` --- a specific
+  notification message.
+* `DELETE /orgs/listeners/123/notifications/567` --- delete a message.
+
+Note that the API client can't create or update the notification
+messages: it can only see them and delete them. Messages are not
+deleted automatically: the client is responsible for deleting messages
+it no longer cares about.
+
+The API implementation **may delete messages** to keep resource usage
+in control or for other reasons. The API client must not assume
+messages persist. There is no notification of deleted notification
+messages. The API client should consider doing an occasional full scan
+of the resources it's interested in to handle missed messages.
+
+### Notification messages
+
+Notification messages have the following structure:
+
+    EXAMPLE
+    {
+        "type": "notification",
+        "id": "qwer",
+        "revision": "456",
+        "resource_id": "890",
+        "resource_revision": "cafe",
+        "resource_change": "created",
+        "timestamp": "created"
+    }
+
+The fields are:
+
+* `type`, `id`, `revision` --- as usual. The revision won't change,
+  but it's included for consistency with other objects.
+* `resource_id` --- the id of the resource that has changed in some
+  way: it was created, deleted, or updated (including updates to its
+  sub-resources, such as `/persons/007/photos`).
+* `resource_revision` --- the revision after the change; if the
+  resource was deleted, the revision is `null`.
+* `resource_change` --- an indication of the kind of change that
+  happened: the value is one of `created`, `updated`, or `deleted`.
+
+The notification messages intentionally do not carry deltas of the
+changes. The API client will have to retrieve the new revision of the
+resource itself.
+
+### Example
+
+* The company Universal Exports wants to be notified whenever any new
+  contracts are added that it can read.
+* UE makes a `POST /contracts/listeners` request to add a listener:
+
+        EXAMPLE
+        {
+            "type": "listener",
+            "notify_of_new": true,
+            "resources": []
+        }
+* The new listener has an `id` of "M".
+* UE then gets a list of all contracts it can see, and adds them to
+  the listener: `PUT /contracts/listeners/M` with an updated
+  `listener` object as above, but with a really long `resources` list.
+* UE then starts polling the `/contracts/listeners/M/notifications`
+  resource. When it returns a non-empty list of notification message
+  ids, UE retrieves the message, and either examines the existing
+  record, or adds a new contract to the `resources` list.
+* After that, UE deletes the notification message: `DELETE
+  /contracts/listeners/notifications/7` for example.
+
+
+### Tests
+
+We set up a listener for new items and another that listens for no items,
+and create two organisations, and update the organisations, checking for the
+correct notifications to appear.
+
+    SCENARIO listen on change notifications
+
+Client has needed access rights for orgs resource.
+
+    GIVEN client has access to scopes
+    ... "uapi_orgs_listeners_post uapi_orgs_listeners_id_get
+    ...  uapi_orgs_listeners_get uapi_orgs_listeners_id_notifications_get
+    ...  uapi_orgs_post uapi_orgs_listeners_id_notifications_id_get
+    ...  uapi_orgs_listeners_id_put uapi_orgs_id_put uapi_orgs_id_delete
+    ...  uapi_orgs_listeners_id_delete
+    ...  uapi_orgs_listeners_id_notifications_id_delete"
+
+    WHEN client POSTs /orgs/listeners with
+    ... {
+    ...     "notify_of_new": true
+    ... }
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "type": "listener",
+    ...     "notify_of_new": true,
+    ...     "listen_on": []
+    ... }
+    AND result has key "id" containing a string, saved as $LISTENID1
+
+    WHEN client POSTs /orgs/listeners with
+    ... {
+    ...     "notify_of_new": false
+    ... }
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "type": "listener",
+    ...     "notify_of_new": false,
+    ...     "listen_on": []
+    ... }
+    AND result has key "id" containing a string, saved as $LISTENID2
+    AND result has key "revision" containing a string, saved as $REV1
+
+    WHEN client GETs /orgs/listeners/$LISTENID1
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "id": "$LISTENID1",
+    ...     "type": "listener",
+    ...     "notify_of_new": true,
+    ...     "listen_on": []
+    ... }
+
+    WHEN client GETs /orgs/listeners
+    THEN HTTP status code is 200
+    THEN result has key "resources", a list containing
+    ... {"id": "$LISTENID1"}
+    THEN result has key "resources", a list containing
+    ... {"id": "$LISTENID2"}
+
+A listener has no notifications initially.
+
+    WHEN client GETs /orgs/listeners/$LISTENID1/notifications
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "resources": []
+    ... }
+
+    WHEN client POSTs /orgs with
+    ... {
+    ...     "names": ["Universal Exports"]
+    ... }
+    THEN result has key "id" containing a string, saved as $ORGID1
+    AND result has key "revision" containing a string, saved as $REV2
+
+    WHEN client POSTs /orgs with
+    ... {
+    ...     "names": ["Telebulvania Ltd"]
+    ... }
+    THEN result has key "id" containing a string, saved as $ORGID2
+
+After adding the new organizations the first listener should be notified while
+the second should have no notifications.
+
+    WHEN client GETs /orgs/listeners/$LISTENID1/notifications
+    THEN HTTP status code is 200
+    AND result lists resources, id of index 0 saved as $MSGID1
+    AND result lists resources, id of index 1 saved as $MSGID2
+
+    WHEN client GETs /orgs/listeners/$LISTENID1/notifications/$MSGID1
+    THEN result matches
+    ... {
+    ...     "id": "$MSGID1",
+    ...     "type": "notification",
+    ...     "resource_id": "$ORGID1",
+    ...     "resource_change": "created"
+    ... }
+
+    WHEN client GETs /orgs/listeners/$LISTENID1/notifications/$MSGID2
+    THEN result matches
+    ... {
+    ...     "id": "$MSGID2",
+    ...     "type": "notification",
+    ...     "resource_id": "$ORGID2",
+    ...     "resource_change": "created"
+    ... }
+
+    WHEN client GETs /orgs/listeners/$LISTENID2/notifications
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "resources": []
+    ... }
+
+We update the empty listener to listen on organization changes and update the
+organization checking for the correct notification to appear.
+
+    WHEN client PUTs /orgs/listeners/$LISTENID2 with
+    ... {
+    ...     "notify_of_new": false,
+    ...     "listen_on": ["$ORGID1"],
+    ...     "revision": "$REV1"
+    ... }
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "type": "listener",
+    ...     "notify_of_new": false,
+    ...     "listen_on": ["$ORGID1"]
+    ... }
+
+    WHEN client PUTs /orgs/$ORGID1 with
+    ... {
+    ...     "names": ["Universal Experts"],
+    ...     "revision": "$REV2"
+    ... }
+    THEN HTTP status code is 200
+
+    WHEN client GETs /orgs/listeners/$LISTENID2/notifications
+    THEN HTTP status code is 200
+    AND result lists resources, id of index 0 saved as $MSGID3
+
+    WHEN client GETs /orgs/listeners/$LISTENID2/notifications/$MSGID3
+    THEN result matches
+    ... {
+    ...     "id": "$MSGID3",
+    ...     "type": "notification",
+    ...     "resource_id": "$ORGID1",
+    ...     "resource_change": "updated"
+    ... }
+
+The first listener gets no additional notifications.
+
+    WHEN client GETs /orgs/listeners/$LISTENID1/notifications
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "resources": [
+    ...         {"id": "$MSGID1"}, {"id": "$MSGID2"}
+    ...     ]
+    ... }
+
+We delete the organization and check for the correct notification to appear.
+
+    WHEN client DELETEs /orgs/$ORGID1
+    THEN HTTP status code is 200
+
+    WHEN client GETs /orgs/listeners/$LISTENID2/notifications
+    THEN HTTP status code is 200
+    AND result lists resources, id of index 1 saved as $MSGID4
+
+    WHEN client GETs /orgs/listeners/$LISTENID2/notifications/$MSGID4
+    THEN result matches
+    ... {
+    ...     "id": "$MSGID4",
+    ...     "type": "notification",
+    ...     "resource_id": "$ORGID1",
+    ...     "resource_revision": null,
+    ...     "resource_change": "deleted"
+    ... }
+
+The first listener gets no additional notifications.
+
+    WHEN client GETs /orgs/listeners/$LISTENID1/notifications
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "resources": [
+    ...         {"id": "$MSGID1"}, {"id": "$MSGID2"}
+    ...     ]
+    ... }
+
+Deletion of a listener deletes also the notifications.
+
+    WHEN client DELETEs /orgs/listeners/$LISTENID1
+    THEN HTTP status code is 200
+
+    WHEN client GETs /orgs/listeners/$LISTENID1/notifications/$MSGID1
+    THEN HTTP status code is 404
+
+    WHEN client GETs /orgs/listeners/$LISTENID1/notifications/$MSGID2
+    THEN HTTP status code is 404
+
+    WHEN client GETs /orgs/listeners/$LISTENID1
+    THEN HTTP status code is 404
+
+Notification can be deleted.
+
+    WHEN client DELETEs /orgs/listeners/$LISTENID2/notifications/$MSGID3
+    THEN HTTP status code is 200
+
+    WHEN client GETs /orgs/listeners/$LISTENID1/notifications/$MSGID3
+    THEN HTTP status code is 404

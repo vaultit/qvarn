@@ -1,0 +1,261 @@
+Authentication
+==============
+
+The API uses [OAuth 2.0][] protocol for authentication and
+[OpenID Connect 1.0][] as an identity layer.
+
+[OAuth 2.0]: https://tools.ietf.org/html/rfc6749
+[OpenID Connect 1.0]: http://openid.net/specs/openid-connect-core-1_0.html
+
+API endpoints
+-------------
+
+The API provides the following end-points for authentication. (FIXME:
+These are not yet implemented.)
+
+* `/auth/authorize` --- start the authentication flow
+* `/auth/token` --- get access tokens
+* `/auth/introspection` --- validate access tokens
+
+Authentication flows
+--------------------
+
+In the following sections we describe the basic steps of the most common
+authentication flows:
+
+* Authorization code flow (OpenID Connect 1.0 + OAuth 2.0)
+* Implicit flow (OpenID Connect 1.0 + OAuth 2.0)
+* Client credentials flow (OAuth 2.0)
+
+More detailed descriptions can be found in the standardisation documents:
+
+* <https://tools.ietf.org/html/rfc6749>
+* <http://openid.net/specs/openid-connect-core-1_0.html>
+
+Authorization code flow
+-----------------------
+
+The authorization code flow is mostly used by server-based clients that are
+used by end-users through a browser (or some other additional client). The
+access token is not exposed to the end-user. The authorization code flow is
+suitable for services that can securely maintain  a client secret between
+themselves and the server (this excludes browser-only clients).
+
+### Client application redirects end-user's browser to authorization server's authorize endpoint
+
+* `GET /auth/authorize`
+
+Parameters
+
+* `scope` --- **Required.** Must contain `openid`. Can contain additional
+  scope values e.g. `uapi_orgs_post`. Values are separated with space.
+* `response_type` --- **Required.** Value must be `code` when using
+  authorization code flow.
+* `client_id` --- **Required.** Client application's unique client
+  identifier.
+* `redirect_uri` --- **Required.** Response will be sent to this URI. This
+  URI must match one of the redirect URI values registered for the
+  client.
+* `state` --- **Required.** Unique random string that is used to maintain
+  session between the request and the callback. CSRF mitigation is
+  done by binding the value to browser cookie and validating the state
+  in callback.
+
+Example (line breaks are for display purposes only)
+
+    EXAMPLE
+    GET /auth/authorize
+    ?scope=openid uapi_orgs_get
+    &response_type=code
+    &client_id=@!1E2D.4C48.2272.F616!0001!CC3B.680A!0008!974A.61B3
+    &redirect_uri=https://yourservice.com/callback
+    &state=eyJjbGllbnRJZCI6I
+
+Authorization server now checks if the end-user has valid session. If not,
+the end-user must login to authenticate.
+
+After end-user has successfully authenticated authorization server checks if
+the client application is trusted. If not, the end-user is requested to
+provide consent. This means the end-user must explicitly allow the client
+application to execute operations on the end-user's behalf. **The operations
+the client application can execute are defined by the scopes requested.**
+
+After end-user has provided consent, end-user's browser is redirected back to
+the the URI defined in the request's `redirect_uri`.
+
+## Authorization server redirects back to the client application
+ 
+* `GET https://yourservice.com/callback`
+
+#### Successful response
+
+Parameters
+
+* `code` --- The authorization code client application can now use to
+  request an access token. This code has limited lifetime and is
+  single use only.
+* `state` --- State parameter that was sent to the authorization server.
+  Client application must check that this value matches the value
+  stored in the session.
+  
+and additionally
+  
+* `session_id` --- Authorization server session identifier.
+* `scope` --- Scopes that were granted. Can be different from the
+  requested scopes.
+
+Example (line breaks are for display purposes only)
+
+    EXAMPLE
+    GET https://yourservice.com/callback
+    ?code=025d464b-edd7-4546-a478-f14862710084
+    &state=eyJjbGllbnRJZCI6I
+    &session_id=f3e8a7f2-b341-45f7-9d50-88c92cba5a8b
+    &scope=openid uapi_orgs_get
+  
+Client application parses the query parameters and verifies `state`.
+ 
+#### Error response
+ 
+Parameters
+ 
+* `error` --- A machine readable error code.
+* `error_description` --- A human readable text description of the error.
+* `state` --- State parameter that was sent to the authorization server.
+  
+Example (line breaks are for display purposes only)
+
+    EXAMPLE
+    GET https://yourservice.com/callback
+    ?error=access_denied
+    &error_description=The+resource+owner+or+authorization+server+denied+the+request.
+    &scope=openid uapi_orgs_get
+  
+Possible error codes are listed in
+<https://tools.ietf.org/html/rfc6749#section-4.1.2.1> and
+<http://openid.net/specs/openid-connect-core-1_0.html#AuthError>.
+  
+### Client application exchanges the authorization code for an access token
+  
+* `POST /auth/token`
+  
+Headers
+  
+* `Authorization` --- **Required.** Contains client application's
+  credentials (`client_id` and `client_secret`) using the
+  [HTTP-Basic](http://tools.ietf.org/html/rfc2617#section-2) scheme
+  (Value is `Basic ` + base64 encoded `client_id` + `:` +
+  `client_secret`).
+* `Content-Type: application/x-www-form-urlencoded` --- Parameters are
+  sent in the HTTP request body.
+   
+Parameters
+  
+* `grant_type` --- **Required.** Value must be `authorization_code` when
+  using authorization code flow.
+* `redirect_uri` --- **Required.** This URI must match the redirect URI
+  where end-user's browser was redirected after successful
+  authentication and authorization.
+* `code` --- **Required.** Authorization code received from the
+  authorization server.
+      
+Example
+  
+    EXAMPLE
+    POST /auth/token
+  
+with request body (line breaks between values are for display purposes
+only)
+  
+    EXAMPLE
+    grant_type=authorization_code
+    &redirect_uri=https://yourservice.com/callback
+    &code=025d464b-edd7-4546-a478-f14862710084
+  
+If the token request fails, the authorization server will return HTTP status
+code 400 or 401 as defined in OAuth 2.0 specification
+<http://tools.ietf.org/html/rfc6749#section-5.2>.
+ 
+If the token request is successful, the authorization server will respond with
+HTTP status code 200 and a JSON response with the following key-value pairs:
+ 
+* `access_token` --- The access token
+* `token_type` --- Type of the access token. The value is always `bearer`.
+* `expires_in` --- Lifetime of the access token in seconds.
+* `refresh_token` --- Single use token that can be exchanged for an
+  access token.
+* `id_token` --- JSON Web Token (JWT) containing information about the
+  authentication event. ID token validation is described in a later
+  chapter.
+  
+Access tokens have limited lifetime and a new token has to be acquired
+during longer sessions.
+  
+### Client application can now make requests with the access token.
+ 
+Example
+ 
+    EXAMPLE
+    GET /orgs
+  
+Headers
+  
+* `Authorization` --- **Required.** Value is `Bearer ` + access token.
+
+Implicit flow
+-------------
+
+The implicit flow is mainly used by JavaScript browser clients and is
+suitable for clients that can not securely hold the client secret. The
+access token is returned to the client which may expose it to the
+end-user and other applications that have access to the end-user's
+browser. Implicit flow uses only the authorize endpoint, which also
+returns the access token.
+
+Client credentials flow
+-----------------------
+
+Client credentials flow is mostly limited to internal services that
+communicate directly with the API without an end-user. Client
+credentials flow uses only the token endpoint to directly acquire an
+access token. The client authentication is used as the authorization
+grant. This flow is not defined in OpenID Connect 1.0 as it does not
+verify the end-user identity, only the client identity (which in this
+case IS also the end-user).
+
+
+Authorization
+=============
+
+The access to API resources is controlled by access scopes. The scopes are
+defined per resource (and resource listing) and per HTTP method. Client needs
+to define, and to have been given access to, the scopes when authenticating to
+the server.
+
+Access scopes
+-------------
+
+The API scopes are prefixed with `uapi` and suffixed with the
+lowercase HTTP method name. Otherwise the scope naming follows the
+resource path with resource ids replaced with the `id` and slashes
+replaced with underscores.
+
+For search scopes the whole search condition part is replaced with
+`id`. Otherwise the naming rules are the same.
+
+### Examples
+
+To add a new organisation, POST to /orgs, requires the scope
+`uapi_orgs_post`.
+
+To get a list of organisations, GET to /orgs, requires the scope
+`uapi_orgs_get`.
+
+To get a single organisation, GET to /orgs/123, requires the scope
+`uapi_orgs_id_get`.
+
+To change a contract's document, PUT to /contracts/123/document,
+requires the scope `uapi_contracts_id_document_put`.
+
+To search for persons, GET to /persons/search/SEARCH_CONDITION,
+requires the scope `uapi_persons_search_id_get`.

@@ -1,0 +1,181 @@
+---
+title: Unified Resource API Backend Architecture
+author: Suomen Tilaajavastuu Oy
+date: UNRELEASED GIT VERSION
+...
+
+
+Introduction
+============
+
+This document describes the **implementation architecture** of the
+**Unified Resource API**. The API is described in its own document.
+This document covers the API implementation ("the backend") only, and
+the reader is expected to understand the API already.
+
+This document does not go into details of how each piece of
+functionality is implemented, and instead concentrates on the overall
+system structure. An architecture design exists to provide convenient
+boxes into which functionality can be implemented, and defines how the
+boxes interact with each other and with the outside world, but does
+not go into much detail of what happens inside the boxes.
+
+
+Design considerations
+=====================
+
+At the time of writing, there is no clear set of requirements for the
+system. However, at least the following architectural requirements
+exist:
+
+* The services must be **scalable**. We expect to expand the company's
+  services to many new countries and industries, leading to a much
+  larger workload. The technical implementation of the services must
+  not become a bottleneck when the number of users, and the amount of
+  data, grows by up to several orders of magnitude.
+
+* The services must be **highly available**. With more users, and more
+  industries, we cannot afford to have the technical services be down
+  so much that it affects a large number of users, or affects users
+  frequently.
+
+* The services must be **reliable**. Users should not be able to
+  accidentally (or maliciously, but see below) be able to introduce
+  errors to the stored data, or cause any part of the services to
+  misbehave.
+
+* The services must be **secure**. The more users we have, the more
+  data we gather, the more attractive we will be to attackers. Our
+  services must not succumb to attacks.
+
+* The implementation of the services must be **adaptable** to changes
+  imposed by the universe. Some of the functionality of the services
+  is effectively specified by legislation, and that will change. We
+  must be able to make reasonable functional changes easily, quickly,
+  and without undue effort.
+
+* The implementation of the services must be **verifiable**. We must
+  be able to repeatedly and frequently check they work as expected and
+  specified.
+
+* The services must **enable partners** to build new products and
+  services that interact with our services. This is necessary to
+  support new business models.
+
+
+Backend architecture
+====================
+
+![Backend architecture](backend-arch.eps)
+
+This chapter describes the architecture of the API backend.
+
+Overview
+--------
+
+The API backend is reactive: it only ever does something when triggered by
+an HTTP request from an API client. This includes regular actions,
+such as retrieving data from external databases: the actual retrieval
+will be implemented as an external application, which injects any new
+data via the API using HTTP requests. Likewise, daily report
+generation is triggered by an external application.
+
+The API backend implementation is split into several independent
+components, which get implemented as separate programs with their own
+persistent storage, and which provide clearly defined, highly
+constrained interfaces.
+
+The components are:
+
+* The **load balancer** redirects HTTP requests from API clients to
+  instances of components. This is the only component that is visible
+  to the world outside the backend.
+
+* The **RESTful resource components** implement one top-level resource
+  each (`/persons`, `/orgs`, `/version`). Each of these components has
+  its own persistent storage (if it needs any storage), which is only
+  accessed (read or write) by that component. The components may share
+  significant amounts of code.
+
+* The **write-only and read-only databases**: Database access for each
+  resource component is split into write-only operations and read-only
+  operations. This allows us to later easily replicate the database
+  across multiple servers, even if we don't do that yet. The
+  write-only access goes via one internal interface.
+
+All of the above components run on the same host, for now. We will
+later change it so that the load balancer runs on one host, and the
+resource components each on their own host. Further, we'll have at
+least two load balancers, and at least two of each type of resource
+component. We'll use DNS round-robin to balance traffic between the
+load balancers. All load balancers will know about all resource
+components.
+
+
+Justification
+-------------
+
+In this architecture, the only non-replicated component is the
+write-only databases. This enables **scalability** and **high
+availability**.
+
+
+Inter-component communication
+-----------------------------
+
+The resource components do not communicate with each other. However,
+external applications, e.g., for producing reports, may need to
+trigger updates of one resource when another resource has changed.
+This is done using a notification feature in the API.
+
+
+Authentication and authorisation
+--------------------------------
+
+FIXME: Authorisation isn't designed yet.
+
+Each component services an HTTP request, and checks the authentication
+and authorisation itself. To avoid having the checks done differently,
+all components will use the same code as a library we implement for
+this.
+
+
+Individual components
+---------------------
+
+Any component that needs persistent storage will handle it itself, by
+having its own instance of a database server, or whatever storage it
+needs. All instances of a component will share the same storage
+instance. Note that this introduces a hidden, non-replicatable
+sub-component, which may become a performance bottleneck.
+
+Components could be implemented in a different programming languages,
+different style, or using different frameworks or other programming
+tools, or database engines, when that is justified and the benefits
+overweigh the cost of additional variability. This is important also
+so we can, in the future, more easily transition to other
+implementation tools, should that become necessary.
+
+
+Database storage
+----------------
+
+Currently, we use SQLite 3 for the database. This will eventually
+change.
+
+
+The load-balancing proxy
+------------------------
+
+The front of the backend is the load-balancing proxy. We use `haproxy`
+as an existing, well-known solution for this.
+
+The load-balancing proxy needs to know about the various instances of
+each component. This is done by re-configuring the proxies when
+component instances are deployed or destroyed.
+
+
+Further detail
+--------------
+
+For further detail, please look at the source code directly.

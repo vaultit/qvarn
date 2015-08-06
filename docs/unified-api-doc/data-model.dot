@@ -1,0 +1,25 @@
+digraph "api-data-model" {
+  node [shape=ellipse];
+
+  person;
+  org;
+  contract;
+  project;
+  card;
+  report;
+  competence;
+
+  contract -> person;
+  contract -> org;
+  contract -> project;
+
+  card -> org;
+  card -> person;
+
+  report -> org;
+  report -> contract;
+  report -> project;
+
+  competence -> person;
+  competence -> org;
+}

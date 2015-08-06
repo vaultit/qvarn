@@ -1,0 +1,65 @@
+`/competence_types`
+-------------------
+
+This resource stores information about different types of competences.
+See [competences](#resource-competences).
+
+Synopsis:
+
+* `GET /competence_types` --- get a list of ids of all competence types.
+* `POST /competence_types` --- add a new competence type.
+* `GET /competence_types/<id>` --- get the information about a specific
+  competence type.
+* `PUT /competence_types/<id>` --- update the information about a specific
+  competence type.
+* `DELETE /competence_types/<id>` --- remove a competence certification.
+
+Errors:
+
+* There are no errors that are specific to this resource.
+
+Example result for a competence type:
+
+    EXAMPLE
+    {
+        "type": "competence_type",
+        "id": "123",
+        "names": [
+            {
+                "lang": "fi",
+                "name": "torkkuminen"
+            },
+            {
+                "lang": "en",
+                "name": "napping"
+            }
+        ],
+        "descriptions": [
+            {
+                "lang": "fi",
+                "description": "Saa torkkua työaikana",
+            },
+            {
+                "lang": "en",
+                "description": "Allowed to nap during work hours",
+            }
+        ]
+    }
+
+Fields in the result:
+
+* `names` --- a list of names for the competence type, perhaps in
+  different languages; there can be multiple names (aliases) in one
+  language; the fields for one language are:
+    * `lang` --- the [language code](#language-codes)
+    * `name` --- a name for the competence in the given language
+* `descriptions` --- a list of descriptions for the competence type;
+  the description can be given in any language, but only once per
+  language
+    * `lang` --- the [language code](#language-codes)
+    * `description` --- the description for the competence in the
+      given language
+
+### Tests
+
+Add tests.

@@ -1,0 +1,262 @@
+`/contracts`
+---------------------
+
+This resource manages various types of contracts between organisations
+and persons. A contract can be of any type: a contract to supply
+services on a construction site; employment; or similar. All the types
+are collected into one resource type to avoid an explosion in the
+types of resources.
+
+Synopsis:
+
+* `GET /contracts` --- get a list of ids of all contracts
+* `POST /contracts` --- add a new contract
+* `GET /contracts/<id>` --- get the information about a specific contract
+* `GET /contracts/<id>/document` --- get the attached document for a specific
+  contract
+* `PUT /contracts/<id>` --- replace the information for a contract
+* `PUT /contracts/<id>/document` --- replace the attached document for a
+  contract
+* `DELETE /contracts/<id>` --- remove a contract
+
+Errors:
+
+* There are no errors that are specific to this resource.
+
+Possible contract documentation can be stored as attachments to contracts.
+The attached documentation is accessed separately.
+
+Example result for a contract:
+
+    EXAMPLE
+    {
+        "type": "contract",
+        "id": "1234",
+        "contract_type": "employment",
+        "contract_parties": [
+            {
+                "type": "org",
+                "resource_id": "123",
+                "role": "employer",
+            },
+            {
+                "type": "person",
+                "resource_id": "7",
+                "role": "employee"
+            }
+        ],
+        "right_to_work_based_on": "eea_citizen"
+    }
+
+Fields in the result:
+
+* `contract_type` --- type of the contract, one of:
+    - `employment` --- an employment contract
+    - `induction` --- an induction document between an organisation and
+      a person
+* `contract_parties` --- all parties in the contract, where each party
+  is defined by the following fields:
+    - `type` --- type of the party, one of `org`, `person`
+    - `resource_id` --- identifier of the party
+    - `role` --- role in the contract, see below
+* `right_to_work_based_on` --- basis for a foreign employee's right to
+  work, one of:
+    - `eea_citizen` --- citizenship of an EU or EEA country
+    - `residence_permit` --- an unspecified residence permit
+    - `other` --- an unspecified other basis
+
+Contract parties have a role in which they appear in the contract. The
+allowed roles are dependent on the type of contract, as follows:
+
+* `employment` contracts:
+    - `employer` --- must be an `org`
+    - `employee` --- must be a `person`
+* `induction` contracts:
+    - `inductor` --- must be an `org`
+    - `inductee` --- must be a `person`
+
+### Tests
+
+We create a new contract, update its info, and delete it.
+
+    SCENARIO manage a contract
+
+Client has needed access rights for contracts resource.
+
+    GIVEN client has access to scopes
+    ... "uapi_contracts_post uapi_contracts_id_get uapi_contracts_id_put
+    ...  uapi_contracts_id_document_put uapi_contracts_id_document_get
+    ...  uapi_contracts_id_delete"
+
+Create a new contract.
+
+    WHEN client POSTs /contracts with
+    ... {
+    ... "contract_type": "employment",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "123",
+    ...         "role": "employer"
+    ...     },
+    ...     {
+    ...         "type": "person",
+    ...         "resource_id": "7",
+    ...         "role": "employee"
+    ...     }
+    ... ],
+    ... "right_to_work_based_on": "eea_citizen"
+    ... }
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ... "type": "contract",
+    ... "contract_type": "employment",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "123",
+    ...         "role": "employer"
+    ...     },
+    ...     {
+    ...         "type": "person",
+    ...         "resource_id": "7",
+    ...         "role": "employee"
+    ...     }
+    ... ],
+    ... "right_to_work_based_on": "eea_citizen"
+    ... }
+    AND result has key "id" containing a string, saved as $ID1
+    AND result has key "revision" containing a string, saved as $REV1
+
+Check that the record is there.
+
+    WHEN client GETs /contracts/$ID1
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ... "type": "contract",
+    ... "contract_type": "employment",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "123",
+    ...         "role": "employer"
+    ...     },
+    ...     {
+    ...         "type": "person",
+    ...         "resource_id": "7",
+    ...         "role": "employee"
+    ...     }
+    ... ],
+    ... "right_to_work_based_on": "eea_citizen"
+    ... }
+    AND result has key "id" containing a string, saved as $ID2
+    AND values "$ID1" and "$ID2" are identical
+    AND result has key "revision" containing a string, saved as $REV2
+    AND values "$REV1" and "$REV2" are identical
+
+Update the record.
+
+    WHEN client PUTs /contracts/$ID1 with
+    ... {
+    ... "revision": "$REV1",
+    ... "type": "contract",
+    ... "contract_type": "employment",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "123",
+    ...         "role": "employer"
+    ...     },
+    ...     {
+    ...         "type": "person",
+    ...         "resource_id": "7",
+    ...         "role": "employee"
+    ...     }
+    ... ],
+    ... "right_to_work_based_on": "residence_permit"
+    ... }
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ... "type": "contract",
+    ... "contract_type": "employment",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "123",
+    ...         "role": "employer"
+    ...     },
+    ...     {
+    ...         "type": "person",
+    ...         "resource_id": "7",
+    ...         "role": "employee"
+    ...     }
+    ... ],
+    ... "right_to_work_based_on": "residence_permit"
+    ... }
+    AND result has key "id" containing a string, saved as $ID3
+    AND values "$ID1" and "$ID3" are identical
+    AND result has key "revision" containing a string, saved as $REV3
+
+Can not get unsent documentation.
+
+    WHEN client GETs /contracts/$ID1/document
+    THEN HTTP status code is 404
+
+Send documentation.
+
+    GIVEN file test.file containing "This pretends to be a pdf"
+
+    WHEN client PUTs file test.file with content type application/pdf
+    ...  and revision $REV3 to /contracts/$ID1/document
+    THEN HTTP status code is 200
+
+    WHEN client GETs /contracts/$ID1/document
+    THEN HTTP status code is 200
+    AND HTTP header Content-Type is application/pdf
+    AND HTTP header Revision exists
+    AND result body matches file test.file
+
+Can not send documentation with no Content-Length header set.
+
+    WHEN client POSTs /contracts with
+    ... {
+    ... "contract_type": "employment",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "123",
+    ...         "role": "employer"
+    ...     },
+    ...     {
+    ...         "type": "person",
+    ...         "resource_id": "7",
+    ...         "role": "employee"
+    ...     }
+    ... ],
+    ... "right_to_work_based_on": "eea_citizen"
+    ... }
+    THEN result has key "id" containing a string, saved as $ID4
+    AND result has key "revision" containing a string, saved as $REV4
+
+Without request body (no Content-Length header) server responds with status
+Length Required 411.
+
+    WHEN client PUTs no file with content type application/pdf
+    ...  and revision $REV4 to /contracts/$ID4/document
+    THEN HTTP status code is 411
+
+Delete the record.
+
+    WHEN client DELETEs /contracts/$ID1
+    THEN HTTP status code is 200
+
+    WHEN client GETs /contracts/$ID1
+    THEN HTTP status code is 404
+
+Attempt to send invalid data.
+
+    WHEN client POSTs /contracts with {"nonexistent_field": "data"}
+    THEN HTTP status code is 400

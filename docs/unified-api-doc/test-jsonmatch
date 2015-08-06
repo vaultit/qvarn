@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+# Test jsonmatch a bit. This script needs to exit with 0 for the tests
+# to pass.
+
+
+set -eux
+
+
+# Match exact dict value.
+./jsonmatch whole '{"foo": "bar"}' <<< '{"foo": "bar"}'
+
+# Match against dict with missing key.
+! ./jsonmatch whole '{"foo": "bar"}' <<< '{}'
+
+# Match against dict with additional extra key.
+./jsonmatch whole '{"foo": "bar"}' <<< '{"foo": "bar", "yo": 1}'
+
+# Match exact list value.
+./jsonmatch whole '{"foo": ["bar"]}' <<< '{"foo": ["bar"]}'
+
+# Match against list of different length.
+! ./jsonmatch whole '{"foo": ["bar"]}' <<< '{"foo": []}'
+
+# Match against's list with same length, but different content.
+! ./jsonmatch whole '{"foo": ["bar"]}' <<< '{"foo": ["yo"]}'
+
+# Match multi-level dicts.
+./jsonmatch whole '{"foo": {"bar": 1}}' <<< '{"foo": {"bar": 1}}'
+! ./jsonmatch whole '{"foo": {"bar": 1}}' <<< '{"foo": {"foo": 1}}'
+! ./jsonmatch whole '{"foo": {"bar": 1}}' <<< '{"foo": {"bar": 2}}'
+
+# Match against an item in the list.
+./jsonmatch list-item '1' foo <<< '{"foo": [1]}'
+! ./jsonmatch list-item '2' foo <<< '{"foo": [1]}'
+./jsonmatch list-item '{"name": "James"}' aliases \
+  <<< '{"aliases": [{"name": "blah"}, {"name": "James"}]}'
