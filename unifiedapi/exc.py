@@ -3,6 +3,8 @@
 # Copyright 2015 Suomen Tilaajavastuu Oy
 # All rights reserved.
 
+import hashlib
+
 
 class BackendException(Exception):
 
@@ -40,11 +42,4 @@ class BackendException(Exception):
         })
 
     def _get_error_code(self):
-        error_hash = hash(self.__class__.__name__)
-        error_code = u'E'
-        if error_hash < 0:
-            error_code += str(error_hash).replace('-', 'N')
-        else:
-            error_code += u'P' + str(error_hash)
-        error_code += u'R'
-        return error_code
+        return hashlib.sha1(self.__class__.__name__).hexdigest()
