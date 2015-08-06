@@ -99,22 +99,17 @@ class ReadOnlyStorageTests(unittest.TestCase):
 
         prep = unifiedapi.StoragePreparer()
         prep.add_step(u'create-tables', self.create_tables)
+        with db:
+            prep.run(db)
 
         self.wo = unifiedapi.WriteOnlyStorage()
         self.wo.set_db(db)
         self.wo.set_item_prototype(self.item[u'type'], self.prototype)
         self.wo.set_subitem_prototype(
             self.item[u'type'], self.subitem_name, self.subitem_prototype)
-        self.wo.set_preparer(prep)
-        self.wo.prepare()
 
     def test_lists_no_items_initially(self):
         self.assertEqual(self.ro.get_item_ids(), [])
-
-    def test_error_mentions_id(self):
-        obj_id = u'this string is unlikely in an error message'
-        e = unifiedapi.ItemDoesNotExist(id=obj_id)
-        self.assertIn(obj_id, unicode(e))
 
     def test_raises_error_when_item_does_not_exist(self):
         with self.assertRaises(unifiedapi.ItemDoesNotExist):

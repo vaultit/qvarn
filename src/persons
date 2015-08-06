@@ -63,27 +63,6 @@ person_sync_prototype = {
 }
 
 
-listener_prototype = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-    u'notify_of_new': False,
-    u'listen_on': [u'']
-}
-
-
-notification_prototype = {
-    u'type': u'',
-    u'id': u'',
-    u'listener_id': u'',
-    u'revision': u'',
-    u'resource_id': u'',
-    u'resource_revision': u'',
-    u'resource_change': u'',
-    u'last_modified': 0
-}
-
-
 class CreatePersonsTables_v1(unifiedapi.StoragePreparationStep):
 
     def run(self, db):
@@ -211,8 +190,15 @@ def validate_person(obj):
 
 
 if __name__ == '__main__':
+    app = unifiedapi.BackendApplication()
+
     prep = unifiedapi.StoragePreparer()
     prep.add_step(u'create_persons_tables_v1', CreatePersonsTables_v1())
+    app.set_storage_preparer(prep)
+
+    listener_resource = unifiedapi.ListenerResource()
+    listener_resource.set_top_resource_path(u'/persons')
+    app.add_resource(listener_resource)
 
     resource = unifiedapi.ListResource()
     resource.set_path(u'/persons')
@@ -221,10 +207,7 @@ if __name__ == '__main__':
     resource.set_item_validator(validate_person)
     resource.set_subitem_prototype(u'private', person_private_prototype)
     resource.set_subitem_prototype(u'sync', person_sync_prototype)
-    resource.set_listener_prototype(listener_prototype)
-    resource.set_notification_prototype(notification_prototype)
-    resource.set_storage_preparer(prep)
+    resource.set_listener(listener_resource)
+    app.add_resource(resource)
 
-    app = unifiedapi.BackendApplication()
-    app.set_resource(resource)
     app.run()

@@ -11,14 +11,12 @@ class WriteOnlyStorage(object):
 
     '''Write-only interface to a database.
 
-    You MUST call ``set_db``, ``set_item_prototype``, and
-    ``set_preparer`` before doing anything else, and then call
-    ``prepare``.
+    You MUST call ``set_db`` and ``set_item_prototype`` before doing
+    anything else.
 
     '''
 
     def __init__(self):
-        self._preparer = None
         self._db = None
         self._item_type = None
         self._prototype = None
@@ -38,16 +36,6 @@ class WriteOnlyStorage(object):
     def set_subitem_prototype(self, item_type, subitem_name, prototype):
         '''Set prototype for a subitem.'''
         self._subitem_prototypes.add(item_type, subitem_name, prototype)
-
-    def set_preparer(self, preparer):
-        '''Set the StoragePreparer for this database.'''
-        self._preparer = preparer
-
-    def prepare(self):
-        '''Prepare the database for use.'''
-        assert self._preparer
-        with self._db:
-            self._preparer.run(self._db)
 
     def add_item(self, item):
         '''Add an item to the database.
@@ -157,21 +145,19 @@ class WriteOnlyStorage(object):
         dw.walk_item(prototype, prototype)
 
 
-class CannotAddWithId(unifiedapi.BackendException):
+class CannotAddWithId(unifiedapi.BadRequest):
 
-    msg = "Object being added already has an id ({id})"
-
-
-class CannotAddWithRevision(unifiedapi.BackendException):
-
-    msg = "Object being added already has a revision ({revision})"
+    msg = u"Object being added already has an id"
 
 
-class WrongRevision(unifiedapi.BackendException):
+class CannotAddWithRevision(unifiedapi.BadRequest):
 
-    msg = (
-        "Object being updated ({item_id}) has revision {current}, "
-        "but update refers to ({update})")
+    msg = u"Object being added already has a revision"
+
+
+class WrongRevision(unifiedapi.Conflict):
+
+    msg = "Update revision does not match the revision of object being updated"
 
 
 class WriteWalker(unifiedapi.ItemWalker):

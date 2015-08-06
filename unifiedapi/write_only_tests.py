@@ -80,13 +80,13 @@ class WriteOnlyStorageTests(unittest.TestCase):
 
         prep = unifiedapi.StoragePreparer()
         prep.add_step(u'create', self.create_tables)
+        with db:
+            prep.run(db)
         self.wo = unifiedapi.WriteOnlyStorage()
         self.wo.set_db(db)
         self.wo.set_item_prototype(self.person[u'type'], self.prototype)
         self.wo.set_subitem_prototype(
             self.person[u'type'], self.subitem_name, self.subitem_prototype)
-        self.wo.set_preparer(prep)
-        self.wo.prepare()
 
         self.ro = unifiedapi.ReadOnlyStorage()
         self.ro.set_db(db)
@@ -117,11 +117,6 @@ class WriteOnlyStorageTests(unittest.TestCase):
 
     def get_item_from_disk(self, item):
         return self.ro.get_item(item[u'id'])
-
-    def test_exception_message_contains_id(self):
-        obj_id = u'this is unlikely in an error message'
-        e = unifiedapi.CannotAddWithId(id=obj_id)
-        self.assertIn(obj_id, unicode(e))
 
     def test_refuses_to_add_item_with_id(self):
         with_id = dict(self.person)

@@ -2,6 +2,7 @@
 #
 # Copyright 2015 Suomen Tilaajavastuu Oy
 # All rights reserved.
+import unifiedapi
 
 
 class SimpleResource(object):
@@ -12,6 +13,9 @@ class SimpleResource(object):
     manipulated in any way.
 
     Parameterise this class with the ``set_path`` method.
+
+    !IMPORTANT! Authorization to simple resources is not checked. They should
+                only contain public information.
 
     '''
 
@@ -28,6 +32,10 @@ class SimpleResource(object):
             {
                 'path': self._path,
                 'method': 'GET',
-                'callback': self._callback
+                'callback': self._callback,
+                # Do not check authorization for simple resources
+                'skip': [
+                    unifiedapi.AuthorizationPlugin
+                ]
             },
         ]

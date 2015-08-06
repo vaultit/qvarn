@@ -18,4 +18,6 @@ app="$1"
 exec "/usr/lib/unified-api-backend/$1" \
     --database "/var/lib/unified-api-backend/storage/$1.db" \
     --log "/var/log/unified-api-backend/$1.log" \
+    --token-validation-key "secret" \
+    --token-issuer "https://gluu.tilaajavastuu.io" \
     >> "/var/log/unified-api-backend/$1.start.log" 2>&1

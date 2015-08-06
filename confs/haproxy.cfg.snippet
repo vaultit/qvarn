@@ -19,22 +19,48 @@ frontend http-in
     # forwarded to which backends", not "access control list"
     # in its usual meaning.
 
-    acl resource_version path_beg /version
-    acl resource_persons path_beg /persons
+    acl resource_cards path_beg /cards
+    acl resource_contracts path_beg /contracts
+    acl resource_events path_beg /events
     acl resource_orgs path_beg /orgs
+    acl resource_persons path_beg /persons
+    acl resource_projects path_beg /projects
+    acl resource_reports path_beg /reports
+    acl resource_version path_beg /version
 
-    use_backend version_apps if resource_version
-    use_backend persons_apps if resource_persons
+    use_backend cards_apps if resource_cards
+    use_backend contracts_apps if resource_contracts
+    use_backend events_apps if resource_events
     use_backend orgs_apps if resource_orgs
+    use_backend persons_apps if resource_persons
+    use_backend projects_apps if resource_projects
+    use_backend reports_apps if resource_reports
+    use_backend version_apps if resource_version
+
 
 # We need a backend stanza for each backend application. Note that
 # port numbers here must match those in the config for lighttpd.
 
-backend version_apps
-    server version1 127.0.0.1:9001
+backend cards_apps
+    server cards1 127.0.0.1:9001
 
-backend persons_apps
-    server persons1 127.0.0.1:9002
+backend contracts_apps
+    server contracts1 127.0.0.1:9002
+
+backend events_apps
+    server events1 127.0.0.1:9003
 
 backend orgs_apps
-    server orgs1 127.0.0.1:9003
+    server orgs1 127.0.0.1:9004
+
+backend persons_apps
+    server persons1 127.0.0.1:9005
+
+backend projects_apps
+    server projects1 127.0.0.1:9006
+
+backend reports_apps
+    server reports1 127.0.0.1:9007
+
+backend version_apps
+    server version1 127.0.0.1:9008

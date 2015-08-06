@@ -7,15 +7,17 @@
 '''Random utility functions for the backend.'''
 
 
-import logging
-
-import unifiedapi.bottle as bottle
+import re
 
 
-def log_request():
-    '''Log an HTTP request, with arguments and body.'''
-    r = bottle.request
-    logging.info(
-        u'Request: %s %s (args: %r)', r.method, r.path, r.url_args)
-    if r.method in ('POST', 'PUT') and r.json:
-        logging.info(u'Request body (JSON): %r', r.json)
+# Matches <xx> but not <xx>xx<xx>.
+route_to_scope_re = re.compile(r'<[^>]*>')
+
+
+def route_to_scope(route_rule, request_method):
+    ''' Gives an authorization scope string for a route and a HTTP method.
+    '''
+    route_scope = re.sub(route_to_scope_re, 'id', route_rule)
+    route_scope = route_scope.replace(u'/', u'_')
+    route_scope = u'uapi%s_%s' % (route_scope, request_method)
+    return route_scope.lower()
