@@ -1,4 +1,4 @@
-# auth_validator_tests.py - unit tests for AuthValidator
+# authorization_validator_tests.py - unit tests for AuthorizationValidator
 #
 # Copyright 2015 Suomen Tilaajavastuu Oy
 # All rights reserved.
@@ -27,23 +27,23 @@ def get_valid_token():
     }
 
 
-class AuthValidatorTests(unittest.TestCase):
+class AuthorizationValidatorTests(unittest.TestCase):
 
     def setUp(self):
-        self.auth_validator = unifiedapi.AuthValidator()
+        self.authorization_validator = unifiedapi.AuthorizationValidator()
 
     def test_no_authorization_header_errors_raises(self):
         with self.assertRaises(unifiedapi.Unauthorized):
-            self.auth_validator.get_access_token_from_headers({})
+            self.authorization_validator.get_access_token_from_headers({})
 
     def test_invalid_authorization_header_format_raises(self):
         with self.assertRaises(unifiedapi.Forbidden):
-            self.auth_validator.get_access_token_from_headers({
+            self.authorization_validator.get_access_token_from_headers({
                 'Authorization': 'Fail tokentoken'
             })
 
     def test_valid_authorization_header_format_returns_token(self):
-        token = self.auth_validator.get_access_token_from_headers({
+        token = self.authorization_validator.get_access_token_from_headers({
             'Authorization': 'Bearer tokentoken'
         })
         self.assertEqual(token, 'tokentoken')
@@ -52,7 +52,7 @@ class AuthValidatorTests(unittest.TestCase):
         secret = u'secret'
         token = get_valid_token()
         encoded_token = jwt.encode(token, secret, algorithm='HS512')
-        self.auth_validator.validate_token(
+        self.authorization_validator.validate_token(
             encoded_token,
             secret,
             token[u'iss'])
@@ -62,7 +62,7 @@ class AuthValidatorTests(unittest.TestCase):
         token = get_valid_token()
         encoded_token = jwt.encode(token, secret, algorithm='HS512')
         with self.assertRaises(unifiedapi.Forbidden):
-            self.auth_validator.validate_token(
+            self.authorization_validator.validate_token(
                 encoded_token,
                 secret,
                 u'otherissuer')
@@ -73,7 +73,7 @@ class AuthValidatorTests(unittest.TestCase):
         del token[u'sub']
         encoded_token = jwt.encode(token, secret, algorithm='HS512')
         with self.assertRaises(unifiedapi.Forbidden):
-            self.auth_validator.validate_token(
+            self.authorization_validator.validate_token(
                 encoded_token,
                 secret,
                 token[u'iss'])

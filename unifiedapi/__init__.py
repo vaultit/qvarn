@@ -26,8 +26,8 @@ from .util import route_to_scope
 from .simple_resource import SimpleResource
 from .list_resource import ListResource
 from .idgen import ResourceIdGenerator
-from .auth_plugin import AuthPlugin
-from .auth_validator import AuthValidator
+from .authorization_plugin import AuthorizationPlugin
+from .authorization_validator import AuthorizationValidator
 from .logging_plugin import LoggingPlugin
 from .string_to_unicode_plugin import StringToUnicodePlugin
 from .listener_resource import ListenerResource

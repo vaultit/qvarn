@@ -1,4 +1,5 @@
-# auth_validator.py - implements authorization header and token validation
+# authorization_validator.py - implements authorization header and token
+#                              validation
 #
 # Copyright 2015 Suomen Tilaajavastuu Oy
 # All rights reserved.
@@ -9,9 +10,12 @@ import jwt
 import unifiedapi
 
 
-class AuthValidator(object):
+class AuthorizationValidator(object):
 
     ''' Utilities for handling authorization header and JWT token validation.
+
+    Separated from AuthorizationPlugin for easier testing. No need to mock
+    global bottle.request.
     '''
 
     def get_access_token_from_headers(self, headers):
@@ -22,12 +26,12 @@ class AuthValidator(object):
         # Header has to be present in the form "Authorization: Bearer token"
         if u'Authorization' not in headers:
             raise AuthorizationHeaderMissing()
-        auth_header_value = headers[u'Authorization']
-        auth_header_values = auth_header_value.split(u' ')
-        if not len(auth_header_values) == 2 or \
-           not auth_header_values[0].lower() == 'bearer':
+        authorization_header_value = headers[u'Authorization']
+        authorization_header_values = authorization_header_value.split(u' ')
+        if not len(authorization_header_values) == 2 or \
+           not authorization_header_values[0].lower() == 'bearer':
             raise InvalidAuthorizationHeaderFormat()
-        return auth_header_values[1]
+        return authorization_header_values[1]
 
     def validate_token(self, access_token, token_validation_key, issuer):
         ''' Validates access token with validation key.

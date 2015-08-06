@@ -143,9 +143,9 @@ class BackendApplication(object):
 
     def _setup_auth(self, args):
         if args.token_validation_key and args.token_issuer:
-            auth_plugin = unifiedapi.AuthPlugin(
+            authorization_plugin = unifiedapi.AuthorizationPlugin(
                 args.token_validation_key, args.token_issuer)
-            self._app.install(auth_plugin)
+            self._app.install(authorization_plugin)
 
     def _prepare_resources(self):
         routes = []

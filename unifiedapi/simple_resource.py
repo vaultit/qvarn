@@ -35,7 +35,7 @@ class SimpleResource(object):
                 'callback': self._callback,
                 # Do not check authorization for simple resources
                 'skip': [
-                    unifiedapi.AuthPlugin
+                    unifiedapi.AuthorizationPlugin
                 ]
             },
         ]
