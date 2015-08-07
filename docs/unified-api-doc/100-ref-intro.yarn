@@ -1,0 +1,20 @@
+API resources
+=============
+
+This chapter is the detailed reference manual for the API resources
+and simultaneously its automated acceptance test suite. The API is
+divided into a set of resources, most of which correspond to entities
+in the data model described in the previous chapter. For each API
+resources, the following are documented:
+
+* The purpose of the resource.
+* URL path to the resource.
+* What HTTP operations are supported for the resource.
+* What input is to be provided.
+* What output is provided in the successful case.
+* What error situations are and what the API client needs to do about
+  them.
+* Any other information that seems useful to the API client.
+* Example code.
+* Automated tests for verifying the API call works correctly; these
+  function as additional examples.

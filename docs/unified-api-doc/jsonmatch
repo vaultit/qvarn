@@ -1,0 +1,99 @@
+#!/usr/bin/python2
+
+
+'''Match a JSON object against a pattern.
+
+The pattern is also a JSON object. The pattern is given as a command
+line argument. The JSON object to be matched is read from stdin.
+
+'''
+
+
+import json
+import os
+import sys
+
+
+def log(msg, *args):
+    sys.stderr.write(msg % args)
+    sys.stderr.write('\n')
+
+
+def match(pat, val):
+    log('match called')
+    log('type(pat)=%r repr(pat)=%r', type(pat), pat)
+    log('type(val)=%r repr(val)=%r', type(val), val)
+
+    if type(pat) != type(val):
+        return 'expected types to match: %r==%r', type(pat), type(val)
+
+    if type(pat) == dict:
+        for key in pat:
+            if key not in val:
+                return 'expected key %r in value', key
+            err = match(pat[key], val[key])
+            if err:
+                return err
+    elif type(pat) == list:
+        if len(pat) != len(val):
+            return (
+                'expected lists to have same length (%d vs %s)',
+                len(pat), len(val))
+        for i in range(len(pat)):
+            err = match(pat[i], val[i])
+            if err:
+                return err
+    else:
+        if pat != val:
+            return 'expected values to match: %r==%r', pat, val
+
+
+def match_whole(pattern, response, args):
+    return match(pattern, response)
+
+
+def match_list_item(pattern, response, args):
+    key = args[0]
+
+    if key not in response:
+        return 'key %r not in response', key
+
+    if type(response[key]) is not list:
+        return ('value for key %r should be list, but is %s',
+                key, type(response[key]))
+
+    for value in response[key]:
+        err = match(pattern, value)
+        if not err:
+            break
+    else:
+        return "no match for pattern in list: %r", response[key]
+
+
+def main():
+    verb = sys.argv[1]
+
+    pattern = json.loads(sys.argv[2])
+    log('Pattern (%r): %r', type(pattern), pattern)
+
+    response = json.load(sys.stdin)
+    log('Response (%r): %r', type(response), response)
+
+    funcs = {
+        'whole': match_whole,
+        'list-item': match_list_item,
+    }
+
+    func = funcs[verb]
+    err = funcs[verb](pattern, response, sys.argv[3:])
+    if err:
+        fmt = err[0]
+        args = err[1:]
+        log('FAIL: %s' % (fmt % args))
+        sys.exit(1)
+
+    log('Everything looks OK')
+
+
+if __name__ == '__main__':
+    main()

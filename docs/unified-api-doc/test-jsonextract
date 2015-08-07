@@ -1,0 +1,22 @@
+#!/bin/bash
+#
+# Test jsonextract a bit. This script needs to exit with 0 for the tests
+# to pass.
+
+
+set -eux
+
+# Input is not valid JSON.
+! ./jsonextract foo <<< 'blahbla!'
+
+# Input is not a dict.
+! ./jsonextract foo <<< '123'
+
+# Given key is not in input.
+! ./jsonextract foo <<< '{}'
+
+# Value is not a string.
+! ./jsonextract foo <<< '{"foo": 123}'
+
+# All OK.
+test "$(./jsonextract foo <<< '{"foo": "bar"}')" = bar

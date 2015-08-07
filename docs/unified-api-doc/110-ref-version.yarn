@@ -1,0 +1,50 @@
+`/version`
+-------------------
+
+This read-only resource reports version information of the API instance.
+It requires no authentication and is available to everyone.
+
+Synopsis:
+
+* `GET /version` with an empty body.
+
+Note that `/version` does not support searching.
+
+Errors:
+
+* There are no errors that are specific to this endpoint.
+
+Example result:
+
+    EXAMPLE
+    {
+        "api": {
+            "version": "1.0"
+        },
+        "implementation": {
+            "version": "2014-12-05",
+            "name": "Alfred Pennington"
+        }
+    }
+
+Fields in the result (main and subkey):
+
+* `api`, `version` --- API version
+* `implementation`, `version` ---  implementation version
+* `implementation`, `name` --- name of implementation
+
+All values are meant to be human-readable and are not meant to be
+interpreted programmatically.
+
+### Tests
+
+We do the GET call to get `/version`, and check that the result is a
+JSON dict with the fields as described above. There may be other
+fields, but we don't care about that.
+
+    SCENARIO retrieve version information
+    WHEN client GETs /version
+    THEN HTTP status code is 200
+    AND result has key "api" with subkey "version"
+    AND result has key "implementation" with subkey "name"
+    AND result has key "implementation" with subkey "version"

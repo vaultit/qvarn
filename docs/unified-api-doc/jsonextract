@@ -1,0 +1,18 @@
+#!/usr/bin/python2
+#
+# Read JSON from stdin, and get a dict key as command line argument.
+# Extract the value corresponding to the key, write to standard output.
+
+import json, sys, os
+
+obj = json.load(sys.stdin)
+key = sys.argv[1]
+
+sys.stderr.write("obj: %r\n" % repr(obj))
+sys.stderr.write("key: %r\n" % repr(key))
+
+assert type(obj) is dict, "expected a dictionary"
+assert key in obj, "expected dictionary to have key %s" % key
+assert type(obj[key]) in [str, unicode], "expected value to be a string"
+
+sys.stdout.write(obj[key])

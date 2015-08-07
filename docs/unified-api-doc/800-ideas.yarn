@@ -1,0 +1,28 @@
+APPENDIX: Plans for the future
+==============================
+
+This chapter contains plans for the future that will probably be
+implemented, hopefully soon, and may change from the description here
+when they do get implemented. Feedback is welcome.
+
+
+Authentication and authorisation
+--------------------------------
+
+There will be some kind of authentication and authorisation, but it
+has not yet been specified.
+
+
+Modification timestamps
+-----------------------
+
+When individual resources are queried with GET, the HTTP response has
+a `Last-Modified` header set to the modification time of the resource.
+The `If-Modified-Since` request header can be used in the normal way.
+
+These headers do not apply for requests and responses that concern
+multiple resources. For example, `GET /foos` won't have
+`Last-Modified`, nor obey `If-Modified-Since`. However, they both work
+for `GET /foos/123`.
+
+

@@ -1,0 +1,153 @@
+`/projects`
+---------------------
+
+This resource manages various types of projects. A project is an
+abstraction to allow linking of contracts, supply chains, invoices,
+and other pieces of data that relates to a single undertaking. Such
+linking is often required for tax reporting, or similar reasons. An
+example of a project is a construction site.
+
+Synopsis:
+
+* `GET /projects` --- get a list of ids of all projects
+* `POST /projects` --- add a new project
+* `GET /projects/<id>` --- get the information about a specific project
+* `PUT /projects/<id>` --- replace the information for a project
+* `DELETE /projects/<id>` --- remove a project
+
+Errors:
+
+* There are no errors that are specific to this resource.
+
+Example result for a project
+
+    EXAMPLE
+    {
+        "type": "project",
+        "id": "1234",
+        "names": [
+            "Construction of the Empire State Building"
+        ],
+        "project_responsible_org": "123",
+        "project_responsible_person": "456",
+        "project_ids": [
+            {
+                "project_id_type": "finnish_construction_site_key",
+                "project_id": "blahblahblah"
+            }
+        ]
+    }
+
+Fields in the result:
+
+* `names` --- all the known names of the project
+* `project_responsible_org` --- **optional** id of the organisation
+  who owns, or is otherwise responsible for the project, or is its
+  main contact
+* `project_responsible_person` --- **optional** id of the person who
+  owns, or is otherwise responsible for the project, or is its main
+  contact
+* `project_ids` --- "real world" identifiers for the project:
+  identifiers known to people or other computing systems
+    - `project_id_type` --- must be `finnish_construction_site_key`
+      (Finnish "työmaa-avain"), but new types may be added later
+    - `project_id` --- the key itself
+
+### Tests
+
+We create a new project, update them, and delete them.
+
+    SCENARIO manage a project
+
+Client has needed access rights for projects resource.
+
+    GIVEN client has access to scopes
+    ... "uapi_projects_post uapi_projects_get uapi_projects_id_get
+    ...  uapi_projects_id_put uapi_projects_id_delete"
+
+Try to create a new project. Test with an invalid field.
+
+    WHEN client POSTs /projects with {"invalid_field": true}
+    THEN HTTP status code is 400
+
+Create a new project.
+
+    WHEN client POSTs /projects with
+    ... {
+    ...     "names": [
+    ...         "Construction of the Empire State Building"
+    ...       ],
+    ...     "project_responsible_org": "123",
+    ...     "project_responsible_person": "456",
+    ...     "project_ids": [
+    ...       {
+    ...           "project_id_type": "finnish_construction_site_key",
+    ...           "project_id": "blahblahblah"
+    ...       }
+    ...     ]
+    ... }
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "names": [
+    ...         "Construction of the Empire State Building"
+    ...       ],
+    ...     "project_responsible_org": "123",
+    ...     "project_responsible_person": "456",
+    ...     "project_ids": [
+    ...       {
+    ...           "project_id_type": "finnish_construction_site_key",
+    ...           "project_id": "blahblahblah"
+    ...       }
+    ...     ]
+    ... }
+    AND result has key "id" containing a string, saved as $ID1
+    AND result has key "revision" containing a string, saved as $REV1
+
+Check that the record is there.
+
+    WHEN client GETs /projects
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+
+    WHEN client GETs /projects/$ID1
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "names": [
+    ...         "Construction of the Empire State Building"
+    ...       ],
+    ...     "project_responsible_org": "123",
+    ...     "project_responsible_person": "456",
+    ...     "project_ids": [
+    ...       {
+    ...           "project_id_type": "finnish_construction_site_key",
+    ...           "project_id": "blahblahblah"
+    ...       }
+    ...     ]
+    ... }
+    AND result has key "id" containing a string, saved as $ID2
+    AND values "$ID1" and "$ID2" are identical
+    AND result has key "revision" containing a string, saved as $REV2
+    AND values "$REV1" and "$REV2" are identical
+
+Update the record.
+
+    WHEN client PUTs /projects/$ID1 with
+    ... {
+    ...     "revision": "$REV1",
+    ...     "names": ["Construction of Saint Isaac's Cathedral"]
+    ... }
+    THEN HTTP status code is 200
+    AND result matches {"names": ["Construction of Saint Isaac's Cathedral"]}
+    AND result has key "id" containing a string, saved as $ID3
+    AND values "$ID1" and "$ID3" are identical
+    AND result has key "revision" containing a string, saved as $REV3
+
+Delete the record.
+
+    WHEN client DELETEs /projects/$ID1
+    THEN HTTP status code is 200
+
+    WHEN client GETs /projects/$ID1
+    THEN HTTP status code is 404

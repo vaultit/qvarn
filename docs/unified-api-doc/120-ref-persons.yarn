@@ -1,0 +1,272 @@
+`/persons`
+----------
+
+This resource manages all the people known to the service.
+
+Synopsis:
+
+* `GET /persons` --- get a list of ids of all persons.
+* `POST /persons` --- add a new person.
+* `GET /persons/<id>` --- get information about a specific person.
+* `GET /persons/<id>/private` --- get a person's sensitive, private
+  information.
+* `PUT /persons/<id>` --- replace the information for a person.
+* `PUT /persons/<id>/private` --- replace the sensitive, private
+  information for a person.
+* `DELETE /persons/<id>` --- remove a person (including private
+  information).
+
+Errors:
+
+* There are no errors that are specific to this resource.
+
+Information about a person is divided into two parts: semi-public and
+private. Access to the two parts is controlled separately.
+
+Example result:
+
+    EXAMPLE information about a person
+    {
+        "type": "person",
+        "id": "12313",
+        "names": [
+            {
+                "full_name": "James Bond",
+                "sort_key": "Bond, James",
+                "given_names": ["James"],
+                "surnames": ["Bond"],
+            },
+            {
+                "full_name": "Alfred E. Newman",
+                "sort_key": "Newman, Alfred E.",
+                "given_names": ["Alfred", "E."],
+                "surnames": ["Newman"],
+            }
+        ]
+    }
+
+Example of a person's private information:
+
+    EXAMPLE private information about a person
+    {
+        "id": "12313",
+        "date_of_birth": null,
+        "gov_ids": [
+            {
+                "country": "GB",
+                "id_type": "ssn",
+                "gov_id": "SN 00 70 07"
+            }
+        ],
+        "nationalities": [
+            "GB"
+        ],
+        "residences": [
+            {
+                "country": "GB",
+                "location": "London"
+            }
+        ],
+        "contacts": [
+            {
+                "contact_type": "phone",
+                "contact_source": "self",
+                "contact_timestamp": "2038-02-28T01:02:03+0400",
+                "phone_number": "+358 4321"
+            }
+        ]
+    }
+
+Fields in the result:
+
+* `names` --- all names known about the person, each name specified as
+  described in [Handling names of people](#handling-names-of-people).
+
+Fields in the private information:
+
+* `date_of_birth` --- ***optional*** date of birth information
+* `gov_ids` --- all known government-issued identifiers, such as social
+  security numbers; see below for details
+* `nationalities` --- current nationalities of the person, list of two-letter
+  country codes
+* `residences` --- known residences; see below
+* `contacts` --- known contact information; see
+  [Handling contact information](#contacts)
+
+Government-issued identifiers are encoded as a JSON object with the
+following fields:
+
+* `country` --- two-letter country code
+* `id_type` --- the type of the id, one of:
+    * `ssn` --- social security number or similar, including Finnish
+      "henkilötunnus")
+    * `tax_number` --- a tax office identifier (including Finnish
+      "veronumero")
+* `gov_id` --- the actual identifier
+
+Residences are stored as a JSON object with the following fields:
+
+* `country` --- two-letter country code
+* `location` --- free form string for location within the country
+
+
+### Tests
+
+We create a new person, update them, and delete them.
+
+    SCENARIO manage a person
+
+Client has needed access rights for persons resource.
+
+    GIVEN client has access to scopes
+    ... "uapi_persons_post uapi_persons_get uapi_persons_id_get
+    ...  uapi_persons_id_private_get uapi_persons_id_put
+    ...  uapi_persons_id_private_put uapi_persons_id_delete"
+
+Try to create a new person, but with invalid data. These must all
+fail, of course. First, an empty record:
+
+    WHEN client POSTs /persons with {}
+    THEN HTTP status code is 400
+
+Only specific fields are allowed. The API does not accept arbitrary
+data from the client.
+
+    WHEN client POSTs /persons with {"invalid_field": true}
+    THEN HTTP status code is 400
+
+The only mandatory field is `names`, but it can't be empty.
+
+    WHEN client POSTs /persons with {"names": []}
+    THEN HTTP status code is 400
+
+The name must be specified in structured form, not just as a string.
+
+    WHEN client POSTs /persons with {"names": ["James Bond"]}
+    THEN HTTP status code is 400
+
+The full name must be given.
+
+    WHEN client POSTs /persons with
+    ... {"names": [{"given_names": ["James"], "surnames": ["Bond"]}]}
+    THEN HTTP status code is 400
+
+The full name must not be empty.
+
+    WHEN client POSTs /persons with {"names": [{"full_name": ""}]}
+    THEN HTTP status code is 400
+
+Extra fields for a name are not allowed.
+
+    WHEN client POSTs /persons with
+    ... {"names": [{"full_name": "James Bond", "nickname": "Jimbo"}]}
+    THEN HTTP status code is 400
+
+Create a new person. Note that even if we only submit the mandatory
+fields, we get a result with all optional fields filled in with empty
+values.
+
+    WHEN client POSTs /persons with
+    ... {"names": [{"full_name": "James Bond"},
+    ...            {"full_name": "Alfred E. Newman"}]}
+    THEN HTTP status code is 200
+    AND result matches
+    ... { "names": [
+    ...     {
+    ...         "full_name": "James Bond"
+    ...     },
+    ...     {
+    ...         "full_name": "Alfred E. Newman"
+    ...     }
+    ...  ]
+    ... }
+    AND result has key "id" containing a string, saved as $ID1
+    AND result has key "revision" containing a string, saved as $REV1
+
+Check that the record is there.
+
+    WHEN client GETs /persons
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing { "id": "$ID1" }
+
+    WHEN client GETs /persons/$ID1
+    THEN HTTP status code is 200
+    AND result matches
+    ... {"names": [{"full_name": "James Bond"},
+    ...            {"full_name": "Alfred E. Newman"}]}
+    AND result has key "id" containing a string, saved as $ID2
+    AND values "$ID1" and "$ID2" are identical
+    AND result has key "revision" containing a string, saved as $REV2
+    AND values "$REV1" and "$REV2" are identical
+
+The private sub-record should also be there, without being added
+explicitly, even if it has no data.
+
+    WHEN client GETs /persons/$ID1/private
+    THEN HTTP status code is 200
+
+Update the record.
+
+    WHEN client PUTs /persons/$ID1 with
+    ... {
+    ...     "revision": "$REV1",
+    ...     "names": [{"full_name": "M"}]
+    ... }
+    THEN HTTP status code is 200
+    AND result matches { "names": [{"full_name": "M"}]}
+    AND result has key "id" containing a string, saved as $ID3
+    AND values "$ID1" and "$ID3" are identical
+    AND result has key "revision" containing a string, saved as $REV3
+
+Updating with the wrong revision should fail.
+
+    WHEN client PUTs /persons/$ID1 with
+    ... {
+    ...     "revision": "$REV1",
+    ...     "names": [{"full_name": "Blofeld"}]
+    ... }
+    THEN HTTP status code is 409
+    WHEN client GETs /persons/$ID1
+    THEN result matches
+    ... {
+    ...     "revision": "$REV3",
+    ...     "names": [{"full_name": "M"}]
+    ... }
+
+
+Update the private sub-record. Note that we give the revision of the
+main record.
+
+    WHEN client PUTs /persons/$ID1/private with
+    ... {
+    ...     "revision": "$REV3",
+    ...     "date_of_birth": "1920-11-11"
+    ... }
+    THEN HTTP status code is 200
+    AND result matches { "date_of_birth": "1920-11-11" }
+    AND result has key "revision" containing a string, saved as $REV3
+
+(Not bothering to check that all the fields are set. Let's assume they
+are, to keep the test a bit shorter.)
+
+Updating the sub-record without the correct revision should fail.
+
+    WHEN client PUTs /persons/$ID1/private with
+    ... {
+    ...     "revision": "this-is-the-wrong-revision",
+    ...     "date_of_birth": "1920-11-11"
+    ... }
+    THEN HTTP status code is 409
+
+Delete the record.
+
+    WHEN client DELETEs /persons/$ID1
+    THEN HTTP status code is 200
+
+    WHEN client GETs /persons/$ID1
+    THEN HTTP status code is 404
+
+The private sub-record should be gone too.
+
+    WHEN client GETs /persons/$ID1/private
+    THEN HTTP status code is 404

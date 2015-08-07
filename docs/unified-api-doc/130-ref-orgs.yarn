@@ -1,0 +1,181 @@
+`/orgs`
+----------------
+
+This resource manages all the organisations known to the service. An
+organisation can be a company, but also a non-profit association,
+city, or similar, which is why the more general term is used.
+
+Synopsis:
+
+* `GET /orgs` --- get a list of ids of all organisations.
+* `POST /orgs` --- add a new organisation.
+* `GET /orgs/<id>` --- get the information about a specific organisation.
+* `PUT /orgs/<id>` --- replace the information for an organisation.
+* `DELETE /orgs/<id>` --- remove an organisation.
+
+Errors:
+
+* There are no errors that are specific to this resource.
+
+Example result for an organisation:
+
+    EXAMPLE
+    {
+        "names": [
+            "Full Company Name Ltd",
+            "Da Company"
+        ],
+        "country": "FI",
+        "gov_org_ids": [
+            {
+                "country": "FI",
+                "org_id_type": "registration_number",
+                "gov_org_id": "1234567-1"
+            }
+        ],
+        "contacts": [
+            {
+                "contact_type": "address",
+                "contact_source": "self",
+                "contact_timestamp": "2015-03-04T16:47:12+0200",
+                "country": "FI",
+                "full_address": "Street 1\n00000 Nowhere"
+            }
+        ],
+        "is_luotettava_kumppani_member": false
+    }
+
+Fields in the result:
+
+* `names` --- list of all names known about the organisation
+* `country` --- two letter country code for the reported home country of
+  the organisation
+* `gov_org_ids` --- all known government-issued identifiers; see below
+* `contacts` --- known contact information; see
+  [Handling contact information](#contacts)
+* `is_luotettava_kumppani_member` --- has the organisation joined the
+  [Luotettava Kumppani][] programme?
+
+[Luotettava Kumppani]: https://www.tilaajavastuu.fi/luotettavakumppani/
+
+Government-issued identifiers (`gov_org_ids`) have the following
+fields:
+
+* `country` --- two letter country code
+* `gov_id_type` --- the type of the id, one of:
+    * `registration_number` --- organisation registration number,
+      which would be "Y-tunnus" in Finland
+    * `vat_number` --- a [VAT identification number][], used within the EU
+      and elsewhere
+* `gov_org_id` --- the actual identifier
+
+[VAT identification number]: http://en.wikipedia.org/wiki/VAT_identification_number
+
+
+### Tests
+
+We create a new organisation, update its info, and delete it.
+
+    SCENARIO manage an organisation
+
+Client has needed access rights for orgs resource.
+
+    GIVEN client has access to scopes
+    ... "uapi_orgs_post uapi_orgs_id_get uapi_orgs_id_put
+    ...  uapi_orgs_id_delete"
+
+Create a new organisation.
+
+    WHEN client POSTs /orgs with
+    ... {"names": ["Suomen Tilaajavastuu Oy"],
+    ... "country": "FI",
+    ... "gov_org_ids": [{"country": "FI",
+    ...                  "org_id_type": "registration_number",
+    ...			 "gov_org_id": "1234567-1"}],
+    ... "contacts": [{"contact_type": "address",
+    ...               "contact_source": "self",
+    ...		      "contact_timestamp": "2015-03-04T16:47:12+0200",
+    ...		      "country": "FI",
+    ...		      "full_address": "Street 1\\n00000 Nowhere"},
+    ... 	     {"contact_type": "phone",
+    ...               "contact_source": "self",
+    ...		      "contact_timestamp": "2015-03-04T16:47:12+0200",
+    ...		      "phone_number": "+15551234567890"}],
+    ... "is_luotettava_kumppani_member": true
+    ... }
+    THEN HTTP status code is 200
+    AND result matches
+    ... { "names": ["Suomen Tilaajavastuu Oy"],
+    ...   "country": "FI",
+    ...   "gov_org_ids": [{"country": "FI",
+    ...   		   "org_id_type": "registration_number",
+    ...			   "gov_org_id": "1234567-1"}],
+    ... "contacts": [{"contact_type": "address",
+    ...               "contact_source": "self",
+    ...		      "contact_timestamp": "2015-03-04T16:47:12+0200",
+    ...		      "country": "FI",
+    ...		      "full_address": "Street 1\\n00000 Nowhere"},
+    ... 	     {"contact_type": "phone",
+    ...               "contact_source": "self",
+    ...		      "contact_timestamp": "2015-03-04T16:47:12+0200",
+    ...		      "phone_number": "+15551234567890"}],
+    ... "is_luotettava_kumppani_member": true
+    ... }
+    AND result has key "id" containing a string, saved as $ID1
+    AND result has key "revision" containing a string, saved as $REV1
+
+Check that the record is there.
+
+    WHEN client GETs /orgs/$ID1
+    THEN HTTP status code is 200
+    AND result matches
+    ... { "names": ["Suomen Tilaajavastuu Oy"],
+    ...   "country": "FI",
+    ...   "gov_org_ids": [{"country": "FI",
+    ...   		   "org_id_type": "registration_number",
+    ...			   "gov_org_id": "1234567-1"}],
+    ... "contacts": [{"contact_type": "address",
+    ...               "contact_source": "self",
+    ...		      "contact_timestamp": "2015-03-04T16:47:12+0200",
+    ...		      "country": "FI",
+    ...		      "full_address": "Street 1\\n00000 Nowhere"},
+    ... 	     {"contact_type": "phone",
+    ...               "contact_source": "self",
+    ...		      "contact_timestamp": "2015-03-04T16:47:12+0200",
+    ...		      "phone_number": "+15551234567890"}]
+    ... }
+    AND result has key "id" containing a string, saved as $ID2
+    AND values "$ID1" and "$ID2" are identical
+    AND result has key "revision" containing a string, saved as $REV2
+    AND values "$REV1" and "$REV2" are identical
+
+Update the record.
+
+    WHEN client PUTs /orgs/$ID1 with
+    ... {
+    ...     "revision": "$REV1",
+    ...     "names": ["Tilaajavastuu"],
+    ...     "is_luotettava_kumppani_member": false
+    ... }
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "names": ["Tilaajavastuu"],
+    ...     "is_luotettava_kumppani_member": false
+    ... }
+    AND result has key "id" containing a string, saved as $ID3
+    AND values "$ID1" and "$ID3" are identical
+    AND result has key "revision" containing a string, saved as $REV3
+
+Delete the record.
+
+    WHEN client DELETEs /orgs/$ID1
+    THEN HTTP status code is 200
+
+    WHEN client GETs /orgs/$ID1
+    THEN HTTP status code is 404
+
+Attempt to send invalid data.
+
+    WHEN client POSTs /orgs with {"nonexistent_field": "data"}
+    THEN HTTP status code is 400
