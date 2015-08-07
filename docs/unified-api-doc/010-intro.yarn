@@ -1,0 +1,68 @@
+Introduction
+============
+
+This document describes the application programming interface (API) of
+technical services backend provided by Suomen Tilaajavastuu Oy.
+Technical services here mean the computer-based services produced by
+the company, and used either directly by users via a user interface,
+or programmatically by other computing systems. All of the services
+are provided by the same backend system.
+
+The goal is to document the following:
+
+* What technical services exist.
+* Functional and non-functional requirements.
+* The programmatic interface to the services.
+
+There are several intended uses for this document:
+
+* Documentation for **partners of Suomen Tilaajavastuu Oy**, who need
+  programmatic access to the services.
+
+* Documentation for **developers at Suomen Tilaajavastuu Oy**, who need
+  to understand the implementation of the services.
+
+* An **automated acceptance test** to specify what functionality is
+  required from the services being produced.
+
+* A **vehicle for communication** between stakeholders about what the
+  services do, and for planning changes.
+
+The intended audiences are:
+
+* **Product management** at Suomen Tilaajavastuu Oy, and partners.
+* **Product development** at Suomen Tilaajavastuu Oy, and partners.
+
+All readers are expected to have a basic understanding of computing
+technology, but are not expected to understand software development.
+Some sections of the document are meant primarily for developers and
+are marked as such.
+
+Status and scope of this document version
+-----------------------------------------
+
+This document version (March, 2015) covers a version of the API that
+has not yet been implemented. This version is being circulated for
+feedback before implementation starts. The scope of this version is to
+cover the existing public interfaces, plus some basic functionality
+for managing organisations, people, and their aspects and
+relationships. Identity management, authentication, and authorisation
+are all out of scope for this version of the document.
+
+Use as an acceptance test suite
+-------------------------------
+
+If you're not a developer, you can skip this section.
+
+This document is also an automated test suite for the API, using a
+testing tool called Yarn. The document source code is given to Yarn,
+which runs the test code embedded in the document. Yarn is available
+from <http://liw.fi/cmdtest/> and is packaged for Debian.
+
+The tests in this document are written to be run against an existing,
+running instance of the API. The test suite itself **does not start
+the API instance**. The location of the API instance to test is given
+to the Yarn tool with the `--env` option:
+
+    EXAMPLE
+    yarn --env API_URL=http://localhost:12765/ *.yarn

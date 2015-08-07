@@ -1,0 +1,127 @@
+`/reports`
+----------------
+
+This resource manages all the reports known to the service.
+
+Synopsis:
+
+* `GET /reports` --- get a list of ids of all reports
+* `POST /reports` --- create a new report
+* `GET /reports/<id>` --- get information about a specific report
+* `GET /reports/<id>/pdf` --- get the generated report as PDF
+* `PUT /reports/<id>/pdf` --- save a PDF report
+* `DELETE /reports/<id>` --- remove a report
+
+Errors:
+
+* There are no errors that are specific to this resource.
+
+The `GET /report/<id>` request gives metadata about the report:
+
+    EXAMPLE
+    {
+	"type": "report",
+	"id": "123",
+	"org": "1234",
+	"report_type": "tilaajavastuu.fi_ci",
+	"generated_timestamp": "2015-05-31T14:00:00+0200",
+	"tilaajavastuu_status": "OK"
+    }
+
+Fields in the result:
+
+* `org` --- the id of the organisation the report is about
+* `report_type` --- the type of the report; one of:
+    - `tilaajavastuu.fi_ci` --- the Finnish "tilaajavastuu" report, company
+      information
+* `generated_timestamp` --- timestamp when the generation of the report
+  started
+
+If `report_type` is `tilaajavastuu.fi_ci` then following fields are present:
+
+* `tilaajavastuu_status` --- status of the report according to Finnish
+  act on the contractor's obligations and liability, one of:
+  - `Seis` --- the company of the report has not fulfilled its contractor's
+  obligations and is not allowed to do business
+  - `Selvitä` --- the company of the report has not fulfilled its contractor's
+  obligations and should fulfill them before any agreements are made with
+  them
+  - `Tietoja odotetaan` --- the report is missing some information from
+  the company it is related to
+  - `Huomioi` --- the company of the report has some kind of exceptional rule
+  that should be verified by other means before making any agreements with them
+  - `OK` --- the company of the report has fulfilled all of its contractor's
+  obligations
+
+### Tests
+
+We create a new report, search for it, and delete it.
+
+    SCENARIO manage a report
+
+Client has needed access rights for reports resource.
+
+    GIVEN client has access to scopes
+    ... "uapi_reports_post uapi_reports_get uapi_reports_id_get
+    ...  uapi_reports_id_pdf_put uapi_reports_id_pdf_get
+    ...  uapi_reports_id_delete"
+
+Create a new report.
+
+    WHEN client POSTs /reports with
+    ... {
+    ... "org": "1234",
+    ... "report_type": "tilaajavastuu.fi_ci",
+    ... "generated_timestamp": "2015-05-31T14:00:00+0200",
+    ... "tilaajavastuu_status": "OK"
+    ... }
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ... "org": "1234",
+    ... "report_type": "tilaajavastuu.fi_ci",
+    ... "generated_timestamp": "2015-05-31T14:00:00+0200",
+    ... "tilaajavastuu_status": "OK"
+    ... }
+    AND result has key "id" containing a string, saved as $ID1
+    AND result has key "revision" containing a string, saved as $REV1
+
+Check that the record is there.
+
+    WHEN client GETs /reports
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing { "id": "$ID1" }
+
+    WHEN client GETs /reports/$ID1
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ... "org": "1234",
+    ... "report_type": "tilaajavastuu.fi_ci",
+    ... "generated_timestamp": "2015-05-31T14:00:00+0200",
+    ... "tilaajavastuu_status": "OK"
+    ... }
+    AND result has key "id" containing a string, saved as $ID1
+    AND result has key "revision" containing a string, saved as $REV1
+
+Save PDF report.
+
+    GIVEN file report_test.pdf containing "This pretends to be a pdf"
+
+    WHEN client PUTs file report_test.pdf with content type application/pdf
+    ...  and revision $REV1 to /reports/$ID1/pdf
+    THEN HTTP status code is 200
+
+    WHEN client GETs /reports/$ID1/pdf
+    THEN HTTP status code is 200
+    AND HTTP header Content-Type is application/pdf
+    AND HTTP header Revision exists
+    AND result body matches file report_test.pdf
+
+Delete the record.
+
+    WHEN client DELETEs /reports/$ID1
+    THEN HTTP status code is 200
+
+    WHEN client GETs /reports/$ID1
+    THEN HTTP status code is 404

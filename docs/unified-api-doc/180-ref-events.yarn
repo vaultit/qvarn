@@ -1,0 +1,138 @@
+`/events`
+----------------
+
+This resource manages various kinds of timestamped events.
+
+Synopsis:
+
+* `GET /events` --- get a list of ids of all events
+* `GET /events/<id>` --- get the information about a specific event
+* `POST /events` --- add a new event
+* `DELETE /events/<id>` --- remove an event
+
+Errors:
+
+* There are no errors that are specific to this resource.
+
+Example result:
+
+    EXAMPLE
+    {
+        "type": "event",
+	"id": "123456",
+	"event_type": "card_event",
+	"generated_timestamp": "2015-06-24T23:00:00+0200",
+	"person": "2345",
+	"org": "1234",
+	"project": "12121212",
+	"card": "56565656",
+	"card_event_type": "out"
+    }
+
+Fields in the result:
+
+* `event_type` --- the type of the event, one of:
+    * `card_event` --- clocking of an identification card with a card
+      reading device
+    * `presence_event` --- indicator of a person's presence on a site
+      without exact timestamp information
+* `generated_timestamp` --- timestamp of the event
+* `person` --- identifier of the person attached to this event, if any
+* `org` --- identifier of the organisation attached to this event, if any
+* `project` --- identifier of the project attached to this event, if any
+
+If `event_type` is `card_event` following fields are also present in the
+result:
+
+* `card` ---  identifier of the card used in logging this event
+* `card_event_type` --- type of the clocking event, one of:
+    * `in` --- check-in to a project
+    * `out` --- check-out from a project
+
+
+### Tests
+
+We create a new event, and delete it.
+
+    SCENARIO manage an event
+
+Client has needed access rights for events resource.
+
+    GIVEN client has access to scopes
+    ... "uapi_events_post uapi_events_get uapi_events_id_get
+    ...  uapi_events_id_delete"
+
+Try to create a new event, but with invalid data. These must all fail.
+First, an empty record:
+
+    WHEN client POSTs /events with {}
+    THEN HTTP status code is 400
+
+Then, attempt with non-existent fields:
+
+    WHEN client POSTs /events with {"non-existent": []}
+    THEN HTTP status code is 400
+
+The `generated_timestamp` field is mandatory. It can't be empty.
+
+    WHEN client POSTs /events with {"event_type": "card_event"}
+    THEN HTTP status code is 400
+
+Another mandatory field is `event_type`. It must be specified, too.
+
+    WHEN client POSTs /events with
+    ... {
+    ...     "generated_timestamp": "2015-04-01T12:00:00+0200"
+    ... }
+    THEN HTTP status code is 400
+
+Create a new event with all the mandatory fields filled.
+
+    WHEN client POSTs /events with
+    ... {
+    ...     "event_type": "presence_event",
+    ...	    "generated_timestamp": "2015-06-24",
+    ...	    "person": "2345",
+    ...	    "org": "1234",
+    ...	    "project": "12121212",
+    ...	    "card": "56565656"
+    ... }
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "event_type": "presence_event",
+    ...	    "generated_timestamp": "2015-06-24",
+    ...	    "person": "2345",
+    ...	    "org": "1234",
+    ...	    "project": "12121212",
+    ...	    "card": "56565656"
+    ... }
+    AND result has key "id" containing a string, saved as $ID1
+
+Check that the record is there.
+
+    WHEN client GETs /events
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing { "id": "$ID1" }
+
+    WHEN client GETs /events/$ID1
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "event_type": "presence_event",
+    ...	    "generated_timestamp": "2015-06-24",
+    ...	    "person": "2345",
+    ...	    "org": "1234",
+    ...	    "project": "12121212",
+    ...	    "card": "56565656"
+    ... }
+    AND result has key "id" containing a string, saved as $ID2
+    AND values "$ID1" and "$ID2" are identical
+
+Delete the record.
+
+    WHEN client DELETEs /events/$ID1
+    THEN HTTP status code is 200
+
+    WHEN client GETs /events/$ID1
+    THEN HTTP status code is 404

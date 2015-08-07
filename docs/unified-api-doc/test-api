@@ -1,0 +1,20 @@
+#!/bin/bash
+#
+# Test the unified API.
+# Argument: URL of the API
+
+set -eu
+
+API_URL="$1"
+shift
+TEMP="$(mktemp)"
+
+function clean
+{
+  rm -f "$TEMP"
+}
+trap clean EXIT
+
+# Run yarn.
+sed '/^    *EXAMPLE/,/^ *$/d' *.yarn > "$TEMP"
+yarn -s yarn.sh --env "API_URL=$API_URL" "$TEMP" "$@" -v

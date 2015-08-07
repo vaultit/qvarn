@@ -1,0 +1,43 @@
+`/competence_registries`
+------------------------
+
+This resource stores information about external registries with data
+about competences: which persons have which competences. This is used
+to validate that a person has the competence they are claimed to have.
+
+Synopsis:
+
+* `GET /competence_registries` --- get a list of ids of all competence registries
+* `POST /competence_registries` --- add a new competence registry
+* `GET /competence_registries/<id>` --- get the information about a specific
+  competence registry
+* `PUT /competence_registries/<id>` --- update the information about a specific
+  competence registry
+* `DELETE /competence_registries/<id>` --- remove a competence registry
+
+Errors:
+
+* There are no errors that are specific to this resource.
+
+Example result for a competence certification:
+
+    EXAMPLE
+    {
+        "type": "competence_registry",
+        "id": "123",
+        "names": ["S.P.E.C.T.R.E. enemies list"],
+        "validation_interval": 86400,
+        "competence_type_id": "456"
+    }
+
+Fields in the result:
+
+* `names` --- list of names for the registry
+* `validation_interval` --- interval between validations of
+  competencies against this registry, in seconds
+* `competence_type_id` --- id of the type of competencies in this
+  registry (see [competences](#resource-competences))
+
+### Tests
+
+Add tests.

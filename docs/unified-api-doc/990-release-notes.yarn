@@ -1,0 +1,78 @@
+APPENDIX: Release Notes
+=======================
+
+This appendix contains a summary of relevant changes since the
+previous release. Minor changes, such as corrections to spelling, are
+not listed here.
+
+Version 0.3, released 2015-06-04
+--------------------------------
+
+* Things that are planned, but not implemented, have been moved to an
+  appendix. Wild ideas that are not currently needed have been
+  dropped. Both will be added back as they get implemented. This
+  should clarify what parts of the API can and can't be used for each
+  release.
+
+* Competence related resources have been tweaked to better match
+  applications being written.
+
+* API tests have been improved.
+
+* JSON field names now use underscores instead of dashes. For example,
+  `gov-org-ids` is now `gov_org_ids`. This makes it easier to handle
+  the resouces in Javascript.
+
+* `org` resources now have a `country` field.
+
+Version 0.4, released 2015-07-01
+--------------------------------
+
+* The `contract` resource has been added, supporting employment
+  contracts and inductions to worksites (Finnish _perehdytys_), which
+  is modelled as a contract.
+
+* An `event` resource type has been added. It is meant to be used for
+  various time-stamped events, such as gate access (Finnish
+  _leimatieto_).
+
+* A `report` resource types has been added, for storing reports of
+  various kinds.
+
+* We've added the ability to have **binary file attachments** for
+  resources. For example, a scanned PDF of a signed contract may be
+  attached to a `contract` resource.
+
+* **Lists of resources** returned by various requests, such as `GET
+  /foos` or a search, all now use the same response format. This is an
+  **incompatible** change, sorry, but there's no external users of the
+  API yet, so it's still OK to make such changes.
+
+* **Searches** have been added. You can search for one type of
+  resource at a time, for any field in the resource.
+
+* **Change notifications** for resources have been added and are ready
+  to be used.
+
+* **Resource revisions** and update conflicts have been implemented.
+  When updating a resource you now have to specify what you think is
+  the current revision, and if the API backend disagrees, the update
+  fails. The HTTP status code for update conflicts has been corrected
+  to be 409, instead of 408, as the document previously suggested.
+
+* The separate **mockup implementation** of the API (`mockup.py`) has
+  been dropped, in favour of automated provisioning of API instances
+  of the production implementation.
+
+Version 0.5, released 2015-07-23
+--------------------------------
+
+* The `card` resource type has moved from ideas to being real. As part
+  of that, we dropped some complications, which are not needed at this
+  time. (Tell us when you need them, and they'll be added back.)
+
+* The `project` resource type has moved form ideas to being real.
+
+* Preliminary specification for authentication and authorisation has
+  been added to the API. These are based on OAuth 2.0 and OpenID
+  Connect, using JSON Web Tokens.

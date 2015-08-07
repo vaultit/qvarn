@@ -1,0 +1,29 @@
+Services overview
+=================
+
+The technical services covered by this document are roughly classified
+as "tilaajavastuu.fi" and "veronumero.fi". These are two front ends to
+a shared backend. The services provide tools for the construction
+industry to function in a transparent manner, to prevent fraud, and to
+follow rules and regulations imposed by law or contracts. As an
+example, the Finnish law requires a buyer of construction work to
+verify that the contractor, and their whole supply chain of
+subcontractors, pay their taxes. The services make it easy to check
+this frequently.
+
+From the point of view of the technical services, this means analysing
+and summarising, and producing reports and alerts based on data
+gathered either by having users input it or by retrieving it from
+various external sources. User have a web based user interface to
+manage their data, to access data and reports, and to submit reports
+to the tax office.
+
+At a very high level, the system looks like in the figure below. Both
+main services are combined into one in the figure.
+
+![External connections](external-connections.eps)
+
+Detailed explanations of the services from a user point of view is
+covered in documentation aimed at users of the services. This document
+documents the application programming interface, to avoid repeating
+and duplicating user documentation.

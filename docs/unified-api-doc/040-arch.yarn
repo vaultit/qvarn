@@ -1,0 +1,156 @@
+Architecture overview
+=====================
+
+![Services architecture](services-arch.eps)
+
+This chapter describes the high level architecture of the
+Tilaajavastuu services and the way various applications fit into the
+architecture. It is intentionally very high level; components are
+documented separately, as needed.
+
+The main components are:
+
+* Applications of various kinds. For example, browser-based web
+  applications, mobile apps, and non-interactive automated systems
+  such as gate entry systems, and accounting systems.
+
+* A data storage backend providing a unified resource API. This
+  backend only stores data, and notifies applications of changes to
+  the systems. Any processing of the data happens elsewhere.
+
+* Data collector applications, which retrieve data from online
+  services and feed it to the storage backend. These are meant to be
+  simple applications, one per data source. They only retrieve the
+  data, and do not process it.
+
+* Data analysis applications, which are notified by the storage
+  backend of interesting changes to data, and produce reports or
+  otherwise refine the data to be more useful.
+
+* Application backends, for those applications which need more
+  business logic than fits into the application frontend.
+
+* An authentication and authorisation system for ensuring only the
+  right users and applications get access and only have access to the
+  right data and operations.
+
+This document describes the unified resource API for data storage. It
+does not describe the applications using the API; those are described
+in the documentation for each application, as needed. It also doesn't
+describe the implementation of the backend, as that is irrelevant to
+the API clients.
+
+
+Storage backend and its database
+--------------------------------
+
+The storage backend receives data via its unified resource API, and
+stores it some form of persistent storage. The backend does not itself
+process the data, but notifies interested parties whenever data
+changes.
+
+The API is an HTTP RESTful API, using JSON to encode data between
+backend and API client. The backend does not store state related to
+the user interface session in the backend.
+
+The backend also does not serve any HTML, CSS, Javascript, or any
+other data that forms part of the user interface implementation.
+
+The backend uses a database, or several databases, or other forms of
+persistent storage, to store the data. There is no access to this
+storage except via the API, for any applications. Only the backend
+accesses the storage directly. Since the API is the only interface,
+the form of storage is outside the scope of this document and is an
+internal implementation detail of the backend.
+
+
+Automatic systems and non-browser applications
+----------------------------------------------
+
+The backend API is used by various types applications. For example, a
+card reader uses an API call to report the log entry to the backend. A
+mobile application on a smartphone or tablet will use the API to
+retrieve any information the user is interested in, and renders that
+in the appropriate way.
+
+For all applications, the backend API provides a de-coupling point.
+Applications use, and rely on, the API, and all code and data specific
+to a user interface is only in the application. The API only provides
+structured data to the user interface. All the logic for how the user
+interface works is only in the application. This allows applications
+to be changed, and deployed, separately from the backend, and removes
+the coupling between user interface logic and business logic, making
+it easier to develop both the application and the backend. This
+applies to applications developed by Suomen Tilaajavastuu Oy as well
+as those developed by partners.
+
+Some applications may need more backend processing logic than the
+storage backend provides. Such applications may have their own,
+application specific backend, which mediates between the application
+frontend and the storage backend.
+
+
+Web applications
+----------------
+
+Web applications are described separately, as they need to load static
+files used by the user interface, such as HTML, Javascript, CSS,
+images, etc. These are served as static files over HTTPS, using a
+different URL than the API uses. This need for loading resources from
+a server for the UI itself makes browser based applications somewhat
+different from other applications. However, when the application has
+been loaded, it communicates with the backend with the exact same API
+as every other application.
+
+By loading a different set of files, it becomes easy to vary the user
+interface by user: a construction company may need a different user
+interface than a hospital. In addition, it becomes easy to serve
+different versions of the same user interface, for A/B testing or
+gradual rollout.
+
+For example, users will normally go to `https://ui.tilaajavastuu.fi`
+to use the web application. This gives them a login screen, and after
+they log in, the rest of the web application is loaded. At this point,
+the rest of the application will be loaded from
+`https://ui.tilaajavastuu.fi/app/` normally, but during testing, some
+users will get the application from
+`https://ui.tilaajavastuu.fi/app-beta` instead, so they test the beta
+version instead of the latest stable release version.
+
+
+Data collection applications
+----------------------------
+
+Another special class of application is one that collects data from
+external sources. There are many such sources, each with their own
+curiosities and complications as far as how the data is retrieved and
+in what format it is.
+
+These applications are outside the storage backend, and run separately,
+injecting the data into the backend via its API. This is so that they
+can be developed, and deployed, separately from the backend, thanks to
+the decoupling provided by the API. If a data source changes
+protocols, for example, it is not necessary to deploy a whole new
+version of the whole backend.
+
+There is also no technical reason why data collection applications
+should be developed by Suomen Tilaajavastuu Oy only.
+
+Each data source will have its own application. This will keep each
+application as simple as possible. If there are similar data sources,
+it may be possible to write a parameterisable application, to reduce
+code duplication, as long as the application remains simple. This kind
+of application otherwise has a tendency to grow in complexity,
+resulting in code that is fragile and difficult to maintain.
+
+
+Data analysis applications
+--------------------------
+
+Data gathered into the storage backend can be refined. For example,
+various kinds of reports may be produced to distill a number of data
+items into a brief summary. This job is done by data analysis
+applications. These appliations register their interest in specific
+items, or types of items, to the storage backend, and the storage
+backend notifies them whenever anything changes. The analysis
+application then produces a new report as needed.

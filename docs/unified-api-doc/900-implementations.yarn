@@ -1,0 +1,218 @@
+APPENDIX: Implementations for scenario steps
+============================================
+
+This chapter shows the actual implementations for each scenario step.
+If you're not a developer (of this test suite), you can skip this
+chapter entirely.
+
+
+Saved values
+------------
+
+For some scenarios, we need to capture some part of a response, such
+as the identifier for an entity, and then use that in, say, a future
+request. We do this by the following mechanism.
+
+* A value can be saved to a named value. The scenario step specifies
+  the name.
+* The relevant steps expand references to saved values using the
+  `$FOO` syntax.
+
+Each step that supports this, mentions it explicitly.
+
+Saved values can also be compared explicitly.
+
+    IMPLEMENTS THEN values "\$([^"]+)" and "\$([^"]+)" are identical
+    test "$(expand_values "\$$MATCH_1")" = "$(expand_values "\$$MATCH_2")"
+
+Authorization scopes
+--------------------
+
+Scopes are saved to a temp file that the mock authentication server reads.
+
+    IMPLEMENTS GIVEN client has access to scopes? "(.+)"
+    echo "$MATCH_1" > "$DATADIR/scopes"
+
+Files
+-----
+
+Creates a file with text content.
+
+    IMPLEMENTS GIVEN file (\S+) containing "(.+)"
+    echo "$MATCH_2" > "$DATADIR/$MATCH_1"
+
+Requests
+--------
+
+We do various kinds of requests. After each request, the
+headers (including the HTTP status line), and body are stored in
+`$DATADIR/curl.headers` and `$DATADIR/curl.out`, respectively. These
+can be examined by other scenario steps later on.
+
+Note that a request step will not fail even if the HTTP status code is
+an error code. A step will only fail if curl itself returns a non-zero
+exit code.
+
+For each requested, saved values are expanded in the path of the
+request and its body.
+
+GET something. No body.
+
+    IMPLEMENTS WHEN client GETs (.+)
+    curl -D "$DATADIR/curl.headers" \
+        -H "Authorization: Bearer $("$SRCDIR/createtoken" < "$DATADIR/scopes")" \
+        "$API_URL$(expand_values "$MATCH_1")" \
+        > "$DATADIR/curl.out" 2> "$DATADIR/curl.err"
+
+POST or PUT with a JSON body.
+
+    IMPLEMENTS WHEN client (POST|PUT)s (\S+) with (.*)
+    curl -D "$DATADIR/curl.headers" \
+        -X "$MATCH_1" \
+        -H "Authorization: Bearer $("$SRCDIR/createtoken" < "$DATADIR/scopes")" \
+        -H 'Content-Type: application/json' \
+        -d "$(expand_values "$MATCH_3")" \
+        "$API_URL$(expand_values "$MATCH_2")" \
+        > "$DATADIR/curl.out" 2> "$DATADIR/curl.err"
+
+DELETE something. No body.
+
+    IMPLEMENTS WHEN client DELETEs (.+)
+    curl -X DELETE -D "$DATADIR/curl.headers" \
+        -H "Authorization: Bearer $("$SRCDIR/createtoken" < "$DATADIR/scopes")" \
+        "$API_URL$(expand_values "$MATCH_1")" \
+        > "$DATADIR/curl.out" 2> "$DATADIR/curl.err"
+
+PUT a file.
+
+    IMPLEMENTS WHEN client PUTs file (\S+) with content type (\S+) and revision (\S+) to (\S+)
+    curl -D "$DATADIR/curl.headers" \
+        -X PUT \
+        -H "Authorization: Bearer $("$SRCDIR/createtoken" < "$DATADIR/scopes")" \
+        -H "Content-Type: $(expand_values "$MATCH_2")" \
+        -H "Revision: $(expand_values "$MATCH_3")" \
+        --data-binary "@$DATADIR/$(expand_values "$MATCH_1")" \
+        "$API_URL$(expand_values "$MATCH_4")" \
+        > "$DATADIR/curl.out" 2> "$DATADIR/curl.err"
+
+Puts a file without content.
+
+    IMPLEMENTS WHEN client PUTs no file with content type (\S+) and revision (\S+) to (\S+)
+    curl -D "$DATADIR/curl.headers" \
+        -X PUT \
+        -H "Authorization: Bearer $("$SRCDIR/createtoken" < "$DATADIR/scopes")" \
+        -H "Content-Type: $(expand_values "$MATCH_1")" \
+        -H "Revision: $(expand_values "$MATCH_2")" \
+        "$API_URL$(expand_values "$MATCH_3")" \
+        > "$DATADIR/curl.out" 2> "$DATADIR/curl.err"
+
+Response examination
+--------------------
+
+These steps examine the response to the latest HTTP request.
+
+Check for a specific HTTP status code.
+
+    IMPLEMENTS THEN HTTP status code is (\d+)
+    status="$(awk 'NR == 1 { print $2 }' "$DATADIR/curl.headers")"
+    if [ "$status" != "$MATCH_1" ]
+    then
+        echo "Expected status $MATCH_1, but got $status" 1>&2
+        cat 1>&2 "$DATADIR/curl.headers" "$DATADIR/curl.out"
+        exit 1
+    fi
+
+Check for a specific header and its value.
+
+    IMPLEMENTS THEN HTTP header (\S+) is (\S+)
+    value="$(cat "$DATADIR/curl.headers" | grep "$MATCH_1" | cut -d' ' -f2 | tr -d '\r\n')"
+    if [ "$value" != "$MATCH_2" ]
+    then
+        echo "Expected header $MATCH_1 to be $MATCH_2, but got $value" 1>&2
+        cat 1>&2 "$DATADIR/curl.headers"
+        exit 1
+    fi
+
+Check if a specific header exists in the response headers.
+
+    IMPLEMENTS THEN HTTP header (\S+) exists
+    cat "$DATADIR/curl.headers" | grep "^$MATCH_1: "
+
+If the response had a body, we can check if the body matches file contents.
+
+    IMPLEMENTS THEN result body matches file (\S+)
+    cmp "$DATADIR/curl.out" "$DATADIR/$MATCH_1"
+
+In most cases we interpret the response body as JSON hashmap (Python
+dict), and examine specific keys and their values.
+
+Look for a specific a key, check that it's value is a dictionary, and
+check that the value has another key. Ignore the value of the subkey.
+
+    IMPLEMENTS THEN result has key "([^"]+)" with subkey "([^"]+)"
+    # We interpret curl.out as a JSON dict. This is easiest done in
+    # Python. Don't want to parse JSON in shell.
+
+    python -c '
+    import json, sys, os
+    obj = json.load(sys.stdin)
+    mainkey = os.environ["MATCH_1"]
+    subkey = os.environ["MATCH_2"]
+    assert type(obj) is dict, "expected a dictionary"
+    assert mainkey in obj, "expected dictionary to have key %s" % mainkey
+    assert type(obj[mainkey]) is dict, "expected value to be a dictionary"
+    assert subkey in obj[mainkey], "expected value to have key %s" % subkey
+    ' < "$DATADIR/curl.out"
+
+Check for a specific key in a dict, and save the value.
+
+    IMPLEMENTS THEN result has key "([^"]+)" containing a string, saved as \$(\S+)
+    # Run jsonextract separately so that if it fails, the whole thing
+    # fails.
+    "$SRCDIR/jsonextract" "$MATCH_1" < "$DATADIR/curl.out" \
+        > "$DATADIR/value"
+    save_value "$MATCH_2" "$(cat "$DATADIR/value")"
+
+Extract the resource id of a list of resources returned by a query.
+
+    IMPLEMENTS THEN result lists resources, id of index ([0-9]+) saved as \$(\S+)
+    echo ----
+    cat "$DATADIR/curl.out"
+    echo ----
+    python -c '
+    import json, sys, os
+    obj = json.load(sys.stdin)
+    index = int(os.environ["MATCH_1"])
+    assert type(obj) is dict, "expected a dictionary"
+    assert "resources" in obj, "expected dictionary to have key resources"
+    sys.stdout.write(obj["resources"][index]["id"])
+    ' < "$DATADIR/curl.out" > "$DATADIR/saved.tmp"
+
+    save_value "$MATCH_2" "$(cat "$DATADIR/saved.tmp")"
+
+Match the whole JSON response against a JSON value. A value matches
+according to the following rules:
+
+* if the pattern is a dict, the value must be a dict, and all the
+  keys in the pattern must exist in the value and have matching values
+* if the pattern is a list, the value must be a list and have the
+  same values, in the same order
+* if the pattern is a string, the value must be an identical string
+
+Thus `{ "names": ["foo", "bar"] }` as a pattern will match the value
+`{ "id": "123", "names": ["foo", "bar"] }`.
+
+Any references to saved values are expanded in the pattern.
+
+    IMPLEMENTS THEN result matches (.*)
+    "$SRCDIR/jsonmatch" whole \
+        "$(expand_values "$MATCH_1")" < "$DATADIR/curl.out"
+
+Sometimes we want to check if a result has a list which contains a
+specific value, rather than a specific set of values. This is true,
+for example, for requests of the type of `GET /foos`, when run against
+a system in production.
+
+    IMPLEMENTS THEN result has key "([^"]*)", a list containing (.*)
+    "$SRCDIR/jsonmatch" list-item "$(expand_values "$MATCH_2")" \
+        "$MATCH_1" < "$DATADIR/curl.out"
