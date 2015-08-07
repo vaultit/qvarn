@@ -975,6 +975,7 @@ Client has needed access rights for orgs resource.
     ...     "listen_on": []
     ... }
     AND result has key "id" containing a string, saved as $LISTENID1
+    AND HTTP Location header is API_URL/orgs/listeners/$LISTENID1
 
     WHEN client POSTs /orgs/listeners with
     ... {
@@ -988,6 +989,7 @@ Client has needed access rights for orgs resource.
     ...     "listen_on": []
     ... }
     AND result has key "id" containing a string, saved as $LISTENID2
+    AND HTTP Location header is API_URL/orgs/listeners/$LISTENID2
     AND result has key "revision" containing a string, saved as $REV1
 
     WHEN client GETs /orgs/listeners/$LISTENID1
