@@ -2,18 +2,21 @@
 #
 # Reads scopes from STDIN, gets JWT from gluu and writes it to STDOUT
 
-import sys, requests, base64, time
+import sys, requests, base64
 
 scopes = sys.stdin.read().strip()
-token_endpoint_url = u'https://gluu.tilaajavastuu.io/oxauth/seam/resource/restv1/oxauth/token'
+token_endpoint_url = u'https://gluu.tilaajavastuu.io/oxauth/seam/resource/' + \
+                     u'restv1/oxauth/token'
 client_id = u'@!1E2D.4C48.2272.F616!0001!CC3B.680A!0008!5836.F8A1'
 client_secret = u'secret'
+
+basic_auth_token = base64.standard_b64encode(client_id + u':' + client_secret)
 
 response = requests.post(token_endpoint_url, {
     u'grant_type': u'client_credentials',
     u'scope': scopes
 }, headers={
-    u'Authorization': u'Basic ' + base64.standard_b64encode(client_id + u':' + client_secret)
+    u'Authorization': u'Basic ' + basic_auth_token
 }, verify=False)
 
 if not response.ok:
