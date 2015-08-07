@@ -6,6 +6,7 @@
 
 
 import jwt
+import datetime
 
 import unifiedapi
 
@@ -51,7 +52,10 @@ class AuthorizationValidator(object):
                     # Do not validate audience (we don't know the client_id)
                     u'verify_aud': False
                 },
-                issuer=issuer)
+                issuer=issuer,
+                algorithms=[u'RS512'],
+                # Leeway for time checks (issued at, expiration)
+                leeway=datetime.timedelta(seconds=60))
             # Additionally always require sub field (subject)
             if u'sub' not in payload:
                 raise InvalidAccessTokenError()
