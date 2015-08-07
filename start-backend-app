@@ -18,6 +18,6 @@ app="$1"
 exec "/usr/lib/unified-api-backend/$1" \
     --database "/var/lib/unified-api-backend/storage/$1.db" \
     --log "/var/log/unified-api-backend/$1.log" \
-    --token-validation-key "secret" \
+    --token-validation-key "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQKgEMEx+dCu84kdiVHKMkdaqVcJWIlHtX3cKCGz3xZmoqJ7z7arX8O5z7qz3UgEM3Cgf5gOa8l2Ee1BIFWW+vb5RIjQwStYn/ckOq0kdiQ8NOusl0jIR59g8GYWX7/mrRLtupCMBhxE05TRzPldfGuSQQAV/4vgN3flqbKpMP0g3n3QyWa3JyHqWItq1YC5OPIVDu/7sCZL4tMOsIkWsBkbW9OC4hEcwjKIDQVXO2UoB3kvMDqgvV/TEcNeuP6xrIAI4s1QTszKsZ4ttL8TWxXSqaEHqm5w1aMP4f8wLTCTILG11YhtMdu+ANkGcFSA/QgcY+32Ln8vZ1yoac71r7" \
     --token-issuer "https://gluu.tilaajavastuu.io" \
     >> "/var/log/unified-api-backend/$1.start.log" 2>&1
