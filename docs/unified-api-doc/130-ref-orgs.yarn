@@ -103,7 +103,7 @@ Create a new organisation.
     ...		      "phone_number": "+15551234567890"}],
     ... "is_luotettava_kumppani_member": true
     ... }
-    THEN HTTP status code is 200
+    THEN HTTP status code is 201
     AND result matches
     ... { "names": ["Suomen Tilaajavastuu Oy"],
     ...   "country": "FI",
@@ -122,6 +122,7 @@ Create a new organisation.
     ... "is_luotettava_kumppani_member": true
     ... }
     AND result has key "id" containing a string, saved as $ID1
+    AND HTTP Location header is API_URL/orgs/$ID1
     AND result has key "revision" containing a string, saved as $REV1
 
 Check that the record is there.

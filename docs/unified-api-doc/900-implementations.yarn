@@ -133,6 +133,17 @@ Check for a specific header and its value.
         exit 1
     fi
 
+Check for a location header value.
+
+    IMPLEMENTS THEN HTTP Location header is API_URL(\S+)
+    value="$(cat "$DATADIR/curl.headers" | grep "Location" | cut -d' ' -f2 | tr -d '\r\n')"
+    if [ "$value" != "$API_URL$(expand_values "$MATCH_1")" ]
+    then
+        echo "Expected location header to be $API_URL$(expand_values "$MATCH_1"), but got $value" 1>&2
+        cat 1>&2 "$DATADIR/curl.headers"
+        exit 1
+    fi
+
 Check if a specific header exists in the response headers.
 
     IMPLEMENTS THEN HTTP header (\S+) exists

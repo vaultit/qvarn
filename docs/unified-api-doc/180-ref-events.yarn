@@ -97,7 +97,7 @@ Create a new event with all the mandatory fields filled.
     ...	    "project": "12121212",
     ...	    "card": "56565656"
     ... }
-    THEN HTTP status code is 200
+    THEN HTTP status code is 201
     AND result matches
     ... {
     ...     "event_type": "presence_event",
@@ -108,6 +108,7 @@ Create a new event with all the mandatory fields filled.
     ...	    "card": "56565656"
     ... }
     AND result has key "id" containing a string, saved as $ID1
+    AND HTTP Location header is API_URL/events/$ID1
 
 Check that the record is there.
 

@@ -75,7 +75,7 @@ Create a new report.
     ... "generated_timestamp": "2015-05-31T14:00:00+0200",
     ... "tilaajavastuu_status": "OK"
     ... }
-    THEN HTTP status code is 200
+    THEN HTTP status code is 201
     AND result matches
     ... {
     ... "org": "1234",
@@ -84,6 +84,7 @@ Create a new report.
     ... "tilaajavastuu_status": "OK"
     ... }
     AND result has key "id" containing a string, saved as $ID1
+    AND HTTP Location header is API_URL/reports/$ID1
     AND result has key "revision" containing a string, saved as $REV1
 
 Check that the record is there.

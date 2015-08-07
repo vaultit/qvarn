@@ -170,7 +170,7 @@ Create a person.
     WHEN client POSTs /persons with
     ... {"names": [{"full_name": "James Bond"},
     ...            {"full_name": "Alfred E. Newman"}]}
-    THEN HTTP status code is 200
+    THEN HTTP status code is 201
     AND result has key "id" containing a string, saved as $ID1
     AND result has key "revision" containing a string, saved as $REV1
 
@@ -317,7 +317,7 @@ Create a person without using id and revision fields.
     WHEN client POSTs /persons with
     ... {"names": [{"full_name": "James Bond"},
     ...            {"full_name": "Alfred E. Newman"}]}
-    THEN HTTP status code is 200
+    THEN HTTP status code is 201
     AND result has key "id" containing a string, saved as $ID1
     AND result has key "revision" containing a string, saved as $REV1
 
@@ -761,7 +761,7 @@ Client has needed access rights for orgs resource.
     ... "country": "FI",
     ... "is_luotettava_kumppani_member": false
     ... }
-    THEN HTTP status code is 200
+    THEN HTTP status code is 201
     THEN result has key "id" containing a string, saved as $ID2
 
     WHEN client POSTs /orgs with
@@ -769,7 +769,7 @@ Client has needed access rights for orgs resource.
     ... "country": "FI",
     ... "is_luotettava_kumppani_member": true
     ... }
-    THEN HTTP status code is 200
+    THEN HTTP status code is 201
     THEN result has key "id" containing a string, saved as $ID3
 
 Perform search with a boolean value.

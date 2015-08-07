@@ -107,7 +107,7 @@ Create a new contract.
     ... ],
     ... "right_to_work_based_on": "eea_citizen"
     ... }
-    THEN HTTP status code is 200
+    THEN HTTP status code is 201
     AND result matches
     ... {
     ... "type": "contract",
@@ -127,6 +127,7 @@ Create a new contract.
     ... "right_to_work_based_on": "eea_citizen"
     ... }
     AND result has key "id" containing a string, saved as $ID1
+    AND HTTP Location header is API_URL/contracts/$ID1
     AND result has key "revision" containing a string, saved as $REV1
 
 Check that the record is there.

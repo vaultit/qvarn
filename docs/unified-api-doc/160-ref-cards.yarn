@@ -135,7 +135,7 @@ Create a new card.
     ...  "org": "4444",
     ...  "person": "7777"
     ... }
-    THEN HTTP status code is 200
+    THEN HTTP status code is 201
     AND result matches
     ... {"card_type": "VALTTI",
     ...  "card_ids": [
@@ -163,6 +163,7 @@ Create a new card.
     ...  "person": "7777"
     ... }
     AND result has key "id" containing a string, saved as $ID1
+    AND HTTP Location header is API_URL/cards/$ID1
     AND result has key "revision" containing a string, saved as $REV1
 
 Check that the record is there.
