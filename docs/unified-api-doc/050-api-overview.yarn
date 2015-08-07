@@ -980,7 +980,7 @@ Client has needed access rights for orgs resource.
     ... {
     ...     "notify_of_new": false
     ... }
-    THEN HTTP status code is 200
+    THEN HTTP status code is 201
     AND result matches
     ... {
     ...     "type": "listener",
