@@ -3,8 +3,6 @@
 # Copyright 2015 Suomen Tilaajavastuu Oy
 # All rights reserved.
 
-import hashlib
-
 
 class BackendException(Exception):
 
