@@ -37,9 +37,6 @@ class BackendException(Exception):
         super(BackendException, self).__init__(self)
         self.error = kwargs
         self.error.update({
-            u'error_code': self._get_error_code(),
+            u'error_code': self.__class__.__name__,
             u'message': self.msg
         })
-
-    def _get_error_code(self):
-        return hashlib.sha1(self.__class__.__name__).hexdigest()
