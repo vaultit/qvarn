@@ -31,7 +31,7 @@ Authorization scopes
 Scopes are saved to a temp file that the mock authentication server reads.
 
     IMPLEMENTS GIVEN client has access to scopes? "(.+)"
-    echo "$MATCH_1" > "$DATADIR/scopes"
+    echo "$MATCH_1" | "$SRCDIR/createtoken" > "$DATADIR/token"
 
 Files
 -----
@@ -60,7 +60,7 @@ GET something. No body.
 
     IMPLEMENTS WHEN client GETs (.+)
     curl -D "$DATADIR/curl.headers" \
-        -H "Authorization: Bearer $("$SRCDIR/createtoken" < "$DATADIR/scopes")" \
+        -H "Authorization: Bearer $(cat "$DATADIR/token")" \
         "$API_URL$(expand_values "$MATCH_1")" \
         > "$DATADIR/curl.out" 2> "$DATADIR/curl.err"
 
@@ -69,7 +69,7 @@ POST or PUT with a JSON body.
     IMPLEMENTS WHEN client (POST|PUT)s (\S+) with (.*)
     curl -D "$DATADIR/curl.headers" \
         -X "$MATCH_1" \
-        -H "Authorization: Bearer $("$SRCDIR/createtoken" < "$DATADIR/scopes")" \
+        -H "Authorization: Bearer $(cat "$DATADIR/token")" \
         -H 'Content-Type: application/json' \
         -d "$(expand_values "$MATCH_3")" \
         "$API_URL$(expand_values "$MATCH_2")" \
@@ -79,7 +79,7 @@ DELETE something. No body.
 
     IMPLEMENTS WHEN client DELETEs (.+)
     curl -X DELETE -D "$DATADIR/curl.headers" \
-        -H "Authorization: Bearer $("$SRCDIR/createtoken" < "$DATADIR/scopes")" \
+        -H "Authorization: Bearer $(cat "$DATADIR/token")" \
         "$API_URL$(expand_values "$MATCH_1")" \
         > "$DATADIR/curl.out" 2> "$DATADIR/curl.err"
 
@@ -88,7 +88,7 @@ PUT a file.
     IMPLEMENTS WHEN client PUTs file (\S+) with content type (\S+) and revision (\S+) to (\S+)
     curl -D "$DATADIR/curl.headers" \
         -X PUT \
-        -H "Authorization: Bearer $("$SRCDIR/createtoken" < "$DATADIR/scopes")" \
+        -H "Authorization: Bearer $(cat "$DATADIR/token")" \
         -H "Content-Type: $(expand_values "$MATCH_2")" \
         -H "Revision: $(expand_values "$MATCH_3")" \
         --data-binary "@$DATADIR/$(expand_values "$MATCH_1")" \
@@ -100,7 +100,7 @@ Puts a file without content.
     IMPLEMENTS WHEN client PUTs no file with content type (\S+) and revision (\S+) to (\S+)
     curl -D "$DATADIR/curl.headers" \
         -X PUT \
-        -H "Authorization: Bearer $("$SRCDIR/createtoken" < "$DATADIR/scopes")" \
+        -H "Authorization: Bearer $(cat "$DATADIR/token")" \
         -H "Content-Type: $(expand_values "$MATCH_1")" \
         -H "Revision: $(expand_values "$MATCH_2")" \
         "$API_URL$(expand_values "$MATCH_3")" \

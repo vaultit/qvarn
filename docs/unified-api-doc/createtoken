@@ -1,24 +1,25 @@
 #!/usr/bin/python2
 #
-# Reads scopes from STDIN, creates JWT with the scopes and writes encoded JWT
-# to STDOUT. Encoding secret is 'secret'.
+# Reads scopes from STDIN, gets JWT from gluu and writes it to STDOUT
 
-import jwt, sys, time
+import sys, requests, base64, time
 
-scopes = sys.stdin.read()
+scopes = sys.stdin.read().strip()
+token_endpoint_url = u'https://gluu.tilaajavastuu.io/oxauth/seam/resource/restv1/oxauth/token'
+client_id = u'@!1E2D.4C48.2272.F616!0001!CC3B.680A!0008!5836.F8A1'
+client_secret = u'secret'
 
-now = time.time()
-token = {
-    u'oxValidationURI': u'https://gluu.tilaajavastuu.io/oxauth/opiframe',
-    u'oxOpenIDConnectVersion': u'openidconnect-1.0',
-    u'c_hash': u'dSxmNqq0uc7rT-c0qgr276hH-yUaW9HMaKY-2xyBM90',
-    u'aud': u'@!1E2D.4C48.2272.F616!0001!CC3B.680A!0008!C2A9.C9A2',
-    u'sub': u'useridhash',
-    u'iss': u'https://gluu.tilaajavastuu.io',
-    u'exp': now + 3600,
-    u'auth_time': now - 60,
-    u'iat': now - 120,
-    u'scope': scopes.strip()
-}
+response = requests.post(token_endpoint_url, {
+    u'grant_type': u'client_credentials',
+    u'scope': scopes
+}, headers={
+    u'Authorization': u'Basic ' + base64.standard_b64encode(client_id + u':' + client_secret)
+}, verify=False)
 
-sys.stdout.write(jwt.encode(token, u'secret', algorithm='HS512'))
+if not response.ok:
+    sys.stderr.write(str(response.status_code) + u'\n')
+    sys.stderr.write(str(response.headers) + u'\n')
+    sys.stderr.write(str(response.json()) + u'\n')
+    sys.exit(1)
+
+sys.stdout.write(response.json()[u'access_token'] + u'\n')
