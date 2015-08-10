@@ -319,3 +319,29 @@ requires the scope `uapi_contracts_id_document_put`.
 
 To search for persons, GET to /persons/search/SEARCH_CONDITION,
 requires the scope `uapi_persons_search_id_get`.
+
+### Tests
+
+We use persons and orgs resources with limited access.
+
+    SCENARIO client access authorization
+
+Client has access to get a list of persons.
+
+    GIVEN client has access to scopes
+    ... "uapi_persons_get"
+
+Request for the list of persons is successful.
+
+    WHEN client GETs /persons
+    THEN HTTP status code is 200
+
+The client can not create new persons.
+
+    WHEN client POSTs /persons with {}
+    THEN HTTP status code is 403
+
+The client can not access other resources.
+
+    WHEN client GETs /orgs
+    THEN HTTP status code is 403
