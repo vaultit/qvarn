@@ -218,11 +218,71 @@ Client credentials flow
 Client credentials flow is mostly limited to internal services that
 communicate directly with the API without an end-user. Client
 credentials flow uses only the token endpoint to directly acquire an
-access token. The client authentication is used as the authorization
-grant. This flow is not defined in OpenID Connect 1.0 as it does not
+access token. This flow is not defined in OpenID Connect 1.0 as it does not
 verify the end-user identity, only the client identity (which in this
-case IS also the end-user).
+case is also the end-user).
 
+### Client application gets the access token
+
+* `POST /auth/token`
+
+Headers
+
+* `Authorization` --- **Required.** Contains client application's
+  credentials (`client_id` and `client_secret`) using the
+  [HTTP-Basic](http://tools.ietf.org/html/rfc2617#section-2) scheme
+  (Value is `Basic ` + base64 encoded `client_id` + `:` +
+  `client_secret`).
+* `Content-Type: application/x-www-form-urlencoded` --- Parameters are
+  sent in the HTTP request body.
+
+Parameters
+
+* `grant_type` --- **Required.** Value must be `client_credentials`.
+* `scope` --- **Required.** Must contain `openid`. Can contain additional
+  scope values e.g. `uapi_orgs_post`. Values are separated with space.
+
+Example
+
+    EXAMPLE
+    POST /auth/token
+
+with request body (line breaks between values are for display purposes
+only)
+
+    EXAMPLE
+    grant_type=client_credentials
+    &scope=uapi_orgs_post uapi_orgs_get
+
+If the token request fails, the authorization server will return HTTP status
+code 400 or 401 as defined in OAuth 2.0 specification
+<http://tools.ietf.org/html/rfc6749#section-5.2>.
+
+If the token request is successful, the authorization server will respond with
+HTTP status code 200 and a JSON response with the following key-value pairs:
+
+* `access_token` --- The access token
+* `token_type` --- Type of the access token. The value is always `bearer`.
+* `expires_in` --- Lifetime of the access token in seconds.
+* `refresh_token` --- Single use token that can be exchanged for an
+  access token.
+* `id_token` --- JSON Web Token (JWT) containing information about the
+  authentication event. ID token validation is described in a later
+  chapter.
+
+Access tokens have limited lifetime and a new token has to be acquired
+during longer sessions.
+
+### Client application can now make requests with the access token.
+
+Example
+
+    EXAMPLE
+    GET /orgs
+
+Headers
+
+* `Authorization` --- **Required.** Value is `Bearer ` + access token.
 
 Authorization
 =============
