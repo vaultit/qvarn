@@ -302,8 +302,12 @@ requires the scope `uapi_contracts_id_document_put`.
 To search for persons, GET to /persons/search/SEARCH_CONDITION,
 requires the scope `uapi_persons_search_id_get`.
 
-Using access token with the API
+Using the access token with the API
 -------------
+
+All API resource requests must contain the access token in `Authorization`
+header. Header value must be `Bearer` and the access token concatenated and
+separated with a space.
 
 Example
 
@@ -312,7 +316,7 @@ Example
 
 Headers
 
-* `Authorization` --- **Required.** Value is `Bearer ` + access token.
+* `Authorization` --- **Required.** Value is `Bearer ` + the access token.
 
 ### Tests
 
