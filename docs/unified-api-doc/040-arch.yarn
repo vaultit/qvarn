@@ -10,25 +10,25 @@ documented separately, as needed.
 
 The main components are:
 
-* Applications of various kinds. For example, browser-based web
-  applications, mobile apps, and non-interactive automated systems
-  such as gate entry systems, and accounting systems.
+* External applications of various kinds. These include:
+
+    * Purely browser-based web applications, typically implemented in
+      Javascript.
+    * Applications containing a backend of their own. This will
+      typically contain business logic. The application may have user
+      interfaces (browser-based, mobile apps, desktop apps), but may
+      also be completely non-interactive.
+    * Data collector applications, which retrieve data from online
+      services and feed it to the storage backend. These are meant to
+      be simple applications, one per data source. They only retrieve
+      the data, and do not process it.
+    * Data analysis applications, which are notified by the storage
+      backend of interesting changes to data, and produce reports or
+      otherwise refine the data to be more useful.
 
 * A data storage backend providing a unified resource API. This
   backend only stores data, and notifies applications of changes to
   the systems. Any processing of the data happens elsewhere.
-
-* Data collector applications, which retrieve data from online
-  services and feed it to the storage backend. These are meant to be
-  simple applications, one per data source. They only retrieve the
-  data, and do not process it.
-
-* Data analysis applications, which are notified by the storage
-  backend of interesting changes to data, and produce reports or
-  otherwise refine the data to be more useful.
-
-* Application backends, for those applications which need more
-  business logic than fits into the application frontend.
 
 * An authentication and authorisation system for ensuring only the
   right users and applications get access and only have access to the
@@ -62,6 +62,10 @@ storage except via the API, for any applications. Only the backend
 accesses the storage directly. Since the API is the only interface,
 the form of storage is outside the scope of this document and is an
 internal implementation detail of the backend.
+
+Change notifications are done using a mailbox. The backend does not
+call out to applications, instead the applications need to poll the
+mailbox.
 
 
 Automatic systems and non-browser applications
