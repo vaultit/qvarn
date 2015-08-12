@@ -4,6 +4,7 @@ import uuid
 class AuthorizationCodeFlowApp(object):
 
     def __init__(self):
+        # Constructor creates the base bottle application
         self._app = bottle.app()
 
     def run(self):
@@ -12,7 +13,8 @@ class AuthorizationCodeFlowApp(object):
                    reloader=True, debug=True)
 
     def add_routes(self):
-        self._app.route(path="/", method="GET", callback=self.get_index)
+        # All the routes that the web application serves
+        self._app.route(path='/', method='GET', callback=self.get_index)
 
     def get_index(self):
         auth_url = 'https://gluu.tilaajavastuu.io/' \
@@ -24,6 +26,6 @@ class AuthorizationCodeFlowApp(object):
                    + '&state=' + str(uuid.uuid4())
         return bottle.template('index', auth_url=auth_url)
 
-    
+
 app = AuthorizationCodeFlowApp()
 app.run()
