@@ -63,9 +63,9 @@ accesses the storage directly. Since the API is the only interface,
 the form of storage is outside the scope of this document and is an
 internal implementation detail of the backend.
 
-Change notifications are done using a mailbox. The backend does not
-call out to applications, instead the applications need to poll the
-mailbox.
+Change notifications are done using a message box. The backend does
+not call out to applications, instead the applications need to poll
+for new messages.
 
 
 Automatic systems and non-browser applications
