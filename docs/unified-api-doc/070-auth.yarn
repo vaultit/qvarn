@@ -47,7 +47,7 @@ themselves and the server (this excludes browser-only clients).
 
 Parameters
 
-* `scope` --- **Optional.** Contain scope values that your application is
+* `scope` --- **Optional.** Contain scope values that the client application is
   requesting access to, e.g. `uapi_orgs_post`. Values are separated with
   spaces.
 * `response_type` --- **Required.** Value must be `code` when using
@@ -55,8 +55,7 @@ Parameters
 * `client_id` --- **Required.** Client application's unique client
   identifier.
 * `redirect_uri` --- **Required.** Response will be sent to this URI. This
-  URI must match one of the redirect URI values registered for the
-  client.
+  URI must match one of the redirect URI values registered for the client.
 * `state` --- **Required.** Unique random string that is used to maintain
   session between the request and the callback. CSRF mitigation is
   done by binding the value to browser cookie and validating the state
@@ -102,8 +101,8 @@ Parameters
 and additionally
 
 * `session_id` --- Authorization server session identifier.
-* `scope` --- Scopes that were granted. Can be different from the
-  requested scopes.
+* `scope` --- Scopes that were granted. The client application will only be
+  granted access to the scopes that have been registered for the client.
 
 Example (line breaks are for display purposes only)
 
@@ -230,7 +229,7 @@ Headers
 Parameters
 
 * `grant_type` --- **Required.** Value must be `client_credentials`.
-* `scope` --- **Required.** Contain scope values that your application is
+* `scope` --- **Required.** Contain scope values that the client application is
   requesting access to, e.g. `uapi_orgs_post`. Values are separated with
   spaces.
 
@@ -254,6 +253,8 @@ If the token request is successful, the authorization server will respond with
 HTTP status code 200 and a JSON response with the following key-value pairs:
 
 * `access_token` --- The access token
+* `scope` --- Scopes that were granted. The client application will only be
+  granted access to the scopes that have been registered for the client.
 * `token_type` --- Type of the access token. The value is always `bearer`.
 * `expires_in` --- Lifetime of the access token in seconds.
 * `refresh_token` --- Single use token that can be exchanged for an
@@ -303,7 +304,7 @@ To search for persons, GET to /persons/search/SEARCH_CONDITION,
 requires the scope `uapi_persons_search_id_get`.
 
 Using the access token with the API
--------------
+-----------------------------------
 
 All API resource requests must contain the access token in `Authorization`
 header. Header value must be `Bearer` and the access token concatenated and
