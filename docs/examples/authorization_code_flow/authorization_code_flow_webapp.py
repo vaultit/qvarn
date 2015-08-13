@@ -1,5 +1,6 @@
 import bottle
 import uuid
+from beaker.middleware import SessionMiddleware
 
 class AuthorizationCodeFlowApp(object):
 
@@ -9,7 +10,8 @@ class AuthorizationCodeFlowApp(object):
 
     def run(self):
         self.add_routes()
-        bottle.run(self._app, host='127.0.0.1', port=8080,
+        sessioned_app = SessionMiddleware(self._app, {})
+        bottle.run(sessioned_app, host='127.0.0.1', port=8080,
                    reloader=True, debug=True)
 
     def add_routes(self):

@@ -4,7 +4,8 @@ Application uses [bottle]() web framework and [Beaker]() for session
 management (cookies). Additionally we will be making the HTTP requests
 with [requests]() library.
 
-Debian packages needed are `python-requests`, `python-bottle` and `python-beaker`. Application is tested on Debian 8.1, codename Jessie.
+Application is tested on Debian 8.1, codename Jessie. Debian packages needed
+are `python-requests`, `python-bottle` and `python-beaker`.
 
 #### We start by implementing a web application that serves the client (browser) an index page with `Hello!`.
 
