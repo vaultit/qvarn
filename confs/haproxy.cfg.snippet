@@ -11,7 +11,7 @@
 
 frontend http-in
     # Bind to port 80 on every interface.
-    bind *:80
+    bind *:443 ssl crt /etc/ssl/uapi.pem
 
     # Add named acl's. haproxy config syntax seems to insist
     # this is done (read: the condition can't be used directly).
