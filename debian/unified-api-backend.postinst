@@ -52,6 +52,8 @@ create_backend_app_log_dir()
 # default file in /etc, and a snippet we provide (in /usr/share).
 # Additionally, change /etc/default to use our custom configuration
 # rather than the default.
+#
+# We also create a self-signed SSL/TLS certificate.
 
 setup_haproxy()
 {
@@ -65,6 +67,14 @@ setup_haproxy()
     then
         echo 'CONFIG="/var/lib/unified-api-backend/haproxy.cfg"' \
              >> /etc/default/haproxy
+    fi
+
+    if [ -e /etc/ssl/uapi.pem ]
+    then
+        openssl req -new -x509 -days 365 -nodes \
+                -out /etc/ssl/uapi.pem \
+                -keyout /etc/ssl/uapi.key
+        cat /etc/ssl/uapi.key >> /etc/ssl/uapi.pem
     fi
 }
 
