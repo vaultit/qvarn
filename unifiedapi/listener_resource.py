@@ -176,6 +176,9 @@ class ListenerResource(object):
         resource_path = u'%s/listeners/%s' % (self._path, added[u'id'])
         resource_url = urlparse.urljoin(
             bottle.request.url, resource_path)
+        # FIXME: Force https scheme, until haproxy access us via https.
+        resource_url = urlparse.urlunparse(
+            ('https',) + urlparse.urlparse(resource_url)[1:])
         bottle.response.headers['Location'] = resource_url
         bottle.response.status = 201
         return added
