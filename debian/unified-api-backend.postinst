@@ -69,7 +69,7 @@ setup_haproxy()
              >> /etc/default/haproxy
     fi
 
-    if [ -e /etc/ssl/uapi.pem ]
+    if [ ! -e /etc/ssl/uapi.pem ]
     then
         openssl req -new -x509 -days 365 -nodes \
                 -out /etc/ssl/uapi.pem \
