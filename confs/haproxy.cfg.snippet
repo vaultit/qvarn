@@ -19,6 +19,7 @@ frontend http-in
     # forwarded to which backends", not "access control list"
     # in its usual meaning.
 
+    acl resource_auth_authorize path_beg /auth/authorize
     acl resource_auth_token path_beg /auth/token
     acl resource_cards path_beg /cards
     acl resource_contracts path_beg /contracts
@@ -29,6 +30,7 @@ frontend http-in
     acl resource_reports path_beg /reports
     acl resource_version path_beg /version
 
+    use_backend gluu if resource_auth_authorize
     use_backend gluu if resource_auth_token
     use_backend cards_apps if resource_cards
     use_backend contracts_apps if resource_contracts
@@ -46,7 +48,7 @@ backend gluu
     server gluu1 gluu.tilaajavastuu.io:443 ssl verify none
     option forwardfor
     reqadd X-Forwarded-Proto:\ https
-    reqrep ^(.*)\ /auth/token(.*)$ \1\ /oxauth/seam/resource/restv1/oxauth/token\2
+    reqrep ^(.*)\ /auth/(.*)$ \1\ /oxauth/seam/resource/restv1/oxauth/\2
 
 # We need a backend stanza for each backend application. Note that
 # port numbers here must match those in the config for lighttpd.
