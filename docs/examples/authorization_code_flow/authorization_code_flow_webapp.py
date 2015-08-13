@@ -10,12 +10,12 @@ class AuthorizationCodeFlowApp(object):
     def __init__(self):
         # Constructor creates the base bottle application
         self._app = bottle.app()
+        self._redirect_uri = 'http://127.0.0.1:8080/callback'
+        # All these will be provided to API users by Tilaajavastuu
         self._api_url = 'https://hlv3-alpha.tilaajavastuu.io'
         self._client_id = '@!1E2D.4C48.2272.F616!0001!CC3B.680A!0008!49F2.648F'
         self._client_secret = 'dc560868-8b1d-4acb-91c6-96908a9ed0f4'
-        self._redirect_uri = 'http://127.0.0.1:8080/callback'
-        self._auth_scope = 'uapi_orgs_get uapi_orgs_id_delete ' \
-                           + 'uapi_orgs_id_get uapi_orgs_id_put uapi_orgs_post'
+        self._auth_scope = 'uapi_orgs_get'
 
     def run(self):
         self.add_routes()
@@ -31,9 +31,10 @@ class AuthorizationCodeFlowApp(object):
         self._app.route(path='/orgs', method='GET', callback=self.get_orgs)
 
     def get_index(self):
-        # Access the session for state variable
+        # Session is needed to store 'state' variable.
         session = bottle.request.environ['beaker.session']
         state = session.get('state')
+        # Only generate state if we haven't yet
         if not state:
             state = str(uuid.uuid4())
             session['state'] = state
@@ -52,9 +53,12 @@ class AuthorizationCodeFlowApp(object):
         session = bottle.request.environ['beaker.session']
         # Get the code parameter from the authentication response
         if params.get('state'):
+            # Check that the state still matches the one we stored (security)
             if session.get('state') == params.get('state'):
+                # Generate basic auth header
                 basic_auth_token = 'Basic ' + base64.standard_b64encode(
                     self._client_id + ':' + self._client_secret)
+                # Request access token
                 r = requests.post(self._api_url + '/auth/token',
                                   data={'grant_type': 'authorization_code',
                                         'redirect_uri': self._redirect_uri,
@@ -66,6 +70,7 @@ class AuthorizationCodeFlowApp(object):
                     session['token_expiry'] = time.time() \
                                               + r.json()['expires_in']
                     session.save()
+                    bottle.redirect('/orgs')
                 else:
                     return bottle.template('error',
                                            error=r.json()['error_description'])
@@ -85,7 +90,7 @@ class AuthorizationCodeFlowApp(object):
                          verify=False)
         if r.ok:
             return bottle.template('list', items=r.json()[u'resources'])
-                
+
 
 app = AuthorizationCodeFlowApp()
 app.run()

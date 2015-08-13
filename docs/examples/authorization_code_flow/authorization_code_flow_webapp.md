@@ -1,6 +1,6 @@
 # TODO
 
-Käyttäjätunnukset gluuhun kaikille.
+Käyttäjätunnukset gluuhun kaikille + person resource id.
 
 # Web application utilizing OAuth 2.0 Authorization Code flow
 
@@ -15,38 +15,49 @@ are `python-requests`, `python-bottle` and `python-beaker`.
 
 authorization_code_flow_webapp.py:
 
+    import base64
     import bottle
+    import requests
+    import time
+    import uuid
     from beaker.middleware import SessionMiddleware
-
 
     class AuthorizationCodeFlowApp(object):
 
-      def __init__(self):
-        # Constructor creates the base bottle application
-        self._app = bottle.app()
+        def __init__(self):
+            # Constructor creates the base bottle application
+            self._app = bottle.app()
+            self._redirect_uri = 'http://127.0.0.1:8080/callback'
+            # All these will be provided to API users by Tilaajavastuu
+            self._api_url = 'https://hlv3-alpha.tilaajavastuu.io'
+            self._client_id = '@!1E2D.4C48.2272.F616!0001!CC3B.680A!0008!49F2.648F'
+            self._client_secret = 'dc560868-8b1d-4acb-91c6-96908a9ed0f4'
+            self._auth_scope = 'uapi_orgs_get'
 
-      def run(self):
-        self.add_routes()
-        sessioned_app = SessionMiddleware(self._app, {})
-        bottle.run(sessioned_app, host='127.0.0.1', port=8080,
-                   reloader=True, debug=True)
+        def run(self):
+            self.add_routes()
+            sessioned_app = SessionMiddleware(self._app, {})
+            bottle.run(sessioned_app, host='127.0.0.1', port=8080,
+                       reloader=True, debug=True)
 
-      def add_routes(self):
-        # All the routes that the web application serves
-        self._app.route(path='/', method='GET', callback=self.index)
+        def add_routes(self):
+            # All the routes that the web application serves
+            self._app.route(path='/', method='GET', callback=self.get_index)
 
-      def index(self):
-        return bottle.template('index')
+        def get_index(self):
+            return bottle.template('index')
 
 
     app = AuthorizationCodeFlowApp()
     app.run()
 
+
 views/index.tpl:
 
     Hello!
 
-Visit the page http://127.0.0.1:8080/ and it should display a page with `Hello!`.
+Visit the page http://127.0.0.1:8080/ and it should display a page with
+`Hello!`.
 
 #### We create the redirect url and display it on the index page as a link.
 
@@ -55,18 +66,33 @@ authorization_code_flow_webapp.py:
 For the redirect url we need to generate the state parameter:
 
     def get_index(self):
-
+        # Session is needed to store 'state' variable.
+        session = bottle.request.environ['beaker.session']
+        state = session.get('state')
+        # Only generate state if we haven't yet
+        if not state:
+            state = str(uuid.uuid4())
+            session['state'] = state
+            session.save()
         return bottle.template('index')
 
-In method get_index we create the authentication url and give it to the view.
+After that we can create the authentication url and give it to the view.
 
     def get_index(self):
-        auth_url = 'https://gluu.tilaajavastuu.io/' \
-                   + 'oxauth/seam/resource/restv1/oxauth/authorize' \
-                   + '?scope=uapi_orgs_get uapi_orgs_id_get' \
+        # Session is needed to store 'state' variable.
+        session = bottle.request.environ['beaker.session']
+        state = session.get('state')
+        # Only generate state if we haven't yet
+        if not state:
+            state = str(uuid.uuid4())
+            session['state'] = state
+            session.save()
+        # Create the URL for authentication
+        auth_url = self._api_url + '/auth/authorize' \
+                   + '?scope=' + self._auth_scope \
                    + '&response_type=code' \
-                   + '&client_id=XXXXXXXXXXXXXXXXXXX' \
-                   + '&redirect_uri=127.0.0.1:8080/callback' \
+                   + '&client_id=' + self._client_id \
+                   + '&redirect_uri=' + self._redirect_uri \
                    + '&state=' + state
         return bottle.template('index', auth_url=auth_url)
 
@@ -92,46 +118,24 @@ We show the given url in the index view as a link.
 
     <a href="{{auth_url}}">Sign in!</a>
 
-As we are generating the random state string with uuid we need to add an import. We end up with:
-
-    import bottle
-    import uuid
-    from beaker.middleware import SessionMiddleware
-
-
-    class AuthorizationCodeFlowApp(object):
-
-        def __init__(self):
-            # Constructor creates the base bottle application
-            self._app = bottle.app()
-
-        def run(self):
-            self.add_routes()
-            sessioned_app = SessionMiddleware(self._app, {})
-            bottle.run(sessioned_app, host='127.0.0.1', port=8080,
-                       reloader=True, debug=True)
-
-        def add_routes(self):
-            # All the routes that the web application serves
-            self._app.route(path='/', method='GET', callback=self.get_index)
-
-        def get_index(self):
-            auth_url = 'https://gluu.tilaajavastuu.io/' \
-                       + 'oxauth/seam/resource/restv1/oxauth/authorize' \
-                       + '?scope=uapi_orgs_get uapi_orgs_id_get' \
-                       + '&response_type=code' \
-                       + '&client_id=XXXXXXXXXXXXXXXXXXX' \
-                       + '&redirect_uri=127.0.0.1:8080/callback' \
-                       + '&state=' + str(uuid.uuid4())
-            return bottle.template('index', auth_url=auth_url)
-
-
-    app = AuthorizationCodeFlowApp()
-    app.run()
-
-
-Visit the page http://127.0.0.1:8080/ and you should now be able to click the link and see a login page after clicking it.
+Visit the page http://127.0.0.1:8080/ and you should now be able to click the
+link and see a login page after clicking it.
 
 #### We add callback path listener to our application.
+
+Next we need a callback path listener to grab the code query parameter and
+request access token.
+
+authorization_code_flow_webapp.py:
+
+    def add_routes(self):
+        # All the routes that the web application serves
+        self._app.route(path='/', method='GET', callback=self.get_index)
+        self._app.route(path='/callback', method='GET',
+                        callback=self.process_callback)
+
+    def process_callback(self):
+      pass
+
 
 #### We create add session management to our application, store the state parameter and verify it in callback.

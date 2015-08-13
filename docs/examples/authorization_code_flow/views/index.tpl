@@ -1,1 +1,1 @@
-<a href="{{auth_url}}">Click to login</a>
+<a href="{{auth_url}}">Sign in!</a>
