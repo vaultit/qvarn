@@ -59,7 +59,7 @@ request and its body.
 GET something. No body.
 
     IMPLEMENTS WHEN client GETs (.+)
-    curl -D "$DATADIR/curl.headers" \
+    curl -k -D "$DATADIR/curl.headers" \
         -H "Authorization: Bearer $(cat "$DATADIR/token")" \
         "$API_URL$(expand_values "$MATCH_1")" \
         > "$DATADIR/curl.out" 2> "$DATADIR/curl.err"
@@ -67,7 +67,7 @@ GET something. No body.
 POST or PUT with a JSON body.
 
     IMPLEMENTS WHEN client (POST|PUT)s (\S+) with (.*)
-    curl -D "$DATADIR/curl.headers" \
+    curl -k -D "$DATADIR/curl.headers" \
         -X "$MATCH_1" \
         -H "Authorization: Bearer $(cat "$DATADIR/token")" \
         -H 'Content-Type: application/json' \
@@ -78,7 +78,7 @@ POST or PUT with a JSON body.
 DELETE something. No body.
 
     IMPLEMENTS WHEN client DELETEs (.+)
-    curl -X DELETE -D "$DATADIR/curl.headers" \
+    curl -k -X DELETE -D "$DATADIR/curl.headers" \
         -H "Authorization: Bearer $(cat "$DATADIR/token")" \
         "$API_URL$(expand_values "$MATCH_1")" \
         > "$DATADIR/curl.out" 2> "$DATADIR/curl.err"
@@ -86,7 +86,7 @@ DELETE something. No body.
 PUT a file.
 
     IMPLEMENTS WHEN client PUTs file (\S+) with content type (\S+) and revision (\S+) to (\S+)
-    curl -D "$DATADIR/curl.headers" \
+    curl -k -D "$DATADIR/curl.headers" \
         -X PUT \
         -H "Authorization: Bearer $(cat "$DATADIR/token")" \
         -H "Content-Type: $(expand_values "$MATCH_2")" \
@@ -98,7 +98,7 @@ PUT a file.
 Puts a file without content.
 
     IMPLEMENTS WHEN client PUTs no file with content type (\S+) and revision (\S+) to (\S+)
-    curl -D "$DATADIR/curl.headers" \
+    curl -k -D "$DATADIR/curl.headers" \
         -X PUT \
         -H "Authorization: Bearer $(cat "$DATADIR/token")" \
         -H "Content-Type: $(expand_values "$MATCH_1")" \
