@@ -1,3 +1,7 @@
+# TODO
+
+Käyttäjätunnukset gluuhun kaikille.
+
 # Web application utilizing OAuth 2.0 Authorization Code flow
 
 Application uses [bottle]() web framework and [Beaker]() for session
@@ -12,6 +16,7 @@ are `python-requests`, `python-bottle` and `python-beaker`.
 authorization_code_flow_webapp.py:
 
     import bottle
+    from beaker.middleware import SessionMiddleware
 
 
     class AuthorizationCodeFlowApp(object):
@@ -22,7 +27,9 @@ authorization_code_flow_webapp.py:
 
       def run(self):
         self.add_routes()
-        bottle.run(self._app, host='127.0.0.1', port=8080, reloader=True, debug=True)
+        sessioned_app = SessionMiddleware(self._app, {})
+        bottle.run(sessioned_app, host='127.0.0.1', port=8080,
+                   reloader=True, debug=True)
 
       def add_routes(self):
         # All the routes that the web application serves
@@ -45,6 +52,12 @@ Visit the page http://127.0.0.1:8080/ and it should display a page with `Hello!`
 
 authorization_code_flow_webapp.py:
 
+For the redirect url we need to generate the state parameter:
+
+    def get_index(self):
+
+        return bottle.template('index')
+
 In method get_index we create the authentication url and give it to the view.
 
     def get_index(self):
@@ -54,7 +67,7 @@ In method get_index we create the authentication url and give it to the view.
                    + '&response_type=code' \
                    + '&client_id=XXXXXXXXXXXXXXXXXXX' \
                    + '&redirect_uri=127.0.0.1:8080/callback' \
-                   + '&state=' + str(uuid.uuid4())
+                   + '&state=' + state
         return bottle.template('index', auth_url=auth_url)
 
 Parameters are described in the authentication documentation:
@@ -83,6 +96,7 @@ As we are generating the random state string with uuid we need to add an import.
 
     import bottle
     import uuid
+    from beaker.middleware import SessionMiddleware
 
 
     class AuthorizationCodeFlowApp(object):
@@ -93,7 +107,8 @@ As we are generating the random state string with uuid we need to add an import.
 
         def run(self):
             self.add_routes()
-            bottle.run(self._app, host='127.0.0.1', port=8080,
+            sessioned_app = SessionMiddleware(self._app, {})
+            bottle.run(sessioned_app, host='127.0.0.1', port=8080,
                        reloader=True, debug=True)
 
         def add_routes(self):
