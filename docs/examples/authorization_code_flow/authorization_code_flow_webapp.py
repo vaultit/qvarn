@@ -51,10 +51,13 @@ class AuthorizationCodeFlowApp(object):
     def process_callback(self):
         params = bottle.request.params
         session = bottle.request.environ['beaker.session']
-        # Get the code parameter from the authentication response
         if params.get('state'):
             # Check that the state still matches the one we stored (security)
             if session.get('state') == params.get('state'):
+                if params.get('error'):
+                    return bottle.template('error',
+                                           error=params.get(
+                                               'error_description'))
                 # Generate basic auth header
                 basic_auth_token = 'Basic ' + base64.standard_b64encode(
                     self._client_id + ':' + self._client_secret)
@@ -74,10 +77,7 @@ class AuthorizationCodeFlowApp(object):
                 else:
                     return bottle.template('error',
                                            error=r.json()['error_description'])
-            elif params.get('error'):
-                    return bottle.template('error',
-                                           error=params.get(
-                                               'error_description'))
+
         bottle.redirect('/')
 
     def get_orgs(self):
@@ -90,6 +90,7 @@ class AuthorizationCodeFlowApp(object):
                          verify=False)
         if r.ok:
             return bottle.template('list', items=r.json()[u'resources'])
+        return bottle.template('error', error=r.text)
 
 
 app = AuthorizationCodeFlowApp()
