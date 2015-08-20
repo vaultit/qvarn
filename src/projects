@@ -50,7 +50,7 @@ class CreateProjectsTables_v1(unifiedapi.StoragePreparationStep):
 
         db.create_table(
             u'project_project_ids',
-            (u'id', int),
+            (u'id', unicode),
             (u'list_pos', int),
             (u'project_id_type', unicode),
             (u'project_id', unicode))
