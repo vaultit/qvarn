@@ -18,7 +18,7 @@ class ItemValidator(object):
         * An integer is the constant 0.
         * A boolean value is the constant False.
         * A list of strings is a list of an empty Unicode string.
-        * A list of dicgts is a list of exactly one dict that
+        * A list of dicts is a list of exactly one dict that
           is that dict's prototype.
 
     Note that the prototype can only specify the type of a value. It
