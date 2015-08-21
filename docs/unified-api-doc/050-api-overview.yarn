@@ -523,6 +523,39 @@ privileges to do so, might result in the following HTTP response:
     Content-type: text/html
     <html> <body><p>Don't do that.</p></body> <html>
 
+### Tests
+
+We try to create a new person but the JSON sent is malformed.
+
+    SCENARIO sending malformed requests
+
+    GIVEN client has access to scopes
+    ... "uapi_persons_post"
+
+    WHEN client POSTs /persons with
+    ... error{"names": [{"full_name": "James Bond",
+    ...             "sort_key": "Bond, James",
+    ...		    "given_names": ["James"],
+    ...		    "surnames": ["Bond"]}]}
+    THEN HTTP status code is 400
+
+Create a person and try to update the person with malformed JSON.
+
+    WHEN client POSTs /persons with
+    ... {"names": [{"full_name": "James Bond",
+    ...             "sort_key": "Bond, James",
+    ...		    "given_names": ["James"],
+    ...		    "surnames": ["Bond"]}]}
+    THEN result has key "id" containing a string, saved as $ID1
+    THEN result has key "revision" containing a string, saved as $REV1
+
+    WHEN client PUTs /persons/$ID1 with
+    ... {"error"]}]}
+    THEN HTTP status code is 400
+
+    WHEN client PUTs /persons/$ID1/private with
+    ... { "invalid json" ]
+    THEN HTTP status code is 400
 
 Common attributes
 -----------------

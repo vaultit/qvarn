@@ -19,8 +19,12 @@ class LoggingPlugin(object):
         logging.info(
             u'Request: %s %s (args: %r)', r.method, r.path, r.url_args)
         logging.info(u'Request headers: %r', dict(r.headers))
-        if r.method in ('POST', 'PUT') and r.json:
-            logging.info(u'Request body (JSON): %r', r.json)
+        try:
+            if r.method in ('POST', 'PUT') and r.json:
+                logging.info(u'Request body (JSON): %r', r.json)
+        except:  # pylint: disable=locally-disabled,bare-except
+            # Invalid JSON TODO?
+            pass
         logging.info(u'Request authorization client scopes: %r',
                      bottle.request.environ.get(u'scopes'))
         logging.info(u'Request authorization client id: %r',

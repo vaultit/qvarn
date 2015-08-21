@@ -42,8 +42,11 @@ class BasicValidationPlugin(object):
         return callback
 
     def _check_json(self):
-        if bottle.request.json is None:
-            raise ContentTypeIsNotJSON()
+        try:
+            if bottle.request.json is None:
+                raise ContentTypeIsNotJSON()
+        except:
+            raise ContentIsNotJSON()
 
     def _check_create_json(self):
         item = bottle.request.json
@@ -60,6 +63,11 @@ class BasicValidationPlugin(object):
                 item_id=item[u'id'], wanted_id=item_route_id)
         if u'revision' not in item:
             raise NoItemRevision(item_id=item_route_id)
+
+
+class ContentIsNotJSON(unifiedapi.BadRequest):
+
+    msg = u'Request content is not valid JSON'
 
 
 class ContentTypeIsNotJSON(unifiedapi.UnsupportedMediaType):
