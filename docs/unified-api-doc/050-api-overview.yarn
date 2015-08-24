@@ -503,7 +503,7 @@ The common error cases are:
   This indicates a client programming error.
 
 * **409** (Conflict) --- the client tried to update (`POST`) a
-  resource, but gave a `resource` field that wasn't the same as that
+  resource, but gave a `revision` field that wasn't the same as that
   of the latest version of the resource. Client should retrieve the
   latest version, make changes to that, and try updating again. The
   latest revision is included as the body of the error response.
