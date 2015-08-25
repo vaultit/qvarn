@@ -45,7 +45,13 @@ class BasicValidationPlugin(object):
         try:
             if bottle.request.json is None:
                 raise ContentTypeIsNotJSON()
-        except:
+        except ValueError:
+            # When Bottle parses the body as JSON, if it fails, it
+            # raises the ValueError exception. We catch this and
+            # report the API client the content is not JSON.
+            #
+            # Any other errors will result in HTTP status 500
+            # (internal error), which is fine.
             raise ContentIsNotJSON()
 
     def _check_create_json(self):
