@@ -530,7 +530,7 @@ We try to create a new person but the JSON sent is malformed.
     SCENARIO sending malformed requests
 
     GIVEN client has access to scopes
-    ... "uapi_persons_post uapi_persons_id_put"
+    ... "uapi_persons_post uapi_persons_id_put uapi_persons_id_private_put"
 
     WHEN client POSTs /persons with
     ... error{"names": [{"full_name": "James Bond",
