@@ -81,21 +81,21 @@ class CreatePersonsTables_v1(unifiedapi.StoragePreparationStep):
 
         db.create_table(
             u'person_names_given_names',
-            (u'id', int),
+            (u'id', unicode),
             (u'dict_list_pos', int),
             (u'list_pos', int),
             (u'given_names', unicode))
 
         db.create_table(
             u'person_names_surnames',
-            (u'id', int),
+            (u'id', unicode),
             (u'dict_list_pos', int),
             (u'list_pos', int),
             (u'surnames', unicode))
 
         db.create_table(
             u'person_private',
-            (u'id', int),
+            (u'id', unicode),
             (u'date_of_birth', unicode))
 
         db.create_table(
@@ -122,7 +122,7 @@ class CreatePersonsTables_v1(unifiedapi.StoragePreparationStep):
 
         db.create_table(
             u'person_private_contacts_address_lines',
-            (u'id', int),
+            (u'id', unicode),
             (u'dict_list_pos', int),
             (u'list_pos', int),
             (u'address_lines', unicode))
