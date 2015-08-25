@@ -22,9 +22,15 @@ class LoggingPlugin(object):
         try:
             if r.method in ('POST', 'PUT') and r.json:
                 logging.info(u'Request body (JSON): %r', r.json)
-        except:  # pylint: disable=locally-disabled,bare-except
-            # Invalid JSON TODO?
-            pass
+        except ValueError:
+            # When Bottle parses the body as JSON, if it fails, it
+            # raises the ValueError exception. We catch this and
+            # report the API client the content is not JSON.
+            #
+            # Any other errors will result in HTTP status 500
+            # (internal error), which is fine.
+            logging.warning(u'Request body is malformed JSON (ignored)')
+
         logging.info(u'Request authorization client scopes: %r',
                      bottle.request.environ.get(u'scopes'))
         logging.info(u'Request authorization client id: %r',
