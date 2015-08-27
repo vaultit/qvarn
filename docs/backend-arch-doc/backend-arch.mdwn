@@ -58,6 +58,9 @@ exist:
   be able to repeatedly and frequently check they work as expected and
   specified.
 
+* The implementation and its use must be **auditable**. The system
+  must keep track of who did what, and when.
+
 
 Backend architecture
 ====================
