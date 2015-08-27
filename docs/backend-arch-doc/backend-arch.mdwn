@@ -58,10 +58,6 @@ exist:
   be able to repeatedly and frequently check they work as expected and
   specified.
 
-* The services must **enable partners** to build new products and
-  services that interact with our services. This is necessary to
-  support new business models.
-
 
 Backend architecture
 ====================
