@@ -104,6 +104,9 @@ The components are:
   across multiple servers, even if we don't do that yet. The
   write-only access goes via one internal interface.
 
+* An **identity management server** handles authentication of users
+  and applications, and stores authorization data centrally.
+
 All of the above components run on the same host, for now. We will
 later change it so that the load balancer runs on one host, and the
 resource components each on their own host. Further, we'll have at
@@ -137,12 +140,44 @@ This is done using a notification feature in the API.
 Authentication and authorisation
 --------------------------------
 
-FIXME: Authorisation isn't designed yet.
+We use the [Gluu][] software as the identity manager, and use
+[OpenID Connect][] and [OAuth2][] as protocols. In addition, Gluu
+supports the [SAML 2.0][] protocol for using selected external
+identity providers to allow users to login with the credentials of
+their home organisation.
 
-Each component services an HTTP request, and checks the authentication
-and authorisation itself. To avoid having the checks done differently,
-all components will use the same code as a library we implement for
-this.
+[Gluu]: http://www.gluu.org/
+[OpenID Connect]: https://en.wikipedia.org/wiki/OpenID_Connect
+[OAuth2]: https://en.wikipedia.org/wiki/OAuth
+[SAML 2.0]: https://en.wikipedia.org/wiki/SAML_2.0
+
+We hide the existence of Gluu behind API calls. The API clients only
+interact directly with our system, and we use reverse proxying for the
+API calls that are redirected to Gluu. See the API document for a
+description of the API calls and the authentication and authorisation
+communication flows.
+
+After a successful authentication, Gluu will provide the API client
+with a [JWT][] token, digitally signed with a public key. The API
+client provides this token in all further API requests in the
+`Authorize` HTTP header. (For details, see API document.)
+
+[JWT]: https://en.wikipedia.org/wiki/JSON_Web_Token
+
+Authorization is done by the Gluu server providing a set of scopes
+that specify which HTTP API calls the client is allowed to do. These
+scopes are part of the JWT token. The API implementation validates the
+token (checks its signature), and extracts the scopes from the token.
+It then checks that the scopes allow the call in question. If that
+fails, the API implementation returns a suitable HTTP error code.
+
+A further level of authorisation is then done in the backend. For
+example, a scope would say that the client is allowed to call `GET
+/orgs`, but the actual return value should only include organisations
+that the client is allowed to retrieve individually. Thus, if the
+client can only access orgnisation id 123, but not 456, the result
+should include 123, and not 
+FIXME: How this is implemented is unclear.
 
 
 Individual components
