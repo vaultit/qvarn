@@ -203,6 +203,8 @@ Database storage
 Currently, we use SQLite 3 for the database. This will eventually
 change.
 
+FIXME: We will be using PostgreSQL.
+
 
 The load-balancing proxy
 ------------------------
