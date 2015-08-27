@@ -120,6 +120,10 @@ In this architecture, the only non-replicated component is the
 write-only databases. This enables **scalability** and **high
 availability**.
 
+If and when the write-only databases become a bottleneck, we will
+investigate other approaches than doing all writes to a single
+database.
+
 
 Inter-component communication
 -----------------------------
