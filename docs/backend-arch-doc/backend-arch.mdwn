@@ -72,12 +72,14 @@ This chapter describes the architecture of the API backend.
 Overview
 --------
 
-The API backend is reactive: it only ever does something when triggered by
-an HTTP request from an API client. This includes regular actions,
-such as retrieving data from external databases: the actual retrieval
-will be implemented as an external application, which injects any new
-data via the API using HTTP requests. Likewise, daily report
-generation is triggered by an external application.
+The API backend is reactive: it only ever does something when
+triggered by an HTTP request from an API client. The API provides
+access to a data store, and any business logic or other data
+processing happens in API clients. This includes regular actions, such
+as retrieving data from external databases: the actual retrieval will
+be implemented as an external application, which injects any new data
+via the API using HTTP requests. Likewise, daily report generation is
+triggered by an external application.
 
 The API backend implementation is split into several independent
 components, which get implemented as separate programs with their own
