@@ -155,7 +155,8 @@ We hide the existence of Gluu behind API calls. The API clients only
 interact directly with our system, and we use reverse proxying for the
 API calls that are redirected to Gluu. See the API document for a
 description of the API calls and the authentication and authorisation
-communication flows.
+communication flows. (FIXME: Gluu is not yet entirely hidden from API
+clients.)
 
 After a successful authentication, Gluu will provide the API client
 with a [JWT][] token, digitally signed with a public key. The API
