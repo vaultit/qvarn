@@ -78,7 +78,7 @@ process_markdown()
         --chapters \
         --number-sections \
         --toc --toc-depth=2 \
-        --no-tex-ligatures \
+        --latex-engine=xelatex \
         -V geometry:a4paper \
         -V documentclass=report \
         -V fontsize:12pt \
