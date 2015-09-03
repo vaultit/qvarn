@@ -137,15 +137,14 @@ class Database(object):
     def select(self, table_name, column_names):
         '''Retrieve the given columns from all rows.'''
 
-        return self._select_helper(table_name, column_names, [])
+        return self._select_helper(table_name, column_names, {})
 
     def select_matching_rows(self, table_name, column_names, match_columns):
         '''Like select, but only rows matching a condition.
 
-        ``match_columns`` is a list of (column name, value) pairs.
-        This forms the condition: the rows are those that have the
-        specified value for the given column. There can be any number
-        of such match columns.
+        ``match_columns`` is a dict, where the key is a column name
+        and the value is its value. If the dict is empty, an empty
+        list is returned.
 
         '''
 
@@ -164,16 +163,14 @@ class Database(object):
             # snippets such as "foo IS :foo AND bar IS :bar", where
             # "foo" and "bar" are columns names, and ":foo" and ":bar"
             # are placeholders for the value, using SQLite Python
-            # binding syntax. The values are fed to SQLite using the
-            # values dict created below.
+            # binding syntax.
 
             condition = ' AND '.join(
                 '{0} IS :{0}'.format(self._quote(x)) for x in match_columns)
             sql += u' WHERE ' + condition
 
-        values = dict(match_columns)
         c = self._conn.cursor()
-        c.execute(sql, values)
+        c.execute(sql, match_columns)
 
         result = []
         for row in c:
@@ -183,18 +180,29 @@ class Database(object):
             result.append(a_dict)
         return result
 
-    def delete(self, table_name, condition=None, values=None):
+    def delete_matching_rows(self, table_name, match_columns):
         '''Delete rows matching a condition.
 
-        The condition is given the same way as for select.
+        The condition is given the same way as for
+        select_matching_rows.
 
         '''
 
         assert self._in_transaction
 
         sql = u'DELETE FROM %s' % self._quote(table_name)
-        if condition:
-            sql += u' WHERE ' + condition
+
+        # Add condition for a column. This results in an SQL
+        # snippets such as "foo IS :foo AND bar IS :bar", where
+        # "foo" and "bar" are columns names, and ":foo" and ":bar"
+        # are placeholders for the value, using SQLite Python
+        # binding syntax. The values are fed to SQLite using the
+        # values dict created below.
+
+        condition = ' AND '.join(
+            '{0} IS :{0}'.format(self._quote(x)) for x in match_columns)
+        sql += u' WHERE ' + condition
+
         c = self._conn.cursor()
-        c.execute(sql, values)
+        c.execute(sql, match_columns)
         return c

@@ -223,8 +223,7 @@ class DeleteWalker(unifiedapi.ItemWalker):
         self._delete_rows(self._item_type, self._item_id)
 
     def _delete_rows(self, table_name, item_id):
-        self._db.delete(
-            table_name, condition=u'id IS :id', values={u'id': item_id})
+        self._db.delete_matching_rows(table_name, {u'id': item_id})
 
     def visit_main_str_list(self, item, field):
         table_name = self._db.make_table_name(self._item_type, field)
