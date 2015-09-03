@@ -134,24 +134,14 @@ class Database(object):
         c = self._conn.cursor()
         c.execute(sql, values)
 
-    def select(self, table_name, column_names, condition=None, values=None):
-        '''Retrieve rows that match a condition.
-
-        The condition MUST be an SQL boolean expression, and it MUST
-        refer to values with ``:foo`` syntax. ``values`` is a
-        dictionary providing the values to be given to the conditional
-        expression.
-
-        '''
+    def select(self, table_name, column_names):
+        '''Retrieve the given columns from all rows.'''
 
         quoted_names = [self._quote(x) for x in column_names]
         sql = u'SELECT %s FROM %s' % (
             u','.join(quoted_names), self._quote(table_name))
-        if condition:
-            sql += u' WHERE ' + condition
-        values = dict((self._quote(x), values[x]) for x in values or {})
         c = self._conn.cursor()
-        c.execute(sql, values)
+        c.execute(sql)
 
         for row in c:
             a_dict = {}
@@ -160,7 +150,7 @@ class Database(object):
             yield a_dict
 
     def select_matching_rows(self, table_name, column_names, match_columns):
-        '''Like select, but condition is given as a list of values.
+        '''Like select, but only rows matching a condition.
 
         ``match_columns`` is a list of (column name, value) pairs.
         This forms the condition: the rows are those that have the
@@ -169,11 +159,25 @@ class Database(object):
 
         '''
 
+        quoted_names = [self._quote(x) for x in column_names]
+        sql = u'SELECT %s FROM %s' % (
+            u','.join(quoted_names), self._quote(table_name))
+
+        # FIXME
         condition = ' AND '.join(
             '{0} IS :{0}'.format(self._quote(x)) for x in match_columns)
+        sql += u' WHERE ' + condition
+
         values = dict(match_columns)
-        for row in self.select(table_name, column_names, condition, values):
-            yield row
+
+        c = self._conn.cursor()
+        c.execute(sql, values)
+
+        for row in c:
+            a_dict = {}
+            for i in range(len(column_names)):
+                a_dict[unicode(column_names[i])] = row[str(quoted_names[i])]
+            yield a_dict
 
     def delete(self, table_name, condition=None, values=None):
         '''Delete rows matching a condition.
