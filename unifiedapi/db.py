@@ -137,8 +137,7 @@ class Database(object):
     def select(self, table_name, column_names):
         '''Retrieve the given columns from all rows.'''
 
-        for row in self._select_helper(table_name, column_names, []):
-            yield row
+        return self._select_helper(table_name, column_names, [])
 
     def select_matching_rows(self, table_name, column_names, match_columns):
         '''Like select, but only rows matching a condition.
@@ -151,9 +150,9 @@ class Database(object):
         '''
 
         if match_columns:
-            for row in self._select_helper(
-                    table_name, column_names, match_columns):
-                yield row
+            return self._select_helper(table_name, column_names, match_columns)
+        else:
+            return []
 
     def _select_helper(self, table_name, column_names, match_columns):
         quoted_names = [self._quote(x) for x in column_names]
@@ -170,11 +169,13 @@ class Database(object):
         c = self._conn.cursor()
         c.execute(sql, values)
 
+        result = []
         for row in c:
             a_dict = {}
             for i in range(len(column_names)):
                 a_dict[unicode(column_names[i])] = row[str(quoted_names[i])]
-            yield a_dict
+            result.append(a_dict)
+        return result
 
     def delete(self, table_name, condition=None, values=None):
         '''Delete rows matching a condition.
