@@ -58,14 +58,15 @@ class AuthorizationValidator(object):
                 leeway=datetime.timedelta(seconds=60))
             # Additionally always require sub field (subject)
             if u'sub' not in payload:
-                raise InvalidAccessTokenError()
+                raise InvalidAccessTokenError(
+                    token_error=u'Invalid subject (sub)')
             return {
                 u'scopes': payload[u'scope'].split(' '),
                 u'user_id': payload[u'sub'],
                 u'client_id': payload[u'aud']
             }
-        except jwt.InvalidTokenError:
-            raise InvalidAccessTokenError()
+        except jwt.InvalidTokenError, e:
+            raise InvalidAccessTokenError(token_error=unicode(e))
 
 
 class AuthorizationHeaderMissing(unifiedapi.Unauthorized):
