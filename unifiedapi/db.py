@@ -137,17 +137,8 @@ class Database(object):
     def select(self, table_name, column_names):
         '''Retrieve the given columns from all rows.'''
 
-        quoted_names = [self._quote(x) for x in column_names]
-        sql = u'SELECT %s FROM %s' % (
-            u','.join(quoted_names), self._quote(table_name))
-        c = self._conn.cursor()
-        c.execute(sql)
-
-        for row in c:
-            a_dict = {}
-            for i in range(len(column_names)):
-                a_dict[unicode(column_names[i])] = row[str(quoted_names[i])]
-            yield a_dict
+        for row in self._select_helper(table_name, column_names, []):
+            yield row
 
     def select_matching_rows(self, table_name, column_names, match_columns):
         '''Like select, but only rows matching a condition.
@@ -159,17 +150,23 @@ class Database(object):
 
         '''
 
+        if match_columns:
+            for row in self._select_helper(
+                    table_name, column_names, match_columns):
+                yield row
+
+    def _select_helper(self, table_name, column_names, match_columns):
         quoted_names = [self._quote(x) for x in column_names]
         sql = u'SELECT %s FROM %s' % (
             u','.join(quoted_names), self._quote(table_name))
 
         # FIXME
-        condition = ' AND '.join(
-            '{0} IS :{0}'.format(self._quote(x)) for x in match_columns)
-        sql += u' WHERE ' + condition
+        if match_columns:
+            condition = ' AND '.join(
+                '{0} IS :{0}'.format(self._quote(x)) for x in match_columns)
+            sql += u' WHERE ' + condition
 
         values = dict(match_columns)
-
         c = self._conn.cursor()
         c.execute(sql, values)
 
