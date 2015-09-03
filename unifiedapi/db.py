@@ -10,16 +10,15 @@ import sqlite3
 
 def open_disk_database(filename):
     '''Connect to (and create) a database on disk, given its filename.'''
-    return Database(filename)
+    return SQLiteDatabase(filename)
 
 
 def open_memory_database():
     '''Connect to (and create) a database in memory only.'''
-    return Database(u':memory:')
+    return SQLiteDatabase(u':memory:')
 
 
 class Database(object):
-
     '''A database abstraction.
 
     This class provides a minimal database abstraction, for the kinds
@@ -46,6 +45,40 @@ class Database(object):
 
     '''
 
+    def make_table_name(self, *components):
+        '''Create a name for a table from the given components.'''
+        return '_'.join(self._quote(x) for x in components)
+
+    def _quote(self, name):
+        ok = string.ascii_letters + string.digits + '-_'
+        assert name.strip(ok) == ''
+        return '_'.join(name.split('-'))
+
+    def select(self, table_name, column_names):
+        '''Retrieve the given columns from all rows.'''
+
+        return self._select_helper(table_name, column_names, {})
+
+    def select_matching_rows(self, table_name, column_names, match_columns):
+        '''Like select, but only rows matching a condition.
+
+        ``match_columns`` is a dict, where the key is a column name
+        and the value is its value. If the dict is empty, an empty
+        list is returned.
+
+        '''
+
+        if match_columns:
+            return self._select_helper(table_name, column_names, match_columns)
+        else:
+            return []
+
+    def _select_helper(self, table_name, column_names, match_columns):
+        raise NotImplementedError
+
+
+class SQLiteDatabase(Database):
+
     def __init__(self, url):
         self._conn = sqlite3.connect(
             url,
@@ -69,10 +102,6 @@ class Database(object):
         else:
             self._conn.rollback()
         self._in_transaction = False
-
-    def make_table_name(self, *components):
-        '''Create a name for a table from the given components.'''
-        return '_'.join(self._quote(x) for x in components)
 
     def create_table(self, table_name, *columns):
         '''Create a new table.
@@ -102,11 +131,6 @@ class Database(object):
         c = self._conn.cursor()
         c.execute(sql)
 
-    def _quote(self, name):
-        ok = string.ascii_letters + string.digits + '-_'
-        assert name.strip(ok) == ''
-        return '_'.join(name.split('-'))
-
     def insert(self, table_name, *columns):
         '''Insert a row into a table.
 
@@ -133,25 +157,6 @@ class Database(object):
 
         c = self._conn.cursor()
         c.execute(sql, values)
-
-    def select(self, table_name, column_names):
-        '''Retrieve the given columns from all rows.'''
-
-        return self._select_helper(table_name, column_names, {})
-
-    def select_matching_rows(self, table_name, column_names, match_columns):
-        '''Like select, but only rows matching a condition.
-
-        ``match_columns`` is a dict, where the key is a column name
-        and the value is its value. If the dict is empty, an empty
-        list is returned.
-
-        '''
-
-        if match_columns:
-            return self._select_helper(table_name, column_names, match_columns)
-        else:
-            return []
 
     def _select_helper(self, table_name, column_names, match_columns):
         quoted_names = [self._quote(x) for x in column_names]
