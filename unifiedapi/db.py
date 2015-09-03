@@ -159,8 +159,14 @@ class Database(object):
         sql = u'SELECT %s FROM %s' % (
             u','.join(quoted_names), self._quote(table_name))
 
-        # FIXME
         if match_columns:
+            # Add condition for a column. This results in an SQL
+            # snippets such as "foo IS :foo AND bar IS :bar", where
+            # "foo" and "bar" are columns names, and ":foo" and ":bar"
+            # are placeholders for the value, using SQLite Python
+            # binding syntax. The values are fed to SQLite using the
+            # values dict created below.
+
             condition = ' AND '.join(
                 '{0} IS :{0}'.format(self._quote(x)) for x in match_columns)
             sql += u' WHERE ' + condition
