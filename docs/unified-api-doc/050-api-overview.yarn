@@ -262,6 +262,11 @@ following conventions are followed.
   standard, contact Tilaajavastuu and we will assign a custom code to
   use instead.
 
+* Locales are defined in format `language_COUNTRY` where `language` is an
+  [ISO 639][ISO639] language code and `COUNTRY` is an
+  [ISO 3166-1 alpha-2][ISO3166] country code in upper case. For example, the
+  locale for British English is `en_GB`.
+
 * Dates and timestamps are stored using [ISO 8601][ISO8601] formats. Resource
   attributes may be just a date, or also include a timestamp. A date
   is always stored as `YYYY-MM-DD`, and a timestamp as
@@ -273,6 +278,7 @@ following conventions are followed.
     end time can be null, to indicate "not ended yet".
 
 [ISO3166]: http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
+[ISO639]: https://en.wikipedia.org/wiki/ISO_639
 [ISO8601]: http://en.wikipedia.org/wiki/ISO_8601
 
 

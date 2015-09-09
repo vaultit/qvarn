@@ -1,0 +1,216 @@
+`/competence_types`
+-------------------
+
+This resource stores information about different types of competences.
+See [competences](#resource-competences).
+
+Synopsis:
+
+* `GET /competence_types` --- get a list of ids of all competence types.
+* `POST /competence_types` --- add a new competence type.
+* `GET /competence_types/<id>` --- get the information about a specific
+  competence type.
+* `PUT /competence_types/<id>` --- update the information about a specific
+  competence type.
+* `DELETE /competence_types/<id>` --- remove a competence certification.
+
+Errors:
+
+* There are no errors that are specific to this resource.
+
+Example result for a competence type:
+
+    EXAMPLE
+    {
+        "type": "competence_type",
+        "id": "123",
+        "names": [
+            {
+                "locale": "fi_FI",
+                "name": "torkkuminen"
+            },
+            {
+                "locale": "en_GB",
+                "name": "napping"
+            }
+        ],
+        "descriptions": [
+            {
+                "locale": "fi_FI",
+                "description": "Saa torkkua tyoaikana"
+            },
+            {
+                "locale": "en_GB",
+                "description": "Allowed to nap during work hours"
+            }
+        ]
+    }
+
+Fields in the result:
+
+* `names` --- a list of names for the competence type, perhaps in
+  different locales; there can be multiple names (aliases) in one
+  locale; the fields for one entry are:
+    * `locale` --- the locale code
+    * `name` --- a name for the competence in the given locale
+* `descriptions` --- a list of descriptions for the competence type;
+  the description can be given in any locale, but only once per
+  locale
+    * `locale` --- the locale code
+    * `description` --- the description for the competence in the
+      given locale
+
+### Tests
+
+We create a new competence type, update them, and delete them.
+
+    SCENARIO manage a competence type
+
+Client has needed access rights for competence type resource.
+
+    GIVEN client has access to scopes
+    ... "uapi_competence_types_post uapi_competence_types_get
+    ...  uapi_competence_types_id_get uapi_competence_types_id_put
+    ...  uapi_competence_types_id_delete"
+
+Try to create a new project. Test with an invalid field.
+
+    WHEN client POSTs /competence_types with {"invalid_field": true}
+    THEN HTTP status code is 400
+
+Create a new project.
+
+    WHEN client POSTs /competence_types with
+    ... {
+    ...     "names": [
+    ...         {
+    ...             "locale": "fi_FI",
+    ...             "name": "torkkuminen"
+    ...         },
+    ...         {
+    ...             "locale": "en_GB",
+    ...             "name": "napping"
+    ...         }
+    ...     ],
+    ...     "descriptions": [
+    ...         {
+    ...             "locale": "fi_FI",
+    ...             "description": "Saa torkkua tyoaikana"
+    ...         },
+    ...         {
+    ...             "locale": "en_GB",
+    ...             "description": "Allowed to nap during work hours"
+    ...         }
+    ...     ]
+    ... }
+    THEN HTTP status code is 201
+    AND result matches
+    ... {
+    ...     "type": "competence_type",
+    ...     "names": [
+    ...         {
+    ...             "locale": "fi_FI",
+    ...             "name": "torkkuminen"
+    ...         },
+    ...         {
+    ...             "locale": "en_GB",
+    ...             "name": "napping"
+    ...         }
+    ...     ],
+    ...     "descriptions": [
+    ...         {
+    ...             "locale": "fi_FI",
+    ...             "description": "Saa torkkua tyoaikana"
+    ...         },
+    ...         {
+    ...             "locale": "en_GB",
+    ...             "description": "Allowed to nap during work hours"
+    ...         }
+    ...     ]
+    ... }
+    AND result has key "id" containing a string, saved as $ID1
+    AND HTTP Location header is API_URL/competence_types/$ID1
+    AND result has key "revision" containing a string, saved as $REV1
+
+Check that the record is there.
+
+    WHEN client GETs /competence_types
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+
+    WHEN client GETs /competence_types/$ID1
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "type": "competence_type",
+    ...     "names": [
+    ...         {
+    ...             "locale": "fi_FI",
+    ...             "name": "torkkuminen"
+    ...         },
+    ...         {
+    ...             "locale": "en_GB",
+    ...             "name": "napping"
+    ...         }
+    ...     ],
+    ...     "descriptions": [
+    ...         {
+    ...             "locale": "fi_FI",
+    ...             "description": "Saa torkkua tyoaikana"
+    ...         },
+    ...         {
+    ...             "locale": "en_GB",
+    ...             "description": "Allowed to nap during work hours"
+    ...         }
+    ...     ]
+    ... }
+    AND result has key "id" containing a string, saved as $ID2
+    AND values "$ID1" and "$ID2" are identical
+    AND result has key "revision" containing a string, saved as $REV2
+    AND values "$REV1" and "$REV2" are identical
+
+Update the record.
+
+    WHEN client PUTs /competence_types/$ID1 with
+    ... {
+    ...     "revision": "$REV1",
+    ...     "names": [
+    ...         {
+    ...             "locale": "fi_FI",
+    ...             "name": "torkkuminen"
+    ...         }
+    ...     ],
+    ...     "descriptions": [
+    ...         {
+    ...             "locale": "fi_FI",
+    ...             "description": "Saa torkkua tyoaikana"
+    ...         }
+    ...     ]
+    ... }
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "names": [
+    ...         {
+    ...             "locale": "fi_FI",
+    ...             "name": "torkkuminen"
+    ...         }
+    ...     ],
+    ...     "descriptions": [
+    ...         {
+    ...             "locale": "fi_FI",
+    ...             "description": "Saa torkkua tyoaikana"
+    ...         }
+    ...     ]
+    ... }
+    AND result has key "id" containing a string, saved as $ID3
+    AND values "$ID1" and "$ID3" are identical
+    AND result has key "revision" containing a string, saved as $REV3
+
+Delete the record.
+
+    WHEN client DELETEs /competence_types/$ID1
+    THEN HTTP status code is 200
+
+    WHEN client GETs /competence_types/$ID1
+    THEN HTTP status code is 404

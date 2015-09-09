@@ -29,6 +29,8 @@ frontend http-in
     acl resource_projects path_beg /projects
     acl resource_reports path_beg /reports
     acl resource_version path_beg /version
+    acl resource_competence path_beg /competences
+    acl resource_competence_type path_beg /competence_types
 
     use_backend gluu if resource_auth_authorize
     use_backend gluu if resource_auth_token
@@ -40,6 +42,8 @@ frontend http-in
     use_backend projects_apps if resource_projects
     use_backend reports_apps if resource_reports
     use_backend version_apps if resource_version
+    use_backend competence_apps if resource_competence
+    use_backend competence_type_apps if resource_competence_type
 
 
 # A stanza for redirecting /auth/* to a Gluu instance.
@@ -76,3 +80,9 @@ backend reports_apps
 
 backend version_apps
     server version1 127.0.0.1:9008
+
+backend competence_apps
+    server version1 127.0.0.1:9009
+
+backend competence_type_apps
+    server version1 127.0.0.1:9010
