@@ -104,8 +104,29 @@ class BackendApplication(object):
 
         parser.add_argument(
             '-d', '--database',
-            metavar='FILE',
-            help='use FILE as the SQLite3 database')
+            metavar='DB',
+            help='use DB as the PostgreSQL database name')
+
+        parser.add_argument(
+            '--dbhost',
+            metavar='DBHOST',
+            help='use DBHOST as the host address for PostgreSQL database')
+
+        parser.add_argument(
+            '--dbport',
+            metavar='DBPORT',
+            type=int,
+            help='use DBPORT as the port for PostgreSQL database')
+
+        parser.add_argument(
+            '--dbuser',
+            metavar='DBUSER',
+            help='use DBUSER as the username for PostgreSQL database')
+
+        parser.add_argument(
+            '--dbpassword',
+            metavar='DBPASS',
+            help='use DBPASS as the password for PostgreSQL database')
 
         parser.add_argument(
             '--token-validation-key',
@@ -121,7 +142,9 @@ class BackendApplication(object):
 
     def _setup_storage(self, args):
         '''Prepare the database for use.'''
-        self._db = unifiedapi.open_disk_database(args.database)
+        self._db = unifiedapi.open_database(
+            args.dbhost, args.dbport, args.database,
+            args.dbuser, args.dbpassword)
         assert self._preparer
         with self._db:
             self._preparer.run(self._db)
