@@ -1,0 +1,151 @@
+`/competences`
+-----------------------
+
+This resource stores information about competences: formal or informal
+certifications that a person is able and allowed to do a specific type
+of work.
+
+Synopsis:
+
+* `GET /competences` --- get a list of ids of all competence certifications.
+* `POST /competences` --- add a new competence certification.
+* `GET /competences/<id>` --- get the information about a specific
+  competence certification.
+* `PUT /competences/<id>` --- update the information about a specific
+  competence certification.
+* `DELETE /competences/<id>` --- remove a competence certification.
+
+Errors:
+
+* There are no errors that are specific to this resource.
+
+Example result for a competence certification:
+
+    EXAMPLE
+    {
+        "type": "competence",
+        "id": "123",
+        "employee_person_id": "007",
+        "employer_org_id": "9",
+        "valid_from_date": "2015-05-11",
+        "valid_until_date": "2015-05-11",
+        "competence_type_id": "abc",
+        "granted_by_org_id": "654",
+        "competence_registry_id": "987",
+        "competence_card_id": "876",
+        "validation_status": "unknown"
+    }
+
+FIXME: fields validation_status, competence_registry_id and granted_by_org_id
+are not implemented
+
+Fields in the result:
+
+* `employee_person_id` --- id of person who has been certified as
+  competent
+* `employer_org_id` --- id of organisation this competence is registered under
+* `valid_from_date` --- **optional** date from which the certification
+  is valid
+* `valid_until_date` --- **optional** date until which the
+  certification is valid
+* `competence_type_id` --- id of the type of the competence (see
+  [competence types](#reference-competence-types))
+* `granted_by_org_id` --- id of organisation certifying the competence
+* `competence_registry_id` --- id of the organisation that keeps the
+  registry of this competence
+* `competence_card_id` --- **optional** id of card proving the
+  certification
+* `validation_status` --- status of the validation of this competence
+  against the external registry specified in the
+  `competence_registry_id` field; the value must be one of the
+  following:
+    * `unknown` --- it is not known if the competence is valid
+    * `invalid` --- the competence is not valid
+    * `valid` --- the competence is valid
+
+### Tests
+
+We create a new competence, update them, and delete them.
+
+    SCENARIO manage a competence
+
+Client has needed access rights for competence resource.
+
+    GIVEN client has access to scopes
+    ... "uapi_competences_post uapi_competences_get uapi_competences_id_get
+    ...  uapi_competences_id_put uapi_competences_id_delete"
+
+Try to create a new project. Test with an invalid field.
+
+    WHEN client POSTs /competences with {"invalid_field": true}
+    THEN HTTP status code is 400
+
+Create a new project.
+
+    WHEN client POSTs /competences with
+    ... {
+    ...     "employee_person_id": "007",
+    ...     "employer_org_id": "9",
+    ...     "valid_from_date": "2015-05-11",
+    ...     "valid_until_date": "2015-05-11",
+    ...     "competence_type_id": "abc",
+    ...     "competence_card_id": "876"
+    ... }
+    THEN HTTP status code is 201
+    AND result matches
+    ... {
+    ...     "type": "competence",
+    ...     "employee_person_id": "007",
+    ...     "employer_org_id": "9",
+    ...     "valid_from_date": "2015-05-11",
+    ...     "valid_until_date": "2015-05-11",
+    ...     "competence_type_id": "abc",
+    ...     "competence_card_id": "876"
+    ... }
+    AND result has key "id" containing a string, saved as $ID1
+    AND HTTP Location header is API_URL/competences/$ID1
+    AND result has key "revision" containing a string, saved as $REV1
+
+Check that the record is there.
+
+    WHEN client GETs /competences
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+
+    WHEN client GETs /competences/$ID1
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "type": "competence",
+    ...     "employee_person_id": "007",
+    ...     "employer_org_id": "9",
+    ...     "valid_from_date": "2015-05-11",
+    ...     "valid_until_date": "2015-05-11",
+    ...     "competence_type_id": "abc",
+    ...     "competence_card_id": "876"
+    ... }
+    AND result has key "id" containing a string, saved as $ID2
+    AND values "$ID1" and "$ID2" are identical
+    AND result has key "revision" containing a string, saved as $REV2
+    AND values "$REV1" and "$REV2" are identical
+
+Update the record.
+
+    WHEN client PUTs /competences/$ID1 with
+    ... {
+    ...     "revision": "$REV1",
+    ...     "valid_from_date": "2015-05-09"
+    ... }
+    THEN HTTP status code is 200
+    AND result matches {"valid_from_date": "2015-05-09"}
+    AND result has key "id" containing a string, saved as $ID3
+    AND values "$ID1" and "$ID3" are identical
+    AND result has key "revision" containing a string, saved as $REV3
+
+Delete the record.
+
+    WHEN client DELETEs /competences/$ID1
+    THEN HTTP status code is 200
+
+    WHEN client GETs /competences/$ID1
+    THEN HTTP status code is 404
