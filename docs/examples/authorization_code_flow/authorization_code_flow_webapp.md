@@ -8,32 +8,34 @@ Application uses [bottle]() web framework and [Beaker]() for session
 management (cookies). Additionally we will be making the HTTP requests
 with [requests]() library.
 
-Application is tested on Debian 8.1, codename Jessie. Debian packages needed
-are `python-requests`, `python-bottle` and `python-beaker`.
+Application is tested on Debian 8.1, codename Jessie. Debian packages
+needed are `python-requests`, `python-bottle` and `python-beaker`.
 
-The most important objects or methods (and their attributes or arguments) used
-here are:
+The most important objects or methods (and their attributes or
+arguments) used here are:
 
-Bottle's request class which is available in global `bottle.request` variable.
-`bottle.request.params` contains a dictionary of query parameters.
-`bottle.request.environ['beaker.session']` contains a dictionary of variables
-stored in the session cookie. Session dictionary can be saved after changes
-with `.save()` method.
+Bottle's request class which is available in global `bottle.request`
+variable. `bottle.request.params` contains a dictionary of query
+parameters. `bottle.request.environ['beaker.session']` contains a
+dictionary of variables stored in the session cookie. Session
+dictionary can be saved after changes with `.save()` method.
 
-Bottle's template method `bottle.template()`.
-First argument is a string which is the template name. Templates are used
-by default from `views/TEMPLATE_NAME.tpl`. Method takes other named arguments
-(in form `key=value`) that can be used in the template.
+Bottle's template method `bottle.template()`. First argument is a
+string which is the template name. Templates are used by default from
+`views/TEMPLATE_NAME.tpl`. Method takes other named arguments (in form
+`key=value`) that can be used in the template.
 
-Bottle application's route method. Takes (named) arguments `path` (what the
-  web app listens to), `method` (what HTTP method it listens to) and `callback` (what function is used to handle the request).
+Bottle application's route method. Takes (named) arguments `path`
+(what the web app listens to), `method` (what HTTP method it listens
+to) and `callback` (what function is used to handle the request).
 
-Requests library's post method. Makes a HTTP POST request to an url given as
-the first argument. Data sent in the request body is defined with `data`
-argument as a dictionary (sent as `application/x-www-form-urlencoded` by
-  default). Headers are defined with `headers` arguments also as a dictionary.
-  As we are making the requests to a test server with a self signed certificate we need also to set `verify` argument to false (do not use in
-    production).
+Requests library's post method. Makes a HTTP POST request to an url
+given as the first argument. Data sent in the request body is defined
+with `data` argument as a dictionary (sent as
+`application/x-www-form-urlencoded` by default). Headers are defined
+with `headers` arguments also as a dictionary. As we are making the
+requests to a test server with a self signed certificate we need also
+to set `verify` argument to false (do not use in production).
 
 #### We start by implementing a web application that serves the client (browser) an index page with `Hello!`.
 
