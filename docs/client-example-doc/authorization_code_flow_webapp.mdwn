@@ -23,7 +23,7 @@ API.
 
 # Architecture view
 
-![Service architecture][services-arch.dia]\ 
+![Service architecture](services-arch.eps)\ 
 
 # Overview
 

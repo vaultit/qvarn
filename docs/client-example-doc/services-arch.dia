@@ -125,7 +125,7 @@
           <dia:point val="21.4541,1.23137"/>
         </dia:attribute>
         <dia:attribute name="obj_bb">
-          <dia:rectangle val="21.4541,0.918874;22.2241,1.31137"/>
+          <dia:rectangle val="21.4541,0.91887;22.2241,1.31137"/>
         </dia:attribute>
         <dia:attribute name="text">
           <dia:composite type="text">
@@ -156,13 +156,13 @@
     </dia:group>
     <dia:object type="Standard - Line" version="0" id="O3">
       <dia:attribute name="obj_pos">
-        <dia:point val="22.0013,1.45238"/>
+        <dia:point val="22.0012,1.45238"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="21.9388,1.38997;22.3738,2.47627"/>
+        <dia:rectangle val="21.9388,1.38997;22.3738,2.47626"/>
       </dia:attribute>
       <dia:attribute name="conn_endpoints">
-        <dia:point val="22.0013,1.45238"/>
+        <dia:point val="22.0012,1.45238"/>
         <dia:point val="22.2808,2.36932"/>
       </dia:attribute>
       <dia:attribute name="numcp">
@@ -989,12 +989,12 @@
         <dia:point val="22.4794,4.05971"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="22.4679,3.68071;23.4944,4.17521"/>
+        <dia:rectangle val="22.4794,3.68071;29.3884,4.17521"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
           <dia:attribute name="string">
-            <dia:string>#https#</dia:string>
+            <dia:string>#https (HTML, CSS, JS, API requests)#</dia:string>
           </dia:attribute>
           <dia:attribute name="font">
             <dia:font family="sans" style="0" name="Helvetica"/>
@@ -1022,12 +1022,12 @@
         <dia:point val="22.63,6.89821"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="22.6185,6.51921;23.645,7.01371"/>
+        <dia:rectangle val="22.63,6.51921;26.5465,7.01371"/>
       </dia:attribute>
       <dia:attribute name="text">
         <dia:composite type="text">
           <dia:attribute name="string">
-            <dia:string>#https#</dia:string>
+            <dia:string>#https (API requests)#</dia:string>
           </dia:attribute>
           <dia:attribute name="font">
             <dia:font family="sans" style="0" name="Helvetica"/>
