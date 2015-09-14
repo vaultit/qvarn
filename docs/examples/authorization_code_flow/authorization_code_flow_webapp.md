@@ -21,6 +21,10 @@ The structure is that Bottle and Beaker handle the interface towards
 the user (web browser), and Requests handles communication with the
 API.
 
+# Architecture view
+
+![Service architecture][services-arch.dia]\ 
+
 # Overview
 
 The API requires the API client as well as the user to be
