@@ -12,7 +12,7 @@ import string
 import sqlite3
 
 
-def open_database(host, port, db_name, user, password):
+def open_disk_database(host, port, db_name, user, password):
     '''Connect to a database on disk, given its connection parameters.'''
     return PostgreSQLDatabase(host, port, db_name, user, password)
 
@@ -304,10 +304,6 @@ class PostgreSQLDatabase(Database):
                 '{0} = %({0})s'.format(self._quote(x)) for x in match_columns)
             sql += u' WHERE ' + condition
 
-        # why this is needed is beyond me, the pool connection taken
-        # in __init__ or __enter__ does not work at this point
-        self._conn = self._pool.getconn()
-        
         with self._conn.cursor() as c:
             c.execute(sql, match_columns)
             result = []
