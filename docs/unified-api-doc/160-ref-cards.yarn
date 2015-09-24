@@ -9,15 +9,61 @@ Synopsis:
 * `POST /cards` --- add a new card
 * `GET /cards/<id>` --- get the information about a specific card
 * `PUT /cards/<id>` --- replace the information for a card
+* `GET /cards/<id>/holder_photo` --- get the photo of the card holder
+* `PUT /cards/<id>/holder_photo` --- set the photo of the card holder
+* `GET /cards/<id>/issuer_logo` --- get the logo of the card issuer
+* `PUT /cards/<id>/issuer_logo` --- set the logo of the card issuer
 * `DELETE /cards/<id>` --- remove a card
 
 Errors:
 
 * There are no errors that are specific to this resource.
 
-Example result for a VALTTI card:
+### Description
 
-    EXAMPLE
+A `card` resource describes an identification card. There are various
+types of cards supported, and the `card_type` field will specify the
+type for a specific resource.
+
+Each type of card has different attributes, but many of of them are
+identical from type to type. The field descriptions below describe
+which types of cards they apply to. In addition, each type of card has
+a short section below describing the card.
+
+There are two sub-resource of cards:
+
+* `holder_photo` is a photograph of the card holder.
+* `issuer_logo` is the logotype of the card issuer.
+
+In both cases the image shows what was recorded or printed on the
+card, not whatever is current.
+
+### Glossary
+
+Some terminology for the `card` resource.
+
+* **card issuer** --- the company who issued the card, i.e., decided
+  it to be created and paid for that to happen. Usually, but not
+  necessarily, the employer of the card holder.
+* **card holder** --- the named person to whom the card was issued.
+  Usually, but not necessarily, an employee of the card issuer.
+* **card supplier** --- the company who made the card, based on an
+  order from the card issuer.
+
+### Finnish VALTTI cards
+
+The VALTTI cards are operated by the company Suomen Tilaajavastuu Oy.
+These cards contain an RFID chip with minimal digital information,
+only the digital serial number, called `uid` below. On the card is
+printed a one-dimensional bar code, called `barcode_id` below. In
+addition, some information about the card holder, and the company who
+issued the card. That information is not readable from the RFID chip,
+and a lookup via this API must be made to retrieve it in a machine
+readable form.
+
+FIXME: Add a URL here to a public description of the cards.
+
+    EXAMPLE An example resource for a VALTTI card
     {
         "type": "card",
         "id": "1234",
@@ -33,6 +79,7 @@ Example result for a VALTTI card:
             }
         ],
         "issued_date": "2015-04-01",
+        "created_date": "2015-04-01",
         "valid_until_date": null,
         "card_status_history": [
             {
@@ -40,30 +87,117 @@ Example result for a VALTTI card:
                 "modified_by": "123",
                 "modified_timestamp": "2015-02-25T12:13:14+0200",
                 "modification_reason": "NewCard"
-                "modification_description": "M. didn't want to activate card yet"
+                "modification_description": "M. issued card"
             }
         ],
         "org": "4444",
         "person": "7777"
     }
 
-Fields in the result:
+
+### Swedish ID06 cards
+
+The Swedish construction business uses a card standard known as ID06.
+It is managed by the Swedish Construction Federation, and has some
+information readable over RFID as well printed on the face of the
+card.
+
+There are three types of ID06 card: physical card, virtual card, and
+visitor card. A physical card is issued to a specific person and has
+their identifying information on them. The virtual card is effectively
+an access token installed on a mobile device (phone, tablet) and tied
+to a physical card. A visitor card is not specific to a person, and
+has no personal information on it. It can be given to someone
+temporarily visiting a construction site.
+
+FIXME: Add a URL here to the card specification.
+
+    EXAMPLE An example resource for an ID06 card
+    {
+        "type": "card",
+        "id": "1234",
+        "card_type": "ID06",
+        "card_ids": [
+            {
+                "card_id_type": "ID06_id",
+                "card_id": "12456",
+            }
+        ],
+        "issued_date": "2015-01-01",
+        "created_date": "2015-02-25",
+        "valid_from_date": "2015-04-01",
+        "valid_until_date": 2018-04-01,
+        "issuer_gov_ids": [
+            {
+                "country": "SE",
+                "org_id_type": "registration_number",
+                "gov_org_id": "1111111"
+            }
+        ],
+        "holder_gov_ids": [
+            {
+                "country": "SE",
+                "id_type": "ssn",
+                "gov_id": "1212313123"
+            }
+        ],
+        "holder_nationalities": [
+            "SE"
+        ],
+        "holder_names": [
+            {
+                "full_name": "Lisbeth Salander",
+                "sort_key": "Salander, Lisbeth",
+                "title": "Miss",
+                "given_names": ["Lisbeth"],
+                "surnames": ["Salander"]
+            }
+        ],
+        "id06_virtual_enabled": true,
+        "id06_virtual_history": [
+            {
+                "full_name": "Mikael Blomqvist",
+                "date": "2001-01-01",
+                "enabled": true
+            }
+        ],
+        "id06_bank_id_required": true,
+        "id06_virtual_devices": [
+            "+44 007 007 007 007"
+        ],
+        "id06_supplier_employee_full_name": "Mikael Blomqvist",
+        "card_status_history": [
+            {
+                "card_status": "active",
+                "modified_by": "123",
+                "modified_timestamp": "2015-02-25T12:13:14+0200",
+                "modification_reason": ""
+                "modification_description": "Card created"
+            }
+        ],
+        "org": "4444",
+        "person": "7777"
+    }
+
+### Resource fields
 
 The following table describes all the possible fields for a `card`
 resource. The "card types" column indicates which card types each
 field is valid for.
 
-------------------------------------------------------------------------
+----------------------------------------------------------------------------
 field                   card types      description
 -----------             ----------      ------------------------------------
-`card_type`             all             type of card; must be of `VALTTI`,
-                                        `ID06`
+`card_type`             all             type of card; one of `VALTTI`, `ID06`,
+                                        `ID06_visitor`
 
 `card_ids`              all             list of unique identifiers for 
                                         the card; see below for list items
 
 `issued_date`           all             date when issued, i.e., when the
                                         issuer ordered it
+
+`valid_from_date`       all             first date when card is valid
 
 `valid_until_date`      all             last date when card is valid
 
@@ -74,8 +208,57 @@ field                   card types      description
 `org`                   all             resource identifier of the
                                         organisation who issued the card
 
+`issuer_name`           `ID06`,         name of the issuer, as printed on
+                        `ID06_visitor`  the card
+
+`issuer_gov_org_ids`    `ID06`,         issuer's government
+                        `ID06_visitor`  organisation ids, as recorded on
+                                        the card (not necessarily
+                                        current info); same structure
+                                        as in the `org.gov_org_ids` list
+
 `person`                all             resource identifier of the person
                                         for whom the card was issued
+
+`holder_gov_ids`        `ID06`          card holder's government
+                                        identification numbers as
+                                        recorded on the card (not
+                                        necessarily current); same
+                                        structure as `person.gov_ids`
+
+`holder_nationalities`  `ID06`          card holder's nationalities
+                                        (list of country codes)
+
+`holder_names`          all             card holder's names as
+                                        recorded on the card (not
+                                        necessarily current); same
+                                        structure as `person.names`
+
+`id06_taxation_country` `ID06`          country code of country to which
+                                        card holder pays taxes
+
+`id06_virtual_devices`  `ID06`          phones or other devices which
+                                        may get an ID06 virtual card
+
+`id06_virtual_enabled`  `ID06`          are virtual cards allowed?
+
+`id06_virtual_`         `ID06`          date from which virtual cards
+`valid_from`                            are valid
+
+`id06_virtual_`         `ID06`          date until which virtual cards
+`valid_until`                           are valid
+
+`id06_virtual_history`  `ID06`          list of virtual card enable/disable 
+                                        changes; see below for details
+
+`id06_bank_id_required` `ID06`          is card holder required to
+                                        identify themselves using
+                                        a Swedish BankID to put a
+                                        virtual card on a mobile
+                                        device?
+
+`id06_supplier_         `ID06`          full name of employer at the card
+employee_full_name`                     supplier who created the card
 
 ------------------------------------------------------------------------
 
@@ -83,27 +266,49 @@ The `card_ids` list has items with the following fields:
 
 * `card_id_type` --- type of card identifier
     - for `VALTTI` cards, one of `uid`, `barcode_id`
-    - for `ID06` card: `ID06_id`
+    - for `ID06` and `ID06_visitor` cards: `ID06_id`
 * `card_id` --- the actual card id
 
 The `card_status_history` list has items with the following fields:
 
-* `card_status` --- status of the card; one of the following:
-    - `NotConfirmed` --- card has not been confirmed yet, and should
-      not be used
-    - `Active` --- card is active, and may be used
-    - `Closed` --- card has been closed, and should not be used
-    - `Expired` --- card has expired, and should not be used
-* `modified_by` --- the `/persons` id of the person who added the
-  card (new cards) or changed the card status
+* `card_status` --- status of the card; the allowed values depend on
+type of card; the last entry in the list is the current status
+    - for `VALTTI` cards, the following states are defined:
+        - `NotConfirmed` --- card has not been confirmed yet, and should
+          not be used
+        - `Active` --- card is active, and may be used
+        - `Closed` --- card has been closed, and should not be used
+        - `Expired` --- card has expired, and should not be used
+    - for `ID06` and `ID06_visitor` cards, the following states are
+      defined:
+        - `active` --- card is active and may be used
+        - `inactive` --- card is inactive, and may not be used; it may
+          be re-activated later
+        - `terminated` --- card is inactive, and may not be
+          re-activated again
+* `modified_by` --- the `/persons` resource id of the person who added
+  the card (new cards) or changed the card status
 * `modified_timestamp` --- timestamp of when the modification was
   made (set by the backend, not the API client)
-* `modification_reason` --- reason for the modification; one of
-  the following values:
-    - `NewCard` --- a new card was created
-    - `CardClosed` --- card was closed
-    - `CardLost` --- card was lost
-    - `CardError` --- other error
+* `modification_reason` --- reason for the modification; the allowed
+  values are dependent on the card type
+    - for `VALTTI` cards:
+        - `NewCard` --- a new card was created
+        - `CardClosed` --- card was closed
+        - `CardLost` --- card was lost
+        - `CardError` --- other error
+    - for `ID06` cards:
+        - FIXME
+
+The `id06_virtual_history` field for `ID06` cards is a (possibly
+empty) list of records like this:
+
+* `full_name` -- full name of employee at card issuer who changed the
+  status of virtual cards
+* `date` --- when the status was changed
+* `enabled` --- are virtual cards enabled after the change? note that
+  the current status must always be in the `id06_virtual_enabled`
+  field
 
 ### Tests
 
