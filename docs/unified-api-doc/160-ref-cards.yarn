@@ -1,7 +1,7 @@
 `/cards`
------------------
+--------
 
-This resource manages identification cards.
+This resource manages identification cards of various kinds.
 
 Synopsis:
 
@@ -15,7 +15,7 @@ Errors:
 
 * There are no errors that are specific to this resource.
 
-Example result for a card:
+Example result for a VALTTI card:
 
     EXAMPLE
     {
@@ -53,7 +53,7 @@ Fields in the result:
 * `card_ids` --- the various unique identifiers for the card
     - `card_id_type` --- type of card id; one of `uid`, `barcode_id`
     - `card_id` --- the card id
-* `issued_date` --- date when issued
+* `issued_date` --- date when issued, i.e., when the issuer ordered it
 * `valid_until_date` --- last date when card is valid
 * `card_status_history` --- history status of the card; the last entry
   in the list is the current status. Each entry in the list has the
