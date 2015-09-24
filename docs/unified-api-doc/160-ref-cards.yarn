@@ -49,34 +49,61 @@ Example result for a VALTTI card:
 
 Fields in the result:
 
-* `card_type` --- type of card; must be `VALTTI` for now
-* `card_ids` --- the various unique identifiers for the card
-    - `card_id_type` --- type of card id; one of `uid`, `barcode_id`
-    - `card_id` --- the card id
-* `issued_date` --- date when issued, i.e., when the issuer ordered it
-* `valid_until_date` --- last date when card is valid
-* `card_status_history` --- history status of the card; the last entry
-  in the list is the current status. Each entry in the list has the
-  following fields:
-    - `card_status` --- status of the card; one of the following:
-        - `NotConfirmed` --- card has not been confirmed yet, and should
-          not be used
-        - `Active` --- card is active, and may be used
-        - `Closed` --- card has been closed, and should not be used
-        - `Expired` --- card has expired, and should not be used
-    - `modified_by` --- the `/persons` id of the person who added the
-      card (new cards) or changed the card status
-    - `modified_timestamp` --- timestamp of when the modification was
-      made (set by the backend, not the API client)
-    - `modification_reason` --- reason for the modification; one of
-      the following values:
-        - `NewCard` --- a new card was created
-        - `CardClosed` --- card was closed
-        - `CardLost` --- card was lost
-        - `CardError` --- other error
-* `org` --- identifier of the organisation who issued the card
-* `person` --- identifier of the person for whom the card was issued
+The following table describes all the possible fields for a `card`
+resource. The "card types" column indicates which card types each
+field is valid for.
 
+------------------------------------------------------------------------
+field                   card types      description
+-----------             ----------      ------------------------------------
+`card_type`             all             type of card; must be of `VALTTI`,
+                                        `ID06`
+
+`card_ids`              all             list of unique identifiers for 
+                                        the card; see below for list items
+
+`issued_date`           all             date when issued, i.e., when the
+                                        issuer ordered it
+
+`valid_until_date`      all             last date when card is valid
+
+`card_status_history`   all             history status of the card; the last
+                                        entry in the list is the current
+                                        status; see below for list items
+
+`org`                   all             resource identifier of the
+                                        organisation who issued the card
+
+`person`                all             resource identifier of the person
+                                        for whom the card was issued
+
+------------------------------------------------------------------------
+
+The `card_ids` list has items with the following fields:
+
+* `card_id_type` --- type of card identifier
+    - for `VALTTI` cards, one of `uid`, `barcode_id`
+    - for `ID06` card: `ID06_id`
+* `card_id` --- the actual card id
+
+The `card_status_history` list has items with the following fields:
+
+* `card_status` --- status of the card; one of the following:
+    - `NotConfirmed` --- card has not been confirmed yet, and should
+      not be used
+    - `Active` --- card is active, and may be used
+    - `Closed` --- card has been closed, and should not be used
+    - `Expired` --- card has expired, and should not be used
+* `modified_by` --- the `/persons` id of the person who added the
+  card (new cards) or changed the card status
+* `modified_timestamp` --- timestamp of when the modification was
+  made (set by the backend, not the API client)
+* `modification_reason` --- reason for the modification; one of
+  the following values:
+    - `NewCard` --- a new card was created
+    - `CardClosed` --- card was closed
+    - `CardLost` --- card was lost
+    - `CardError` --- other error
 
 ### Tests
 
