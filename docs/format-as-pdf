@@ -84,7 +84,7 @@ process_markdown()
         -V fontsize:12pt \
         -V mainfont:"Verdana" \
         -V sansfont:"Liberation Sans" \
-        -V monofont:"Liberation Mono" \
+        -V monofont:"Courier New" \
         -V geometry:"top=2cm, bottom=2.5cm, left=2cm, right=1cm" \
         "$@"
 }
