@@ -368,6 +368,10 @@ complicated way:
 * `given_names`, `surnames` -- We **optionally** store given and
   surnames separately from the full name. These are both lists of
   individual names.
+* `titles` --- We **optionally** also store the titles of the person,
+  as a list of individual titles. This is any titles they want to show
+  before with their name. In the full name, it should already be
+  included.
 * `sort_key` --- We **optionally** store a sort key, which is a form
   of the full name to be used for ordering a list of people
   alphabetically. Commonly, in the Finnish tradition, this is
@@ -541,8 +545,9 @@ We try to create a new person but the JSON sent is malformed.
     WHEN client POSTs /persons with
     ... error{"names": [{"full_name": "James Bond",
     ...             "sort_key": "Bond, James",
-    ...		    "given_names": ["James"],
-    ...		    "surnames": ["Bond"]}]}
+    ...             "titles": [],
+    ...             "given_names": ["James"],
+    ...             "surnames": ["Bond"]}]}
     THEN HTTP status code is 400
 
 Create a person and try to update the person with malformed JSON.
@@ -550,8 +555,9 @@ Create a person and try to update the person with malformed JSON.
     WHEN client POSTs /persons with
     ... {"names": [{"full_name": "James Bond",
     ...             "sort_key": "Bond, James",
-    ...		    "given_names": ["James"],
-    ...		    "surnames": ["Bond"]}]}
+    ...             "titles": [],
+    ...             "given_names": ["James"],
+    ...             "surnames": ["Bond"]}]}
     THEN result has key "id" containing a string, saved as $ID1
     THEN result has key "revision" containing a string, saved as $REV1
 
@@ -717,8 +723,9 @@ Create a test person with sufficient amount of diverse data.
     WHEN client POSTs /persons with
     ... {"names": [{"full_name": "James Bond",
     ...             "sort_key": "Bond, James",
-    ...		    "given_names": ["James"],
-    ...		    "surnames": ["Bond"]}]}
+    ...             "titles": [],
+    ...             "given_names": ["James"],
+    ...             "surnames": ["Bond"]}]}
     THEN result has key "id" containing a string, saved as $ID1
     THEN result has key "revision" containing a string, saved as $REV1
 

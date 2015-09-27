@@ -17,6 +17,7 @@ person_prototype = {
         {
             u'full_name': u'',
             u'sort_key': u'',
+            u'titles': [u''],
             u'given_names': [u''],
             u'surnames': [u''],
         },

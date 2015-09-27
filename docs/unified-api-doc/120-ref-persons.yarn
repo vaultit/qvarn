@@ -35,12 +35,14 @@ Example result:
             {
                 "full_name": "James Bond",
                 "sort_key": "Bond, James",
+                "titles": [],
                 "given_names": ["James"],
                 "surnames": ["Bond"],
             },
             {
                 "full_name": "Alfred E. Newman",
                 "sort_key": "Newman, Alfred E.",
+                "titles": [],
                 "given_names": ["Alfred", "E."],
                 "surnames": ["Newman"],
             }
