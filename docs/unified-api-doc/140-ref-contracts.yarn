@@ -54,6 +54,8 @@ Fields in the result:
     - `employment` --- an employment contract
     - `induction` --- an induction document between an organisation and
       a person
+    - `ID06_cards` --- contract between an ID06 card issuer and
+      supplier (see the cards resource for details)
 * `contract_parties` --- all parties in the contract, where each party
   is defined by the following fields:
     - `type` --- type of the party, one of `org`, `person`
@@ -64,6 +66,8 @@ Fields in the result:
     - `eea_citizen` --- citizenship of an EU or EEA country
     - `residence_permit` --- an unspecified residence permit
     - `other` --- an unspecified other basis
+* `id06_issuer_requires_bankid` --- does the issuer require BankID
+  authentication for enabling each virtual ID06 card?
 
 Contract parties have a role in which they appear in the contract. The
 allowed roles are dependent on the type of contract, as follows:
@@ -74,6 +78,11 @@ allowed roles are dependent on the type of contract, as follows:
 * `induction` contracts:
     - `inductor` --- must be an `org`
     - `inductee` --- must be a `person`
+* `ID06_cards` contracts:
+    - `issuer` --- must be an `org`
+    - `supplier` --- must be an `org`
+    - `issuer_contact` --- person at issuer responsible for ordering
+      ID06 card; must be a `person`
 
 ### Tests
 
