@@ -33,6 +33,14 @@ Example result for a competence certification:
         "granted_by_org_id": "654",
         "competence_registry_id": "987",
         "competence_card_id": "876",
+        "competence_card_holder_names": [
+          {
+              "full_name": "James Bond",
+              "sort_key": "Bond, James",
+              "given_names": ["James"],
+              "surnames": ["Bond"]
+          }
+        ],
         "validation_status": "unknown"
     }
 
@@ -53,8 +61,10 @@ Fields in the result:
 * `granted_by_org_id` --- id of organisation certifying the competence
 * `competence_registry_id` --- id of the organisation that keeps the
   registry of this competence
-* `competence_card_id` --- **optional** id of card proving the
-  certification
+* `competence_card_id` --- **optional** id of the card proving the
+  certification, as recorded on the card.
+* `competence_card_holder_names` ---  **optional** names as recorded on the
+  card. Same structure as `person.names`.
 * `validation_status` --- status of the validation of this competence
   against the external registry specified in the
   `competence_registry_id` field; the value must be one of the
@@ -89,7 +99,15 @@ Create a new project.
     ...     "valid_from_date": "2015-05-11",
     ...     "valid_until_date": "2015-05-11",
     ...     "competence_type_id": "abc",
-    ...     "competence_card_id": "876"
+    ...     "competence_card_id": "876",
+    ...     "competence_card_holder_names": [
+    ...       {
+    ...           "full_name": "James Bond",
+    ...           "sort_key": "Bond, James",
+    ...           "given_names": ["James"],
+    ...           "surnames": ["Bond"]
+    ...       }
+    ...     ]
     ... }
     THEN HTTP status code is 201
     AND result matches
@@ -100,7 +118,15 @@ Create a new project.
     ...     "valid_from_date": "2015-05-11",
     ...     "valid_until_date": "2015-05-11",
     ...     "competence_type_id": "abc",
-    ...     "competence_card_id": "876"
+    ...     "competence_card_id": "876",
+    ...     "competence_card_holder_names": [
+    ...       {
+    ...           "full_name": "James Bond",
+    ...           "sort_key": "Bond, James",
+    ...           "given_names": ["James"],
+    ...           "surnames": ["Bond"]
+    ...       }
+    ...     ]
     ... }
     AND result has key "id" containing a string, saved as $ID1
     AND HTTP Location header is API_URL/competences/$ID1
@@ -122,7 +148,15 @@ Check that the record is there.
     ...     "valid_from_date": "2015-05-11",
     ...     "valid_until_date": "2015-05-11",
     ...     "competence_type_id": "abc",
-    ...     "competence_card_id": "876"
+    ...     "competence_card_id": "876",
+    ...     "competence_card_holder_names": [
+    ...       {
+    ...           "full_name": "James Bond",
+    ...           "sort_key": "Bond, James",
+    ...           "given_names": ["James"],
+    ...           "surnames": ["Bond"]
+    ...       }
+    ...     ]
     ... }
     AND result has key "id" containing a string, saved as $ID2
     AND values "$ID1" and "$ID2" are identical
