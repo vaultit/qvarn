@@ -123,7 +123,8 @@ Client has needed access rights for persons resource.
     GIVEN client has access to scopes
     ... "uapi_persons_post uapi_persons_get uapi_persons_id_get
     ...  uapi_persons_id_private_get uapi_persons_id_put
-    ...  uapi_persons_id_private_put uapi_persons_id_delete"
+    ...  uapi_persons_id_private_put uapi_persons_id_delete
+    ...  uapi_persons_id_photo_get uapi_persons_id_photo_put"
 
 Try to create a new person, but with invalid data. These must all
 fail, of course. First, an empty record:
