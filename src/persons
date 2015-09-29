@@ -81,6 +81,13 @@ class CreatePersonsTables_v1(unifiedapi.StoragePreparationStep):
             (u'sort_key', unicode))
 
         db.create_table(
+            u'person_names_titles',
+            (u'id', unicode),
+            (u'dict_list_pos', int),
+            (u'list_pos', int),
+            (u'titles', unicode))
+
+        db.create_table(
             u'person_names_given_names',
             (u'id', unicode),
             (u'dict_list_pos', int),

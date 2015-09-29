@@ -37,14 +37,14 @@ Example result:
                 "sort_key": "Bond, James",
                 "titles": [],
                 "given_names": ["James"],
-                "surnames": ["Bond"],
+                "surnames": ["Bond"]
             },
             {
                 "full_name": "Alfred E. Newman",
                 "sort_key": "Newman, Alfred E.",
                 "titles": [],
                 "given_names": ["Alfred", "E."],
-                "surnames": ["Newman"],
+                "surnames": ["Newman"]
             }
         ]
     }
@@ -172,18 +172,35 @@ fields, we get a result with all optional fields filled in with empty
 values.
 
     WHEN client POSTs /persons with
-    ... {"names": [{"full_name": "James Bond"},
-    ...            {"full_name": "Alfred E. Newman"}]}
+    ... {
+    ...     "names": [
+    ...         {
+    ...             "full_name": "James Bond",
+    ...             "sort_key": "Bond, James",
+    ...             "titles": ["Mr"],
+    ...             "given_names": ["James"],
+    ...             "surnames": ["Bond"]
+    ...         },
+    ...         {
+    ...             "full_name": "Alfred E. Newman"
+    ...         }
+    ...     ]
+    ... }
     THEN HTTP status code is 201
     AND result matches
-    ... { "names": [
-    ...     {
-    ...         "full_name": "James Bond"
-    ...     },
-    ...     {
-    ...         "full_name": "Alfred E. Newman"
-    ...     }
-    ...  ]
+    ... {
+    ...     "names": [
+    ...         {
+    ...             "full_name": "James Bond",
+    ...             "sort_key": "Bond, James",
+    ...             "titles": ["Mr"],
+    ...             "given_names": ["James"],
+    ...             "surnames": ["Bond"]
+    ...         },
+    ...         {
+    ...             "full_name": "Alfred E. Newman"
+    ...         }
+    ...     ]
     ... }
     AND result has key "id" containing a string, saved as $ID1
     AND HTTP Location header is API_URL/persons/$ID1
@@ -198,8 +215,24 @@ Check that the record is there.
     WHEN client GETs /persons/$ID1
     THEN HTTP status code is 200
     AND result matches
-    ... {"names": [{"full_name": "James Bond"},
-    ...            {"full_name": "Alfred E. Newman"}]}
+    ... {
+    ...     "names": [
+    ...         {
+    ...             "full_name": "James Bond",
+    ...             "sort_key": "",
+    ...             "titles": [],
+    ...             "given_names": [],
+    ...             "surnames": []
+    ...         },
+    ...         {
+    ...             "full_name": "Alfred E. Newman",
+    ...             "sort_key": "",
+    ...             "titles": [],
+    ...             "given_names": [],
+    ...             "surnames": []
+    ...         }
+    ...     ]
+    ... }
     AND result has key "id" containing a string, saved as $ID2
     AND values "$ID1" and "$ID2" are identical
     AND result has key "revision" containing a string, saved as $REV2
