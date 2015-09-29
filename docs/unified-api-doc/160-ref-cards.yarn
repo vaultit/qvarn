@@ -127,7 +127,7 @@ FIXME: Add a URL here to the card specification.
         "created_date": "2015-02-25",
         "valid_from_date": "2015-04-01",
         "valid_until_date": 2018-04-01,
-        "issuer_gov_ids": [
+        "issuer_gov_org_ids": [
             {
                 "country": "SE",
                 "org_id_type": "registration_number",
