@@ -275,4 +275,20 @@ if __name__ == '__main__':
     resource.set_listener(listener_resource)
     app.add_resource(resource)
 
+    holder_photo_resource = unifiedapi.FileResource()
+    holder_photo_resource.set_item_prototype(card_prototype)
+    holder_photo_resource.set_top_resource_path(u'/cards')
+    holder_photo_resource.set_item_type(u'card')
+    holder_photo_resource.set_file_resource_name(u'holder_photo')
+    holder_photo_resource.set_listener(listener_resource)
+    app.add_resource(holder_photo_resource)
+
+    issuer_logo_resource = unifiedapi.FileResource()
+    issuer_logo_resource.set_item_prototype(card_prototype)
+    issuer_logo_resource.set_top_resource_path(u'/cards')
+    issuer_logo_resource.set_item_type(u'card')
+    issuer_logo_resource.set_file_resource_name(u'issuer_logo')
+    issuer_logo_resource.set_listener(listener_resource)
+    app.add_resource(issuer_logo_resource)
+
     app.run()
