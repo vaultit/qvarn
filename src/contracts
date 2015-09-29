@@ -126,19 +126,24 @@ class InvalidRightToWorkBasedOn(unifiedapi.ValidationError):
 
 
 def validate_contract(obj):
-    if not obj[u'contract_type'] in [u'employment', u'induction']:
+    allowed_contract_types = [u'employment', u'induction', u'ID06_cards']
+    if obj[u'contract_type'] not in allowed_contract_types:
         raise InvalidContractType(id=obj[u'id'])
+
     if obj[u'contract_type'] is u'employment':
         for party in obj[u'contract_parties']:
-            if not party[u'type'] in [u'employer', u'employee']:
+            if party[u'type'] not in [u'employer', u'employee']:
                 raise InvalidPartyType(id=obj[u'id'])
+
     if obj[u'contract_type'] is u'induction':
         for party in obj[u'contract_parties']:
-            if not party[u'type'] in [u'inductor', u'inductee']:
+            if party[u'type'] not in [u'inductor', u'inductee']:
                 raise InvalidPartyType(id=obj[u'id'])
-    if not obj[u'right_to_work_based_on'] in [u'eea_citizen',
-                                              u'residence_permit', u'other']:
-        raise InvalidRightToWorkBasedOn(id=obj[u'id'])
+
+    if obj[u'contract_type'] != u'ID06_cards':
+        allowed_rights = [u'eea_citizen', u'residence_permit', u'other']
+        if obj[u'right_to_work_based_on'] not in allowed_rights:
+            raise InvalidRightToWorkBasedOn(id=obj[u'id'])
 
 
 if __name__ == '__main__':
