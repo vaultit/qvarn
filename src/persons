@@ -170,6 +170,12 @@ class CreatePersonsTables_v1(unifiedapi.StoragePreparationStep):
             (u'resource_change', unicode),
             (u'last_modified', int))
 
+        db.create_table(
+            u'person_photo',
+            (u'id', unicode),
+            (u'body', buffer),
+            (u'content_type', unicode))
+
 
 class NamelessPerson(unifiedapi.ValidationError):
 
@@ -209,5 +215,13 @@ if __name__ == '__main__':
     resource.set_subitem_prototype(u'sync', person_sync_prototype)
     resource.set_listener(listener_resource)
     app.add_resource(resource)
+
+    file_resource = unifiedapi.FileResource()
+    file_resource.set_item_prototype(person_prototype)
+    file_resource.set_top_resource_path(u'/persons')
+    file_resource.set_item_type(u'person')
+    file_resource.set_file_resource_name(u'photo')
+    file_resource.set_listener(listener_resource)
+    app.add_resource(file_resource)
 
     app.run()

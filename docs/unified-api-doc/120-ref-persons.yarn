@@ -13,6 +13,8 @@ Synopsis:
 * `PUT /persons/<id>` --- replace the information for a person.
 * `PUT /persons/<id>/private` --- replace the sensitive, private
   information for a person.
+* `GET /persons/<id>/photo` --- get the attached photo for a specific person
+* `PUT /persons/<id>/photo` --- replace the attached photo for a person
 * `DELETE /persons/<id>` --- remove a person (including private
   information).
 
@@ -245,7 +247,7 @@ main record.
     ... }
     THEN HTTP status code is 200
     AND result matches { "date_of_birth": "1920-11-11" }
-    AND result has key "revision" containing a string, saved as $REV3
+    AND result has key "revision" containing a string, saved as $REV4
 
 (Not bothering to check that all the fields are set. Let's assume they
 are, to keep the test a bit shorter.)
@@ -258,6 +260,40 @@ Updating the sub-record without the correct revision should fail.
     ...     "date_of_birth": "1920-11-11"
     ... }
     THEN HTTP status code is 409
+
+Can not get unsent photo.
+
+    WHEN client GETs /persons/$ID1/photo
+    THEN HTTP status code is 404
+
+Send photo.
+
+    GIVEN file test.png containing "This pretends to be a png"
+
+    WHEN client PUTs file test.png with content type image/png
+    ...  and revision $REV4 to /persons/$ID1/photo
+    THEN HTTP status code is 200
+
+    WHEN client GETs /persons/$ID1/photo
+    THEN HTTP status code is 200
+    AND HTTP header Content-Type is image/png
+    AND HTTP header Revision exists
+    AND result body matches file test.png
+
+Can not send photo with no Content-Length header set.
+
+    WHEN client POSTs /persons with
+    ... {"names": [{"full_name": "James Bond"},
+    ...            {"full_name": "Alfred E. Newman"}]}
+    THEN result has key "id" containing a string, saved as $ID4
+    AND result has key "revision" containing a string, saved as $REV5
+
+Without request body (no Content-Length header) server responds with status
+Length Required 411.
+
+    WHEN client PUTs no file with content type image/png
+    ...  and revision $REV5 to /persons/$ID4/photo
+    THEN HTTP status code is 411
 
 Delete the record.
 
