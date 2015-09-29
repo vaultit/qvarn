@@ -298,7 +298,10 @@ type of card; the last entry in the list is the current status
         - `CardLost` --- card was lost
         - `CardError` --- other error
     - for `ID06` cards:
-        - FIXME
+        - This, at least for now, a free-form text field. An ID06
+          external application should define a list of codes for the
+          allowed values and validate against that list. The API
+          backend doesn't validate this.
 
 The `id06_virtual_history` field for `ID06` cards is a (possibly
 empty) list of records like this:
