@@ -21,6 +21,7 @@ card_prototype = {
         },
     ],
     u'issued_date': u'',
+    u'valid_from_date': u'',
     u'valid_until_date': u'',
     u'card_status_history': [
         {
@@ -32,7 +33,46 @@ card_prototype = {
         },
     ],
     u'org': u'',
+    u'issuer_name': u'',
+    u'issuer_gov_org_ids': [
+        {
+            u'country': u'',
+            u'org_id_type': u'',
+            u'gov_org_id': u'',
+        },
+    ],
     u'person': u'',
+    u'holder_gov_ids': [
+        {
+            u'country': u'',
+            u'id_type': u'',
+            u'gov_id': u'',
+        },
+    ],
+    u'holder_nationalities': [u''],
+    u'holder_names': [
+        {
+            u'full_name': u'',
+            u'sort_key': u'',
+            u'titles': [u''],
+            u'given_names': [u''],
+            u'surnames': [u''],
+        },
+    ],
+    u'id06_taxation_country': u'',
+    u'id06_virtual_devices': [u''],
+    u'id06_virtual_enabled': False,
+    u'id06_virtual_bankid_required': False,
+    u'id06_virtual_valid_from': u'',
+    u'id06_virtual_valid_until': u'',
+    u'id06_virtual_history': [
+        {
+            u'full_name': u'',
+            u'date': u'',
+            u'enabled': False,
+        },
+    ],
+    u'id06_supplier_full_name': u'',
 }
 
 
