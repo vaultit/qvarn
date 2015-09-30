@@ -219,10 +219,10 @@ Check that the record is there.
     ...     "names": [
     ...         {
     ...             "full_name": "James Bond",
-    ...             "sort_key": "",
-    ...             "titles": [],
-    ...             "given_names": [],
-    ...             "surnames": []
+    ...             "sort_key": "Bond, James",
+    ...             "titles": ["Mr"],
+    ...             "given_names": ["James"],
+    ...             "surnames": ["Bond"]
     ...         },
     ...         {
     ...             "full_name": "Alfred E. Newman",
