@@ -76,3 +76,29 @@ Version 0.5, released 2015-07-23
 * Preliminary specification for authentication and authorisation has
   been added to the API. These are based on OAuth 2.0 and OpenID
   Connect, using JSON Web Tokens.
+
+
+Version 0.6, released UNRELEASED
+--------------------------------
+
+* Creation of resources now returns HTTP status 201. This is the
+  customary and expected status code for that.
+
+* Authentication and authorization have documented in much more
+  detail, with tests added.
+
+* The "Services" chapter has been removed. It was irrelevant for the
+  scope of a storage-only API.
+
+* The whole text has been improved and clarified.
+
+* The term "message box" is now used consistently for change
+  notifications. Previously, "mailbox" was sometimes used instead, for
+  no good reason.
+
+* New resourced have been added: `competence`, `competence_type`.
+
+* Support for Swedish `ID06` identity cards has been added. This
+  affects `card` and `contract` resources.
+
+* Persons may now have titles associated with their names.
