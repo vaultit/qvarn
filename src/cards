@@ -62,7 +62,7 @@ card_prototype = {
     u'id06_taxation_country': u'',
     u'id06_virtual_devices': [u''],
     u'id06_virtual_enabled': False,
-    u'id06_virtual_bank_id_required': False,
+    u'id06_virtual_bankid_required': False,
     u'id06_virtual_valid_from': u'',
     u'id06_virtual_valid_until': u'',
     u'id06_virtual_history': [

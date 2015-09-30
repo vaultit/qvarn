@@ -161,7 +161,7 @@ FIXME: Add a URL here to the card specification.
                 "enabled": true
             }
         ],
-        "id06_bank_id_required": true,
+        "id06_bankid_required": true,
         "id06_virtual_devices": [
             "+44 007 007 007 007"
         ],
@@ -251,7 +251,7 @@ field                   card types      description
 `id06_virtual_history`  `ID06`          list of virtual card enable/disable 
                                         changes; see below for details
 
-`id06_bank_id_required` `ID06`          is card holder required to
+`id06_bankid_required`  `ID06`          is card holder required to
                                         identify themselves using
                                         a Swedish BankID to put a
                                         virtual card on a mobile
