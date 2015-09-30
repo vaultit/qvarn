@@ -161,8 +161,8 @@ class CreateCardsTables_v1(unifiedapi.StoragePreparationStep):
             (u'id', unicode),
             (u'list_pos', int),
             (u'country', unicode),
-            (u'id_type', unicode),
-            (u'gov_id', unicode))
+            (u'org_id_type', unicode),
+            (u'gov_org_id', unicode))
 
         db.create_table(
             u'card_holder_gov_ids',
