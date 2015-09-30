@@ -176,7 +176,7 @@ class CreateCardsTables_v1(unifiedapi.StoragePreparationStep):
             u'card_holder_nationalities',
             (u'id', unicode),
             (u'list_pos', int),
-            (u'nationalities', unicode))
+            (u'holder_nationalities', unicode))
 
         db.create_table(
             u'card_holder_names',
