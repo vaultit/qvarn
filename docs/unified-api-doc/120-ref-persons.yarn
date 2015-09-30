@@ -225,11 +225,7 @@ Check that the record is there.
     ...             "surnames": ["Bond"]
     ...         },
     ...         {
-    ...             "full_name": "Alfred E. Newman",
-    ...             "sort_key": "",
-    ...             "titles": [],
-    ...             "given_names": [],
-    ...             "surnames": []
+    ...             "full_name": "Alfred E. Newman"
     ...         }
     ...     ]
     ... }
