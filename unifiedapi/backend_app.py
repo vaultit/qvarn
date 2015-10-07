@@ -101,7 +101,8 @@ class BackendApplication(object):
         self._db = unifiedapi.open_disk_database(
             conf.get('database', 'host'), conf.get('database', 'port'),
             conf.get('database', 'name'), conf.get('database', 'user'),
-            conf.get('database', 'password'))
+            conf.get('database', 'password'), conf.get('database', 'minconn'),
+            conf.get('database', 'maxconn'))
         assert self._preparer
         with self._db:
             self._preparer.run(self._db)
@@ -123,7 +124,7 @@ class BackendApplication(object):
 
     def _setup_auth(self, conf):
         if (conf.has_option('auth', 'token_validation_key') and
-            conf.has_option('auth', 'token_issuer')):
+                conf.has_option('auth', 'token_issuer')):
 
             authorization_plugin = unifiedapi.AuthorizationPlugin(
                 conf.get('auth', 'token_validation_key'),

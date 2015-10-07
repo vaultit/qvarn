@@ -12,9 +12,11 @@ import string
 import sqlite3
 
 
-def open_disk_database(host, port, db_name, user, password):
+def open_disk_database(host, port, db_name, user, password, min_conn,
+                       max_conn):
     '''Connect to a database on disk, given its connection parameters.'''
-    return PostgreSQLDatabase(host, port, db_name, user, password)
+    return PostgreSQLDatabase(host, port, db_name, user, password,
+                              min_conn, max_conn)
 
 
 def open_memory_database():
@@ -230,7 +232,8 @@ class PostgreSQLDatabase(Database):
 
     '''
 
-    def __init__(self, host, port, db_name, user, password):
+    def __init__(self, host, port, db_name, user, password, min_conn,
+                 max_conn):
         super(PostgreSQLDatabase, self).__init__()
         self.type_name = {
             buffer: u'BYTEA',
@@ -239,8 +242,8 @@ class PostgreSQLDatabase(Database):
             bool: u'BOOLEAN',
         }
         self._pool = psycopg2.pool.ThreadedConnectionPool(
-            minconn=5,
-            maxconn=10,
+            minconn=min_conn,
+            maxconn=max_conn,
             database=db_name,
             user=user,
             password=password,
