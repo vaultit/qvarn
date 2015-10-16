@@ -59,7 +59,12 @@ person_private_prototype = {
 
 
 person_sync_prototype = {
-    u'sync_id': u'',
+    u'sync_sources': [
+        {
+            u'sync_source': u'',
+            u'sync_id': u'',
+        },
+    ],
     u'sync_revision': u'',
 }
 
@@ -151,8 +156,14 @@ class CreatePersonsTables_v1(unifiedapi.StoragePreparationStep):
         db.create_table(
             u'person_sync',
             (u'id', unicode),
-            (u'sync_id', unicode),
             (u'sync_revision', unicode))
+
+        db.create_table(
+            u'person_sync_sync_sources',
+            (u'id', unicode),
+            (u'list_pos', int),
+            (u'sync_source', unicode),
+            (u'sync_id', unicode))
 
         db.create_table(
             u'listener',
