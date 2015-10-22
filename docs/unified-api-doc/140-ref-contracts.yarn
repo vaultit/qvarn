@@ -33,6 +33,8 @@ Example result for a contract:
         "type": "contract",
         "id": "1234",
         "contract_type": "employment",
+	"start_date": "2015-03-01",
+	"end_date": "2015-08-31",
         "contract_parties": [
             {
                 "type": "org",
@@ -56,6 +58,8 @@ Fields in the result:
       a person
     - `ID06_cards` --- contract between an ID06 card issuer and
       supplier (see the cards resource for details)
+* `start_date` --- the date when the contract takes effect
+* `end_date` --- ending date of the contract
 * `contract_parties` --- all parties in the contract, where each party
   is defined by the following fields:
     - `type` --- type of the party, one of `org`, `person`
@@ -102,6 +106,7 @@ Create a new contract.
     WHEN client POSTs /contracts with
     ... {
     ... "contract_type": "employment",
+    ... "start_date": "2013-03-13",
     ... "contract_parties": [
     ...     {
     ...         "type": "org",
@@ -121,6 +126,7 @@ Create a new contract.
     ... {
     ... "type": "contract",
     ... "contract_type": "employment",
+    ... "start_date": "2013-03-13",
     ... "contract_parties": [
     ...     {
     ...         "type": "org",
@@ -147,6 +153,7 @@ Check that the record is there.
     ... {
     ... "type": "contract",
     ... "contract_type": "employment",
+    ... "start_date": "2013-03-13",
     ... "contract_parties": [
     ...     {
     ...         "type": "org",
@@ -173,6 +180,8 @@ Update the record.
     ... "revision": "$REV1",
     ... "type": "contract",
     ... "contract_type": "employment",
+    ... "start_date": "2013-03-13",
+    ... "end_date": "2015-10-21",
     ... "contract_parties": [
     ...     {
     ...         "type": "org",
@@ -192,6 +201,8 @@ Update the record.
     ... {
     ... "type": "contract",
     ... "contract_type": "employment",
+    ... "start_date": "2013-03-13",
+    ... "end_date": "2015-10-21",
     ... "contract_parties": [
     ...     {
     ...         "type": "org",
