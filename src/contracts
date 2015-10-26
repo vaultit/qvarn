@@ -14,6 +14,8 @@ contract_prototype = {
     u'id': u'',
     u'revision': u'',
     u'contract_type': u'',
+    u'start_date': u'',
+    u'end_date': u'',
     u'contract_parties': [
         {
             u'type': u'',
@@ -48,6 +50,8 @@ class CreateContractsTables_v1(unifiedapi.StoragePreparationStep):
             (u'id', unicode),
             (u'revision', unicode),
             (u'contract_type', unicode),
+            (u'start_date', unicode),
+            (u'end_date', unicode),
             (u'right_to_work_based_on', unicode))
 
         db.create_table(
