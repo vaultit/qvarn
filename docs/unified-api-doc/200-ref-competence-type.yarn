@@ -24,6 +24,7 @@ Example result for a competence type:
     {
         "type": "competence_type",
         "id": "123",
+	"competence_type_id": "NAP",
         "names": [
             {
                 "locale": "fi_FI",
@@ -48,6 +49,8 @@ Example result for a competence type:
 
 Fields in the result:
 
+* `competence_type_id` --- a user defined identification for this
+  competence type
 * `names` --- a list of names for the competence type, perhaps in
   different locales; there can be multiple names (aliases) in one
   locale; the fields for one entry are:
@@ -73,15 +76,16 @@ Client has needed access rights for competence type resource.
     ...  uapi_competence_types_id_get uapi_competence_types_id_put
     ...  uapi_competence_types_id_delete"
 
-Try to create a new project. Test with an invalid field.
+Try to create a new competence type. Test with an invalid field.
 
     WHEN client POSTs /competence_types with {"invalid_field": true}
     THEN HTTP status code is 400
 
-Create a new project.
+Create a new competence type.
 
     WHEN client POSTs /competence_types with
     ... {
+    ...	    "competence_type_id": NAP,
     ...     "names": [
     ...         {
     ...             "locale": "fi_FI",
@@ -107,6 +111,7 @@ Create a new project.
     AND result matches
     ... {
     ...     "type": "competence_type",
+    ...	    "competence_type_id": "NAP",
     ...     "names": [
     ...         {
     ...             "locale": "fi_FI",
@@ -143,6 +148,7 @@ Check that the record is there.
     AND result matches
     ... {
     ...     "type": "competence_type",
+    ...	    "competence_type_id": "NAP,
     ...     "names": [
     ...         {
     ...             "locale": "fi_FI",
@@ -174,6 +180,7 @@ Update the record.
     WHEN client PUTs /competence_types/$ID1 with
     ... {
     ...     "revision": "$REV1",
+    ...	    "competence_type_id": "NAP,
     ...     "names": [
     ...         {
     ...             "locale": "fi_FI",
@@ -190,6 +197,7 @@ Update the record.
     THEN HTTP status code is 200
     AND result matches
     ... {
+    ...	    "competence_type_id": "NAP,
     ...     "names": [
     ...         {
     ...             "locale": "fi_FI",
