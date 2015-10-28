@@ -85,7 +85,7 @@ Create a new competence type.
 
     WHEN client POSTs /competence_types with
     ... {
-    ...	    "competence_type_id": NAP,
+    ...	    "competence_type_id": "NAP",
     ...     "names": [
     ...         {
     ...             "locale": "fi_FI",
@@ -148,7 +148,7 @@ Check that the record is there.
     AND result matches
     ... {
     ...     "type": "competence_type",
-    ...	    "competence_type_id": "NAP,
+    ...	    "competence_type_id": "NAP",
     ...     "names": [
     ...         {
     ...             "locale": "fi_FI",
@@ -180,7 +180,7 @@ Update the record.
     WHEN client PUTs /competence_types/$ID1 with
     ... {
     ...     "revision": "$REV1",
-    ...	    "competence_type_id": "NAP,
+    ...	    "competence_type_id": "NAP",
     ...     "names": [
     ...         {
     ...             "locale": "fi_FI",
@@ -197,7 +197,7 @@ Update the record.
     THEN HTTP status code is 200
     AND result matches
     ... {
-    ...	    "competence_type_id": "NAP,
+    ...	    "competence_type_id": "NAP",
     ...     "names": [
     ...         {
     ...             "locale": "fi_FI",
