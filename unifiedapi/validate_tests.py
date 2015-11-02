@@ -297,6 +297,18 @@ class ItemValidatorTests(unittest.TestCase):
                 u'foo': None
             })
 
+    def test_rejects_string_as_list_of_strings(self):
+        self.assertNotValidItem(
+            u'foo-type',
+            {
+                u'type': u'',
+                u'foo': [u'']
+            },
+            {
+                u'type': u'foo-type',
+                u'foo': u'this-looks-too-much-like-a-list',
+            })
+
     def test_rejects_list_of_integers(self):
         self.assertNotValidItem(
             u'foo-type',

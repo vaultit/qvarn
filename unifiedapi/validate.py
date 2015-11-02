@@ -66,7 +66,7 @@ class ItemValidator(object):
 
     def _validate_is_dict(self, thing):
         if type(thing) is not dict:
-            raise ItemMustBeDict(conflicting_type=type(thing))
+            raise ItemMustBeDict(conflicting_type=str(type(thing)))
 
     def _validate_has_type_field(self, thing):
         if u'type' not in thing:
@@ -98,15 +98,15 @@ class ItemValidator(object):
             self._validate_list_value(proto_value, item_value)
         else:
             raise InvalidValueInPrototype(
-                field=field_name, type=type(proto_value))
+                field=field_name, type=str(type(proto_value)))
 
     def _validate_simple_value(self, proto_value, item_value):
         if item_value is None:
             return
         if type(proto_value) != type(item_value):
             raise WrongTypeValue(
-                expected_type=type(proto_value),
-                conflicting_type=type(item_value))
+                expected_type=str(type(proto_value)),
+                conflicting_type=str(type(item_value)))
 
     def _validate_list_value(self, proto_value, item_value):
         if len(proto_value) != 1:
@@ -114,7 +114,7 @@ class ItemValidator(object):
         if type(proto_value[0]) not in (unicode, dict):
             raise PrototypeListMustHaveStringsOrDicts(prototype=proto_value)
         if type(item_value) is not list:
-            raise ItemMustHaveList(conflicting_type=type(item_value))
+            raise ItemMustHaveList(conflicting_type=str(type(item_value)))
         if type(proto_value[0]) is unicode:
             self._validate_list_of_strings(item_value)
         elif type(proto_value[0]) is dict:
@@ -124,7 +124,7 @@ class ItemValidator(object):
         for i, value in enumerate(item_value):
             if type(value) is not unicode:
                 raise ItemListMustContainStrings(
-                    position=i, conflicting_value=value)
+                    position=i, conflicting_value=repr(value))
 
     def _validate_list_of_dicts(self, proto_value, item_value):
         for i, value in enumerate(item_value):
