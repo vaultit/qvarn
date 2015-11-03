@@ -533,7 +533,7 @@ Without request body (no Content-Length header) server responds with status
 Length Required 411.
 
     WHEN client PUTs no file with content type image/png
-    ...  and revision $REV4 to /cards/$ID1/isssuer_logo
+    ...  and revision $REV4 to /cards/$ID1/issuer_logo
     THEN HTTP status code is 411
 
 Delete the record.
