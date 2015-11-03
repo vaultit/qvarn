@@ -255,6 +255,18 @@ class CreateCardsTables_v1(unifiedapi.StoragePreparationStep):
             (u'resource_change', unicode),
             (u'last_modified', int))
 
+        db.create_table(
+            u'card_holder_photo',
+            (u'id', unicode),
+            (u'body', buffer),
+            (u'content_type', unicode))
+
+        db.create_table(
+            u'card_issuer_logo',
+            (u'id', unicode),
+            (u'body', buffer),
+            (u'content_type', unicode))
+
 
 class TypelessCard(unifiedapi.ValidationError):
 
