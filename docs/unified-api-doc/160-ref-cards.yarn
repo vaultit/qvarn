@@ -323,7 +323,9 @@ Client has needed access rights for cards resource.
 
     GIVEN client has access to scopes
     ... "uapi_cards_post uapi_cards_get uapi_cards_id_get uapi_cards_id_put
-    ...  uapi_cards_id_delete"
+    ...  uapi_cards_id_delete uapi_cards_id_holder_photo_get
+    ...  uapi_cards_id_holder_photo_put uapi_cards_id_issuer_logo_get
+    ...  uapi_cards_id_issuer_logo_put"
 
 Try to create a new card, but with invalid data. These must all fail.
 First, an empty record:
