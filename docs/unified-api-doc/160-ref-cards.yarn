@@ -490,15 +490,15 @@ Send a card holder photo.
     WHEN client GETs /cards/$ID1/holder_photo
     THEN HTTP status code is 200
     AND HTTP header Content-Type is image/png
-    AND HTTP header Revision exists
     AND result body matches file test.png
+    AND result has key "revision" containing a string, saved as $REV3
 
 Cannot send a photo with no Content-Length header set.
 Without request body (no Content-Length header) server responds with status
 Length Required 411.
 
     WHEN client PUTs no file with content type image/png
-    ...  and revision $REV2 to /cards/$ID1/holder_photo
+    ...  and revision $REV3 to /cards/$ID1/holder_photo
     THEN HTTP status code is 411
 
 Cannot get an unsent issuer logo file.
@@ -511,21 +511,21 @@ Send an issuer logo file.
     GIVEN file test.png containing "This pretends to be a png"
 
     WHEN client PUTs file test.png with content type image/png
-    ...  and revision $REV2 to /cards/$ID1/issuer_logo
+    ...  and revision $REV3 to /cards/$ID1/issuer_logo
     THEN HTTP status code is 200
 
     WHEN client GETs /cards/$ID1/issuer_logo
     THEN HTTP status code is 200
     AND HTTP header Content-Type is image/png
-    AND HTTP header Revision exists
     AND result body matches file test.png
+    AND result has key "revision" containing a string, saved as $REV4
 
 Cannot send a file with no Content-Length header set.
 Without request body (no Content-Length header) server responds with status
 Length Required 411.
 
     WHEN client PUTs no file with content type image/png
-    ...  and revision $REV2 to /cards/$ID1/isssuer_logo
+    ...  and revision $REV4 to /cards/$ID1/isssuer_logo
     THEN HTTP status code is 411
 
 Delete the record.
