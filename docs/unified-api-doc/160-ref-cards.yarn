@@ -490,7 +490,11 @@ Send a card holder photo.
     WHEN client GETs /cards/$ID1/holder_photo
     THEN HTTP status code is 200
     AND HTTP header Content-Type is image/png
+    AND HTTP header Revision exists
     AND result body matches file test.png
+
+    WHEN client GETs /cards/$ID
+    THEN HTTP status code is 200
     AND result has key "revision" containing a string, saved as $REV3
 
 Cannot send a photo with no Content-Length header set.
@@ -517,7 +521,11 @@ Send an issuer logo file.
     WHEN client GETs /cards/$ID1/issuer_logo
     THEN HTTP status code is 200
     AND HTTP header Content-Type is image/png
+    AND HTTP header Revision exists
     AND result body matches file test.png
+
+    WHEN client GETs /cards/$ID
+    THEN HTTP status code is 200
     AND result has key "revision" containing a string, saved as $REV4
 
 Cannot send a file with no Content-Length header set.
