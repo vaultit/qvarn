@@ -493,7 +493,7 @@ Send a card holder photo.
     AND HTTP header Revision exists
     AND result body matches file test.png
 
-    WHEN client GETs /cards/$ID
+    WHEN client GETs /cards/$ID1
     THEN HTTP status code is 200
     AND result has key "revision" containing a string, saved as $REV3
 
@@ -524,7 +524,7 @@ Send an issuer logo file.
     AND HTTP header Revision exists
     AND result body matches file test.png
 
-    WHEN client GETs /cards/$ID
+    WHEN client GETs /cards/$ID1
     THEN HTTP status code is 200
     AND result has key "revision" containing a string, saved as $REV4
 
