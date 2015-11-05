@@ -269,6 +269,54 @@ Length Required 411.
     ...  and revision $REV4 to /contracts/$ID4/document
     THEN HTTP status code is 411
 
+Update the main record, this should not affect the subrecord(s).
+
+    WHEN client GETs /contracts/$ID1
+    THEN result has key "revision" containing a string, saved as $REV5
+
+    WHEN client PUTs /contracts/$ID1 with
+    ... {
+    ... "revision": "$REV5",
+    ... "contract_type": "employment",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "123",
+    ...         "role": "employer"
+    ...     },
+    ...     {
+    ...         "type": "person",
+    ...         "resource_id": "7",
+    ...         "role": "employee"
+    ...     }
+    ... ],
+    ... "right_to_work_based_on": "eea_citizen"
+    ... }
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ... "contract_type": "employment",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "123",
+    ...         "role": "employer"
+    ...     },
+    ...     {
+    ...         "type": "person",
+    ...         "resource_id": "7",
+    ...         "role": "employee"
+    ...     }
+    ... ],
+    ... "right_to_work_based_on": "eea_citizen"
+    ... }
+
+    WHEN client GETs /contracts/$ID1/document
+    THEN HTTP status code is 200
+    AND HTTP header Content-Type is application/pdf
+    AND HTTP header Revision exists
+    AND result body matches file test.file
+
 Delete the record.
 
     WHEN client DELETEs /contracts/$ID1
