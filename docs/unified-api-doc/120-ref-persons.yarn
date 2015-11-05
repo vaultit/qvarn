@@ -253,6 +253,11 @@ Update the record.
     AND values "$ID1" and "$ID3" are identical
     AND result has key "revision" containing a string, saved as $REV3
 
+Subrecord should still be there.
+
+    WHEN client GETs /persons/$ID1/private
+    THEN HTTP status code is 200
+
 Updating with the wrong revision should fail.
 
     WHEN client PUTs /persons/$ID1 with
@@ -312,7 +317,8 @@ Send photo.
     AND HTTP header Revision exists
     AND result body matches file test.png
 
-Can not send photo with no Content-Length header set.
+Without request body (no Content-Length header) server responds with status
+Length Required 411.
 
     WHEN client POSTs /persons with
     ... {"names": [{"full_name": "James Bond"},
@@ -320,12 +326,32 @@ Can not send photo with no Content-Length header set.
     THEN result has key "id" containing a string, saved as $ID4
     AND result has key "revision" containing a string, saved as $REV5
 
-Without request body (no Content-Length header) server responds with status
-Length Required 411.
-
     WHEN client PUTs no file with content type image/png
     ...  and revision $REV5 to /persons/$ID4/photo
     THEN HTTP status code is 411
+
+Update the main record, this should not affect the subrecord(s).
+
+  WHEN client GETs /persons/$ID1
+  THEN result has key "revision" containing a string, saved as $REV6
+
+  WHEN client PUTs /persons/$ID1 with
+  ... {
+  ...     "revision": "$REV6",
+  ...     "names": [{"full_name": "X"}]
+  ... }
+  THEN HTTP status code is 200
+  AND result matches { "names": [{"full_name": "X"}]}
+
+  WHEN client GETs /persons/$ID1/private
+  THEN HTTP status code is 200
+  AND result matches { "date_of_birth": "1920-11-11" }
+
+  WHEN client GETs /persons/$ID1/photo
+  THEN HTTP status code is 200
+  AND HTTP header Content-Type is image/png
+  AND HTTP header Revision exists
+  AND result body matches file test.png
 
 Delete the record.
 
