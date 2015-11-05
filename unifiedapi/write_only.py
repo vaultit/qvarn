@@ -64,7 +64,7 @@ class WriteOnlyStorage(object):
 
     def _insert_item_into_database(self, item):
         ww = WriteWalker(self._db, self._item_type, item[u'id'])
-        self._delete_item_in_transaction(item[u'id'])
+        self._delete_item_in_transaction(item[u'id'], delete_subitems=False)
         ww.walk_item(item, self._prototype)
 
     def _insert_subitem_into_database(self, item_id, subitem_name, subitem):
@@ -132,11 +132,12 @@ class WriteOnlyStorage(object):
         with self._db:
             self._delete_item_in_transaction(item_id)
 
-    def _delete_item_in_transaction(self, item_id):
+    def _delete_item_in_transaction(self, item_id, delete_subitems=True):
         dw = DeleteWalker(self._db, self._item_type, item_id)
         dw.walk_item(self._prototype, self._prototype)
-        for subitem_name, _ in self._subitem_prototypes.get_all():
-            self._delete_subitem_in_transaction(item_id, subitem_name)
+        if delete_subitems:
+            for subitem_name, _ in self._subitem_prototypes.get_all():
+                self._delete_subitem_in_transaction(item_id, subitem_name)
 
     def _delete_subitem_in_transaction(self, item_id, subitem_name):
         table_name = u'%s_%s' % (self._item_type, subitem_name)
