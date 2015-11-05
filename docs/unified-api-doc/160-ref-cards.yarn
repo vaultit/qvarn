@@ -191,7 +191,7 @@ field                   card types      description
 `card_type`             all             type of card; one of `VALTTI`, `ID06`,
                                         `ID06_visitor`
 
-`card_ids`              all             list of unique identifiers for 
+`card_ids`              all             list of unique identifiers for
                                         the card; see below for list items
 
 `issued_date`           all             date when issued, i.e., when the
@@ -248,7 +248,7 @@ field                   card types      description
 `id06_virtual_`         `ID06`          date until which virtual cards
 `valid_until`                           are valid
 
-`id06_virtual_history`  `ID06`          list of virtual card enable/disable 
+`id06_virtual_history`  `ID06`          list of virtual card enable/disable
                                         changes; see below for details
 
 `id06_bankid_required`  `ID06`          is card holder required to
@@ -535,6 +535,53 @@ Length Required 411.
     WHEN client PUTs no file with content type image/png
     ...  and revision $REV4 to /cards/$ID1/issuer_logo
     THEN HTTP status code is 411
+
+Update the main record, this should not affect the subrecord(s).
+
+    WHEN client GETs /cards/$ID1
+    THEN result has key "revision" containing a string, saved as $REV5
+
+    WHEN client PUTs /cards/$ID1 with
+    ... {"revision": "$REV5",
+    ...  "card_type": "VALTTI",
+    ...  "card_ids": [
+    ...    {
+    ...        "card_id_type": "uid",
+    ...	       "card_id": "1"
+    ...    },
+    ...    {
+    ...        "card_id_type": "barcode_id",
+    ...	       "card_id": "1"
+    ...    }
+    ...   ],
+    ...  "issued_date": "2015-04-01",
+    ...  "valid_until_date": "2016-04-01",
+    ...  "card_status_history": [
+    ...    {
+    ...        "card_status": "NotConfirmed",
+    ...	       "modified_by": "123",
+    ...	       "modified_timestamp": "2015-02-25T12:13:14+0200",
+    ...	       "modification_reason": "NewCard",
+    ...	       "modification_description": "M. didn't want to activate card yet"
+    ...    }
+    ...   ],
+    ...  "org": "4444",
+    ...  "person": "7777"
+    ... }
+    THEN HTTP status code is 200
+    AND result matches {"valid_until_date": "2016-04-01"}
+
+    WHEN client GETs /cards/$ID1/holder_photo
+    THEN HTTP status code is 200
+    AND HTTP header Content-Type is image/png
+    AND HTTP header Revision exists
+    AND result body matches file test.png
+
+    WHEN client GETs /cards/$ID1/issuer_logo
+    THEN HTTP status code is 200
+    AND HTTP header Content-Type is image/png
+    AND HTTP header Revision exists
+    AND result body matches file test.png
 
 Delete the record.
 
