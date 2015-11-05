@@ -64,7 +64,7 @@ Client has needed access rights for reports resource.
     GIVEN client has access to scopes
     ... "uapi_reports_post uapi_reports_get uapi_reports_id_get
     ...  uapi_reports_id_pdf_put uapi_reports_id_pdf_get
-    ...  uapi_reports_id_delete"
+    ...  uapi_reports_id_delete uapi_reports_id_put"
 
 Create a new report.
 
