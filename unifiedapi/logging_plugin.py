@@ -18,7 +18,13 @@ class LoggingPlugin(object):
         r = bottle.request
         logging.info(
             u'Request: %s %s (args: %r)', r.method, r.path, r.url_args)
-        logging.info(u'Request headers: %r', dict(r.headers))
+        # Form the header dict with list comprehension and .get() to get over
+        # KeyError. The exact problem is still unknown.
+        # (lighttpd + flup + bottle header dict + Content-Length -problem).
+        logging.info(u'Request headers: %r', {
+            key: bottle.request.headers.get(key)
+            for key in bottle.request.headers
+        })
         try:
             if r.method in ('POST', 'PUT') and r.json:
                 logging.info(u'Request body (JSON): %r', r.json)
