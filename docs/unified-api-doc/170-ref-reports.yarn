@@ -119,6 +119,27 @@ Save PDF report.
     AND HTTP header Revision exists
     AND result body matches file report_test.pdf
 
+Update the main record, this should not affect the subrecord(s).
+
+    WHEN client GETs /reports/$ID1
+    THEN result has key "revision" containing a string, saved as $REV5
+
+    WHEN client PUTs /reports/$ID1 with
+    ... {
+    ... "revision": "$REV5",
+    ... "org": "1234",
+    ... "report_type": "tilaajavastuu.fi_ci",
+    ... "generated_timestamp": "2015-05-31T14:00:00+0200",
+    ... "tilaajavastuu_status": "OK"
+    ... }
+    THEN HTTP status code is 200
+
+    WHEN client GETs /reports/$ID1/pdf
+    THEN HTTP status code is 200
+    AND HTTP header Content-Type is application/pdf
+    AND HTTP header Revision exists
+    AND result body matches file report_test.pdf
+
 Delete the record.
 
     WHEN client DELETEs /reports/$ID1
