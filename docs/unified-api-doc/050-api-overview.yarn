@@ -291,7 +291,7 @@ We try to create a person with id and/or revision fields set.
 Client has needed access rights for persons resource.
 
     GIVEN client has access to scopes
-    ... "uapi_persons_post uapi_persons_id_put"
+    ... "uapi_persons_post uapi_persons_id_put uapi_persons_id_delete"
 
 Fail to create a person with id field set.
 
@@ -337,6 +337,11 @@ Try to update a person with wrong id set.
     ... }
     THEN HTTP status code is 400
 
+Try to send a request with Content-Length of 0. This caused problems in some
+environments.
+
+    WHEN client DELETEs /persons/$ID1 with a header "Content-Length: 0"
+    THEN HTTP status code is 200
 
 Handling names of people
 ------------------------

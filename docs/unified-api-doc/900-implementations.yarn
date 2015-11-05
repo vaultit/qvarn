@@ -75,9 +75,18 @@ POST or PUT with a JSON body.
         "$API_URL$(expand_values "$MATCH_2")" \
         > "$DATADIR/curl.out" 2> "$DATADIR/curl.err"
 
+DELETE with a specific header.
+
+    IMPLEMENTS WHEN client DELETEs (.+) with a header "(.+)"
+    curl -k -X DELETE -D "$DATADIR/curl.headers" \
+        -H "Authorization: Bearer $(cat "$DATADIR/token")" \
+        -H "$MATCH_2" \
+        "$API_URL$(expand_values "$MATCH_1")" \
+        > "$DATADIR/curl.out" 2> "$DATADIR/curl.err"
+
 DELETE something. No body.
 
-    IMPLEMENTS WHEN client DELETEs (.+)
+    IMPLEMENTS WHEN client DELETEs ([^\s]+)
     curl -k -X DELETE -D "$DATADIR/curl.headers" \
         -H "Authorization: Bearer $(cat "$DATADIR/token")" \
         "$API_URL$(expand_values "$MATCH_1")" \
