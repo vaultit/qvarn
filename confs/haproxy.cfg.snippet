@@ -49,7 +49,7 @@ frontend http-in
 # A stanza for redirecting /auth/* to a Gluu instance.
 
 backend gluu
-    server gluu1 gluu.tilaajavastuu.io:443 ssl verify none
+    server gluu1 dev-gluu.tilaajavastuu.io:443 ssl verify none
     option forwardfor
     reqadd X-Forwarded-Proto:\ https
     reqrep ^(.*)\ /auth/(.*)$ \1\ /oxauth/seam/resource/restv1/oxauth/\2

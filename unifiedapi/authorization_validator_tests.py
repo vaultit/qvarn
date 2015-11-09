@@ -14,12 +14,12 @@ import unifiedapi
 def get_valid_token():
     now = time.time()
     return {
-        u'oxValidationURI': u'https://gluu.tilaajavastuu.io/oxauth/opiframe',
+        u'oxValidationURI': u'https://dev-gluu.tilaajavastuu.io/oxauth/opiframe',
         u'oxOpenIDConnectVersion': u'openidconnect-1.0',
         u'c_hash': u'dSxmNqq0uc7rT-c0qgr276hH-yUaW9HMaKY-2xyBM90',
         u'aud': u'@!1E2D.4C48.2272.F616!0001!CC3B.680A!0008!C2A9.C9A2',
         u'sub': u'useridhash',
-        u'iss': u'https://gluu.tilaajavastuu.io',
+        u'iss': u'https://dev-gluu.tilaajavastuu.io',
         u'exp': now + 3600,
         u'auth_time': now - 60,
         u'iat': now - 120,
