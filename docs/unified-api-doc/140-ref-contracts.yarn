@@ -58,6 +58,7 @@ Fields in the result:
       a person
     - `ID06_cards` --- contract between an ID06 card issuer and
       supplier (see the cards resource for details)
+    - `SBCC_account` --- a user account for SBCC service
 * `start_date` --- the date when the contract takes effect
 * `end_date` --- ending date of the contract
 * `contract_parties` --- all parties in the contract, where each party
@@ -65,6 +66,10 @@ Fields in the result:
     - `type` --- type of the party, one of `org`, `person`
     - `resource_id` --- identifier of the party
     - `role` --- role in the contract, see below
+    - `username` --- username for the service, if this contract is a
+    service account contract
+    - `user_role` --- name of the user role, if this contract is a
+    service account contract
 * `right_to_work_based_on` --- basis for a foreign employee's right to
   work, one of:
     - `eea_citizen` --- citizenship of an EU or EEA country
@@ -87,6 +92,9 @@ allowed roles are dependent on the type of contract, as follows:
     - `supplier` --- must be an `org`
     - `issuer_contact` --- person at issuer responsible for ordering
       ID06 card; must be a `person`
+* `SBCC_account` contracts:
+    - `user` --- must be a `person`
+    - `target` --- must be an `org` or a `person`
 
 ### Tests
 
