@@ -333,6 +333,81 @@ Delete the record.
     WHEN client GETs /contracts/$ID1
     THEN HTTP status code is 404
 
+Create a new service account contract.
+
+    WHEN client POSTs /contracts with
+    ... {
+    ... "contract_type": "SBCC_account",
+    ... "start_date": "2013-03-13",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "person",
+    ...         "resource_id": "123",
+    ...         "role": "user",
+    ...		"username": "mrbond",
+    ...		"user_role": "secret_agent"
+    ...     },
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "MI6",
+    ...         "role": "target"
+    ...     }
+    ... ],
+    ... }
+    THEN HTTP status code is 201
+    AND result matches
+    ... {
+    ... "type": "contract",
+    ... "contract_type": "SBCC_account",
+    ... "start_date": "2013-03-13",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "person",
+    ...         "resource_id": "123",
+    ...         "role": "user",
+    ...		"username": "mrbond",
+    ...		"user_role": "secret_agent"
+    ...     },
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "MI6",
+    ...         "role": "target"
+    ...     }
+    ... ],
+    ... }
+    AND result has key "id" containing a string, saved as $ID3
+    AND HTTP Location header is API_URL/contracts/$ID3
+    AND result has key "revision" containing a string, saved as $REV3
+
+Check that the record is there.
+
+    WHEN client GETs /contracts/$ID2
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ... "type": "contract",
+    ... "contract_type": "SBCC_account",
+    ... "start_date": "2013-03-13",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "person",
+    ...         "resource_id": "123",
+    ...         "role": "user",
+    ...		"username": "mrbond",
+    ...		"user_role": "secret_agent"
+    ...     },
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "MI6",
+    ...         "role": "target"
+    ...     }
+    ... ],
+    ... }
+    AND result has key "id" containing a string, saved as $ID4
+    AND values "$ID3" and "$ID4" are identical
+    AND result has key "revision" containing a string, saved as $REV4
+    AND values "$REV3" and "$REV4" are identical
+
 Attempt to send invalid data.
 
     WHEN client POSTs /contracts with {"nonexistent_field": "data"}

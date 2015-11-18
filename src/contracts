@@ -35,6 +35,8 @@ contract_prototype = {
                     u'post_area': u'',
                 },
             ],
+            u'username': u'',
+            u'user_role': u'',
         },
     ],
     u'right_to_work_based_on': u''
@@ -60,7 +62,9 @@ class CreateContractsTables_v1(unifiedapi.StoragePreparationStep):
             (u'list_pos', int),
             (u'resource_id', unicode),
             (u'type', unicode),
-            (u'role', unicode))
+            (u'role', unicode),
+            (u'username', unicode),
+            (u'user_role', unicode))
 
         db.create_table(
             u'contract_contract_parties_contacts',
@@ -130,21 +134,29 @@ class InvalidRightToWorkBasedOn(unifiedapi.ValidationError):
 
 
 def validate_contract(obj):
-    allowed_contract_types = [u'employment', u'induction', u'ID06_cards']
+    allowed_contract_types = [
+        u'employment', u'induction', u'ID06_cards', u'SBCC_account'
+    ]
     if obj[u'contract_type'] not in allowed_contract_types:
         raise InvalidContractType(id=obj[u'id'])
 
     if obj[u'contract_type'] is u'employment':
         for party in obj[u'contract_parties']:
-            if party[u'type'] not in [u'employer', u'employee']:
+            if party[u'role'] not in [u'employer', u'employee']:
                 raise InvalidPartyType(id=obj[u'id'])
 
     if obj[u'contract_type'] is u'induction':
         for party in obj[u'contract_parties']:
-            if party[u'type'] not in [u'inductor', u'inductee']:
+            if party[u'role'] not in [u'inductor', u'inductee']:
                 raise InvalidPartyType(id=obj[u'id'])
 
-    if obj[u'contract_type'] != u'ID06_cards':
+    if obj[u'contract_type'] is u'SBCC_account':
+        for party in obj[u'contract_parties']:
+            if party[u'role'] not in [u'user', u'target']:
+                raise InvalidPartyType(id=obj[u'id'])
+
+    if (obj[u'contract_type'] is u'employment' or
+            obj[u'contract_type'] is u'induction'):
         allowed_rights = [u'eea_citizen', u'residence_permit', u'other']
         if obj[u'right_to_work_based_on'] not in allowed_rights:
             raise InvalidRightToWorkBasedOn(id=obj[u'id'])
