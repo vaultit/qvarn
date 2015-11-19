@@ -377,7 +377,7 @@ Create a new service account contract.
     ... }
     AND result has key "id" containing a string, saved as $ID5
     AND HTTP Location header is API_URL/contracts/$ID5
-    AND result has key "revision" containing a string, saved as $REV3
+    AND result has key "revision" containing a string, saved as $REV6
 
 Check that the record is there.
 
@@ -405,8 +405,8 @@ Check that the record is there.
     ... }
     AND result has key "id" containing a string, saved as $ID6
     AND values "$ID5" and "$ID6" are identical
-    AND result has key "revision" containing a string, saved as $REV4
-    AND values "$REV3" and "$REV4" are identical
+    AND result has key "revision" containing a string, saved as $REV7
+    AND values "$REV6" and "$REV7" are identical
 
 Attempt to send invalid data.
 
