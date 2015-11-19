@@ -352,7 +352,7 @@ Create a new service account contract.
     ...         "resource_id": "MI6",
     ...         "role": "target"
     ...     }
-    ... ],
+    ... ]
     ... }
     THEN HTTP status code is 201
     AND result matches
@@ -373,7 +373,7 @@ Create a new service account contract.
     ...         "resource_id": "MI6",
     ...         "role": "target"
     ...     }
-    ... ],
+    ... ]
     ... }
     AND result has key "id" containing a string, saved as $ID3
     AND HTTP Location header is API_URL/contracts/$ID3
@@ -401,7 +401,7 @@ Check that the record is there.
     ...         "resource_id": "MI6",
     ...         "role": "target"
     ...     }
-    ... ],
+    ... ]
     ... }
     AND result has key "id" containing a string, saved as $ID4
     AND values "$ID3" and "$ID4" are identical
