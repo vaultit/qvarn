@@ -17,4 +17,4 @@ trap clean EXIT
 
 # Run yarn.
 sed '/^    *EXAMPLE/,/^ *$/d' *.yarn > "$TEMP"
-yarn -s yarn.sh --env "API_URL=$API_URL" "$TEMP" "$@" -v
+yarn -s yarn.sh --env "API_URL=$API_URL" "$TEMP" "$@"
