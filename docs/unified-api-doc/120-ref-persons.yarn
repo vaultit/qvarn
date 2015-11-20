@@ -332,26 +332,26 @@ Length Required 411.
 
 Update the main record, this should not affect the subrecord(s).
 
-  WHEN client GETs /persons/$ID1
-  THEN result has key "revision" containing a string, saved as $REV6
+    WHEN client GETs /persons/$ID1
+    THEN result has key "revision" containing a string, saved as $REV6
 
-  WHEN client PUTs /persons/$ID1 with
-  ... {
-  ...     "revision": "$REV6",
-  ...     "names": [{"full_name": "X"}]
-  ... }
-  THEN HTTP status code is 200
-  AND result matches { "names": [{"full_name": "X"}]}
+    WHEN client PUTs /persons/$ID1 with
+    ... {
+    ...     "revision": "$REV6",
+    ...     "names": [{"full_name": "X"}]
+    ... }
+    THEN HTTP status code is 200
+    AND result matches { "names": [{"full_name": "X"}]}
 
-  WHEN client GETs /persons/$ID1/private
-  THEN HTTP status code is 200
-  AND result matches { "date_of_birth": "1920-11-11" }
+    WHEN client GETs /persons/$ID1/private
+    THEN HTTP status code is 200
+    AND result matches { "date_of_birth": "1920-11-11" }
 
-  WHEN client GETs /persons/$ID1/photo
-  THEN HTTP status code is 200
-  AND HTTP header Content-Type is image/png
-  AND HTTP header Revision exists
-  AND result body matches file test.png
+    WHEN client GETs /persons/$ID1/photo
+    THEN HTTP status code is 200
+    AND HTTP header Content-Type is image/png
+    AND HTTP header Revision exists
+    AND result body matches file test.png
 
 Delete the record.
 
