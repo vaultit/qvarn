@@ -23,6 +23,7 @@ card_prototype = {
     u'issued_date': u'',
     u'valid_from_date': u'',
     u'valid_until_date': u'',
+    u'expiration_date': u'',
     u'card_status_history': [
         {
             u'card_status': u'',
@@ -99,6 +100,7 @@ class CreateCardsTables_v1(unifiedapi.StoragePreparationStep):
             (u'issued_date', unicode),
             (u'valid_from_date', unicode),
             (u'valid_until_date', unicode),
+            (u'expiration_date', unicode),
             (u'org', unicode),
             (u'person', unicode),
             (u'issuer_name', unicode),

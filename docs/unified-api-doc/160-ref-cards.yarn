@@ -81,6 +81,7 @@ FIXME: Add a URL here to a public description of the cards.
         "issued_date": "2015-04-01",
         "created_date": "2015-04-01",
         "valid_until_date": null,
+        "expiration_date": null,
         "card_status_history": [
             {
                 "card_status": "NotConfirmed",
@@ -126,7 +127,8 @@ FIXME: Add a URL here to the card specification.
         "issued_date": "2015-01-01",
         "created_date": "2015-02-25",
         "valid_from_date": "2015-04-01",
-        "valid_until_date": 2018-04-01,
+        "valid_until_date": "2018-04-01",
+        "expiration_date": "2038-01-19",
         "issuer_gov_org_ids": [
             {
                 "country": "SE",
@@ -200,6 +202,9 @@ field                   card types      description
 `valid_from_date`       all             first date when card is valid
 
 `valid_until_date`      all             last date when card is valid
+
+`expriation_date`       all             last date when card can be
+                                        valid; it should be terminated 
 
 `card_status_history`   all             history status of the card; the last
                                         entry in the list is the current
@@ -360,6 +365,7 @@ Create a new card.
     ...   ],
     ...  "issued_date": "2015-04-01",
     ...  "valid_until_date": null,
+    ...  "expiration_date": null,
     ...  "card_status_history": [
     ...    {
     ...        "card_status": "NotConfirmed",
@@ -387,6 +393,7 @@ Create a new card.
     ...   ],
     ...  "issued_date": "2015-04-01",
     ...  "valid_until_date": null,
+    ...  "expiration_date": null,
     ...  "card_status_history": [
     ...    {
     ...        "card_status": "NotConfirmed",
@@ -425,6 +432,7 @@ Check that the record is there.
     ...   ],
     ...  "issued_date": "2015-04-01",
     ...  "valid_until_date": null,
+    ...  "expiration_date": null,
     ...  "card_status_history": [
     ...    {
     ...        "card_status": "NotConfirmed",
@@ -456,6 +464,7 @@ Update the record.
     ...   ],
     ...  "issued_date": "2015-04-01",
     ...  "valid_until_date": "2016-04-01",
+    ...  "expiration_date": "2038-01-19",
     ...  "card_status_history": [
     ...    {
     ...        "card_status": "NotConfirmed",
@@ -470,6 +479,7 @@ Update the record.
     ... }
     THEN HTTP status code is 200
     AND result matches {"valid_until_date": "2016-04-01"}
+    AND result matches {"expiration_date": "2038-01-19"}
     AND result has key "id" containing a string, saved as $ID2
     AND values "$ID1" and "$ID2" are identical
     AND result has key "revision" containing a string, saved as $REV2
