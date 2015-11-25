@@ -8,6 +8,7 @@ import argparse
 import bottle
 import ConfigParser
 import logging
+import logging.handlers
 import sys
 
 from flup.server.fcgi import WSGIServer
@@ -110,10 +111,17 @@ class BackendApplication(object):
 
     def _setup_logging(self, conf):
         if conf.has_option('main', 'log'):
-            logging.basicConfig(
-                filename=conf.get('main', 'log'),
-                level=logging.DEBUG,
-                format='%(asctime)s %(levelname)s %(message)s')
+            # TODO: probably add rotation parameters to conf file
+            # Also possible to use fileConfig() directly for this.
+            log = logging.getLogger()
+            log.setLevel(logging.DEBUG)
+            handler = logging.handlers.RotatingFileHandler(
+                args.log, maxBytes=10000000, backupCount=10
+            )
+            handler.setFormatter(logging.Formatter(
+                '%(asctime)s %(levelname)s %(message)s')
+            )
+            log.addHandler(handler)
             logging.info('{} starts'.format(sys.argv[0]))
         else:
             logging.basicConfig(
