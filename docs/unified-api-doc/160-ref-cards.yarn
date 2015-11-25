@@ -203,7 +203,7 @@ field                   card types      description
 
 `valid_until_date`      all             last date when card is valid
 
-`expriation_date`       all             last date when card can be
+`expiration_date`       all             last date when card can be
                                         valid; it should be terminated 
 
 `card_status_history`   all             history status of the card; the last
