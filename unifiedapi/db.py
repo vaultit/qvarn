@@ -108,6 +108,26 @@ class Database(object):
     def _select_helper(self, table_name, column_names, match_columns):
         raise NotImplementedError
 
+    def add_column(self, table_name, column_name, column_type):
+        sql = u'ALTER TABLE %s ' % self._quote(table_name)
+        sql += u'ADD '
+        sql += '%s %s' % (self._quote(column_name),
+                          self.type_name[column_type])
+        c = self._conn.cursor()
+        c.execute(sql)
+
+    def drop_column(self, table_name, column_name):
+        sql = u'ALTER TABLE %s ' % self._quote(table_name)
+        sql += u'DROP '
+        sql += '%s' % self._quote(column_name)
+        c = self._conn.cursor()
+        c.execute(sql)
+
+    def drop_table(self, table_name):
+        sql = u'DROP TABLE %s ' % self._quote(table_name)
+        c = self._conn.cursor()
+        c.execute(sql)
+
 
 class SQLiteDatabase(Database):
     '''An SQLite database abstraction.
