@@ -1,4 +1,2 @@
 src/* usr/lib/unified-api-backend
-confs/haproxy.cfg.snippet usr/share/unified-api-backend
-confs/50-unified-api-backend.conf etc/lighttpd/conf-available
 start-backend-app usr/bin

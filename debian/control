@@ -4,19 +4,19 @@ Uploaders: Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>
 Section: web
 Priority: optional
 Standards-Version: 3.9.4
-Build-Depends: debhelper (>= 9), python-all (>= 2.6.6-3~)
+Build-Depends: debhelper (>= 9), python-all (>= 2.6.6-3~),
+  python-coverage-test-runner, pep8, pylint, python-psycopg2
 X-Python-Version: >= 2.6
 
 Package: unified-api-backend
 Architecture: all
 Depends: ${python:Depends}, ${misc:Depends},
  python (>= 2.6),
- haproxy,
- lighttpd,
  python-flup,
  python-jwt (>= 1.3.0),
  python-cryptography (>= 0.8),
- python-bottle
+ python-bottle,
+ python-psycopg2
 Description: services provided by Suomen Tilaajavastuu
  This is the backend implementation of the "Unified API" specified for the
  services provided by Suomen Tilaajavastuu.
