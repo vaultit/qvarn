@@ -47,7 +47,8 @@ Example result for a contract:
                 "role": "employee"
             }
         ],
-        "right_to_work_based_on": "eea_citizen"
+        "right_to_work_based_on": "eea_citizen",
+	"contract_state": "active"
     }
 
 Fields in the result:
@@ -77,6 +78,7 @@ Fields in the result:
     - `other` --- an unspecified other basis
 * `id06_issuer_requires_bankid` --- does the issuer require BankID
   authentication for enabling each virtual ID06 card?
+* `contract_state` --- state of the contract, if applicable
 
 Contract parties have a role in which they appear in the contract. The
 allowed roles are dependent on the type of contract, as follows:
@@ -127,7 +129,8 @@ Create a new contract.
     ...         "role": "employee"
     ...     }
     ... ],
-    ... "right_to_work_based_on": "eea_citizen"
+    ... "right_to_work_based_on": "eea_citizen",
+    ... "contract_state": "active"
     ... }
     THEN HTTP status code is 201
     AND result matches
@@ -147,7 +150,8 @@ Create a new contract.
     ...         "role": "employee"
     ...     }
     ... ],
-    ... "right_to_work_based_on": "eea_citizen"
+    ... "right_to_work_based_on": "eea_citizen",
+    ... "contract_state": "active"
     ... }
     AND result has key "id" containing a string, saved as $ID1
     AND HTTP Location header is API_URL/contracts/$ID1
@@ -174,7 +178,8 @@ Check that the record is there.
     ...         "role": "employee"
     ...     }
     ... ],
-    ... "right_to_work_based_on": "eea_citizen"
+    ... "right_to_work_based_on": "eea_citizen",
+    ... "contract_state": "active"
     ... }
     AND result has key "id" containing a string, saved as $ID2
     AND values "$ID1" and "$ID2" are identical

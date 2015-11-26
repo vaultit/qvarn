@@ -39,7 +39,19 @@ contract_prototype = {
             u'user_role': u'',
         },
     ],
-    u'right_to_work_based_on': u''
+    u'right_to_work_based_on': u'',
+    u'contract_state': u''
+}
+
+
+contract_sync_prototype = {
+    u'sync_sources': [
+        {
+            u'sync_source': u'',
+            u'sync_id': u'',
+        },
+    ],
+    u'sync_revision': u'',
 }
 
 
@@ -54,7 +66,8 @@ class CreateContractsTables_v1(unifiedapi.StoragePreparationStep):
             (u'contract_type', unicode),
             (u'start_date', unicode),
             (u'end_date', unicode),
-            (u'right_to_work_based_on', unicode))
+            (u'right_to_work_based_on', unicode),
+            (u'contract_state', unicode))
 
         db.create_table(
             u'contract_contract_parties',
@@ -92,6 +105,18 @@ class CreateContractsTables_v1(unifiedapi.StoragePreparationStep):
             (u'id', unicode),
             (u'body', buffer),
             (u'content_type', unicode))
+
+        db.create_table(
+            u'contract_sync',
+            (u'id', unicode),
+            (u'sync_revision', unicode))
+
+        db.create_table(
+            u'contract_sync_sync_sources',
+            (u'id', unicode),
+            (u'list_pos', int),
+            (u'sync_source', unicode),
+            (u'sync_id', unicode))
 
         db.create_table(
             u'contracts__listener',
@@ -178,6 +203,7 @@ if __name__ == '__main__':
     resource.set_item_type(u'contract')
     resource.set_item_prototype(contract_prototype)
     resource.set_item_validator(validate_contract)
+    resource.set_subitem_prototype(u'sync', contract_sync_prototype)
     resource.set_listener(listener_resource)
     app.add_resource(resource)
 
