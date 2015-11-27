@@ -5,9 +5,9 @@
 import sys, requests, base64
 
 scopes = sys.stdin.read().strip()
-token_endpoint_url = u'https://dev-gluu.tilaajavastuu.io/oxauth/seam/resource/' + \
+token_endpoint_url = u'https://test-pg-alpha-gluu.qvarn.io/oxauth/seam/resource/' + \
                      u'restv1/oxauth/token'
-client_id = u'@!D0B3.42FF.3A77.681D!0001!0105.03F6!0008!5B05.DDAB'
+client_id = u'@!D0B3.42FF.3A77.681D!0001!0105.03F6!0008!AEEA.B068'
 client_secret = u'secret'
 
 basic_auth_token = base64.standard_b64encode(client_id + u':' + client_secret)
