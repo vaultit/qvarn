@@ -57,7 +57,7 @@ class Database(object):
                 'Cannot create an abstract Database instance')
         self.type_name = {}
 
-    def _execute(self, sql_statement, values):
+    def _execute(self, sql_statement, values, expecting_results):
         raise NotImplementedError()
 
     def make_table_name(self, *components):
@@ -85,7 +85,7 @@ class Database(object):
         sql = u'CREATE TABLE IF NOT EXISTS %s ' % self._quote(table_name)
         sql += u'(' + u', '.join(col_spec) + u')'
 
-        self._execute(sql, {})
+        self._execute(sql, {}, False)
 
     def select(self, table_name, column_names):
         '''Retrieve the given columns from all rows.'''
@@ -114,17 +114,17 @@ class Database(object):
         sql += u'ADD '
         sql += '%s %s' % (self._quote(column_name),
                           self.type_name[column_type])
-        self._execute(sql, {})
+        self._execute(sql, {}, False)
 
     def drop_column(self, table_name, column_name):
         sql = u'ALTER TABLE %s ' % self._quote(table_name)
         sql += u'DROP '
         sql += '%s' % self._quote(column_name)
-        self._execute(sql, {})
+        self._execute(sql, {}, False)
 
     def drop_table(self, table_name):
         sql = u'DROP TABLE %s ' % self._quote(table_name)
-        self._execute(sql, {})
+        self._execute(sql, {}, False)
 
 
 class SQLiteDatabase(Database):
@@ -178,10 +178,11 @@ class SQLiteDatabase(Database):
             self._conn.rollback()
         self._conn = None
 
-    def _execute(self, sql, values):
+    def _execute(self, sql, values, expecting_results):
         c = self._real_conn.cursor()
         c.execute(sql, values)
-        return [row for row in c]
+        if expecting_results:
+            return [row for row in c]
 
     def insert(self, table_name, *columns):
         '''Insert a row into a table.
@@ -205,7 +206,7 @@ class SQLiteDatabase(Database):
                 u', '.join(':%s' % name for name in column_names) +
                 u')')
 
-        self._execute(sql, values)
+        self._execute(sql, values, False)
 
     def _select_helper(self, table_name, column_names, match_columns):
         quoted_names = [self._quote(x) for x in column_names]
@@ -223,7 +224,7 @@ class SQLiteDatabase(Database):
                 '{0} IS :{0}'.format(self._quote(x)) for x in match_columns)
             sql += u' WHERE ' + condition
 
-        rows = self._execute(sql, match_columns)
+        rows = self._execute(sql, match_columns, True)
 
         result = []
         for row in rows:
@@ -254,7 +255,7 @@ class SQLiteDatabase(Database):
             '{0} IS :{0}'.format(self._quote(x)) for x in match_columns)
         sql += u' WHERE ' + condition
 
-        self._execute(sql, match_columns)
+        self._execute(sql, match_columns, False)
 
 
 class PostgreSQLDatabase(Database):
@@ -301,19 +302,22 @@ class PostgreSQLDatabase(Database):
         self._pool.putconn(self._conn)
         self._conn = None
 
-    def _execute(self, sql, values):
+    def _execute(self, sql, values, expecting_results):
         if self._conn is None:
             conn = self._pool.getconn()
-            rows = self._execute_with_conn(conn, sql, values)
+            rows = self._execute_with_conn(
+                conn, sql, values, expecting_results)
             self._pool.putconn(conn)
             return rows
         else:
-            return self._execute_with_conn(self._conn, sql, values)
+            return self._execute_with_conn(
+                self._conn, sql, values, expecting_results)
 
-    def _execute_with_conn(self, conn, sql, values):
+    def _execute_with_conn(self, conn, sql, values, expecting_results):
         c = conn.cursor()
         c.execute(sql, values)
-        return [row for row in c]
+        if expecting_results:
+            return [row for row in c]
 
     def insert(self, table_name, *columns):
         '''Insert a row into a table.
@@ -338,7 +342,7 @@ class PostgreSQLDatabase(Database):
                 u')')
         print sql
 
-        self._execute(sql, values)
+        self._execute(sql, values, False)
 
     def _select_helper(self, table_name, column_names, match_columns):
         quoted_names = [self._quote(x) for x in column_names]
@@ -356,7 +360,7 @@ class PostgreSQLDatabase(Database):
                 '{0} = %({0})s'.format(self._quote(x)) for x in match_columns)
             sql += u' WHERE ' + condition
 
-        rows = self._execute(sql, match_columns)
+        rows = self._execute(sql, match_columns, True)
         result = []
         for row in rows:
             a_dict = {}
@@ -386,4 +390,4 @@ class PostgreSQLDatabase(Database):
             '{0} = %({0})s'.format(self._quote(x)) for x in match_columns)
         sql += u' WHERE ' + condition
 
-        self._execute(sql, match_columns)
+        self._execute(sql, match_columns, False)
