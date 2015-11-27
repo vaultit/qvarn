@@ -335,7 +335,7 @@ class PostgreSQLDatabase(Database):
                 for i in range(len(column_names)):
                     a_dict[unicode(column_names[i])] = row[
                         str(quoted_names[i])]
-                    result.append(a_dict)
+                result.append(a_dict)
         return result
 
     def delete_matching_rows(self, table_name, match_columns):
