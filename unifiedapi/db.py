@@ -56,7 +56,9 @@ class Database(object):
             raise NotImplementedError(
                 'Cannot create an abstract Database instance')
         self.type_name = {}
-        self._conn = None
+
+    def _get_cursor(self):
+        raise NotImplementedError()
 
     def make_table_name(self, *components):
         '''Create a name for a table from the given components.'''
@@ -83,7 +85,7 @@ class Database(object):
         sql = u'CREATE TABLE IF NOT EXISTS %s ' % self._quote(table_name)
         sql += u'(' + u', '.join(col_spec) + u')'
 
-        c = self._conn.cursor()
+        c = self._get_cursor()
         c.execute(sql)
 
     def select(self, table_name, column_names):
@@ -113,19 +115,19 @@ class Database(object):
         sql += u'ADD '
         sql += '%s %s' % (self._quote(column_name),
                           self.type_name[column_type])
-        c = self._conn.cursor()
+        c = self._get_cursor()
         c.execute(sql)
 
     def drop_column(self, table_name, column_name):
         sql = u'ALTER TABLE %s ' % self._quote(table_name)
         sql += u'DROP '
         sql += '%s' % self._quote(column_name)
-        c = self._conn.cursor()
+        c = self._get_cursor()
         c.execute(sql)
 
     def drop_table(self, table_name):
         sql = u'DROP TABLE %s ' % self._quote(table_name)
-        c = self._conn.cursor()
+        c = self._get_cursor()
         c.execute(sql)
 
 
@@ -146,24 +148,31 @@ class SQLiteDatabase(Database):
             unicode: u'TEXT',
             bool: u'BOOLEAN',
         }
+        self._conn = None
+        sqlite3.register_adapter(bool, int)
+        sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
+
+    def _get_cursor(self):
+        assert self._conn is not None
+        return self._conn.cursor()
+
+    def __enter__(self):
+        assert self._conn is None
         self._conn = sqlite3.connect(
             u':memory:',
             isolation_level="IMMEDIATE",
             detect_types=sqlite3.PARSE_DECLTYPES,
             check_same_thread=False
         )
-        sqlite3.register_adapter(bool, int)
-        sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
         self._conn.row_factory = sqlite3.Row
 
-    def __enter__(self):
-        pass
-
     def __exit__(self, exc_type, exc_val, exc_tb):
+        assert self._conn is not None
         if exc_type is None:
             self._conn.commit()
         else:
             self._conn.rollback()
+        self._conn = None
 
     def insert(self, table_name, *columns):
         '''Insert a row into a table.
@@ -187,7 +196,7 @@ class SQLiteDatabase(Database):
                 u', '.join(':%s' % name for name in column_names) +
                 u')')
 
-        c = self._conn.cursor()
+        c = self._get_cursor()
         c.execute(sql, values)
 
     def _select_helper(self, table_name, column_names, match_columns):
@@ -206,7 +215,7 @@ class SQLiteDatabase(Database):
                 '{0} IS :{0}'.format(self._quote(x)) for x in match_columns)
             sql += u' WHERE ' + condition
 
-        c = self._conn.cursor()
+        c = self._get_cursor()
         c.execute(sql, match_columns)
 
         result = []
@@ -238,7 +247,7 @@ class SQLiteDatabase(Database):
             '{0} IS :{0}'.format(self._quote(x)) for x in match_columns)
         sql += u' WHERE ' + condition
 
-        c = self._conn.cursor()
+        c = self._get_cursor()
         c.execute(sql, match_columns)
         return c
 
@@ -274,7 +283,12 @@ class PostgreSQLDatabase(Database):
         psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
         self._conn = None
 
+    def _get_cursor(self):
+        assert self._conn is not None
+        return self._conn.cursor()
+
     def __enter__(self):
+        assert self._conn is None
         self._conn = self._pool.getconn()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -284,6 +298,7 @@ class PostgreSQLDatabase(Database):
         else:
             self._conn.rollback()
         self._pool.putconn(self._conn)
+        self._conn = None
 
     def insert(self, table_name, *columns):
         '''Insert a row into a table.
@@ -308,7 +323,7 @@ class PostgreSQLDatabase(Database):
                 u')')
         print sql
 
-        with self._conn.cursor() as c:
+        with self._get_cursor() as c:
             c.execute(sql, values)
 
     def _select_helper(self, table_name, column_names, match_columns):
@@ -327,7 +342,7 @@ class PostgreSQLDatabase(Database):
                 '{0} = %({0})s'.format(self._quote(x)) for x in match_columns)
             sql += u' WHERE ' + condition
 
-        with self._conn.cursor() as c:
+        with self._get_cursor() as c:
             c.execute(sql, match_columns)
             result = []
             for row in c:
@@ -358,5 +373,5 @@ class PostgreSQLDatabase(Database):
             '{0} = %({0})s'.format(self._quote(x)) for x in match_columns)
         sql += u' WHERE ' + condition
 
-        with self._conn.cursor() as c:
+        with self._get_cursor() as c:
             c.execute(sql, match_columns)
