@@ -99,11 +99,10 @@ class WriteOnlyStorage(object):
         table_name = self._item_type
         column_names = [u'revision']
         match_columns = {u'id': item_id}
-        with self._db:
-            rows = self._db.select_matching_rows(
-                table_name, column_names, match_columns)
-            for row in rows:
-                return row[u'revision']
+        rows = self._db.select_matching_rows(
+            table_name, column_names, match_columns)
+        for row in rows:
+            return row[u'revision']
 
     def update_subitem(self, item_id, revision, subitem_name, subitem):
         with self._db:
