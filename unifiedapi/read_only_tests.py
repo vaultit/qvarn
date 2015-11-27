@@ -97,7 +97,7 @@ class ReadOnlyStorageTests(unittest.TestCase):
         self.ro.set_subitem_prototype(
             self.item[u'type'], self.subitem_name, self.subitem_prototype)
 
-        prep = unifiedapi.StoragePreparer()
+        prep = unifiedapi.StoragePreparer(self.item[u'type'])
         prep.add_step(u'create-tables', self.create_tables)
         with db:
             prep.run(db)

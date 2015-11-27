@@ -25,9 +25,14 @@ class StoragePreparer(object):
 
     '''
 
-    def __init__(self):
+    def __init__(self, item_type):
+        # Use double underscore so that automatically constructed
+        # table names do not clash.
+        self._migrations_table_name = u'%s__%s' % (item_type, u'migrations')
+
         self._mandatory_steps = [
-            (u'prepare-migrations-table', PrepareMigrationsTable()),
+            (u'prepare-migrations-table',
+             PrepareMigrationsTable(self._migrations_table_name)),
         ]
         self._steps = []
 
@@ -74,7 +79,9 @@ class StoragePreparer(object):
                 self._remember_step_name(db, name)
 
     def _get_done_steps(self, db):
-        return [row['name'] for row in db.select(u'migrations', [u'name'])]
+        return [
+            row['name']
+            for row in db.select(self._migrations_table_name, [u'name'])]
 
     def _run_step(self, db, name, step):
         logging.info('Running storage preparation step %s', name)
@@ -84,13 +91,16 @@ class StoragePreparer(object):
             step(db)
 
     def _remember_step_name(self, db, name):
-        db.insert(u'migrations', (u'name', name))
+        db.insert(self._migrations_table_name, (u'name', name))
 
 
 class PrepareMigrationsTable(unifiedapi.StoragePreparationStep):
 
+    def __init__(self, table_name):
+        self._table_name = table_name
+
     def run(self, db):
-        db.create_table(u'migrations', (u'name', unicode))
+        db.create_table(self._table_name, (u'name', unicode))
 
 
 class DuplicateStepName(unifiedapi.BackendException):

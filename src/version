@@ -24,7 +24,7 @@ def version():
 def main():
     app = unifiedapi.BackendApplication()
 
-    prep = unifiedapi.StoragePreparer()
+    prep = unifiedapi.StoragePreparer(u'version')
     app.set_storage_preparer(prep)
 
     resource = unifiedapi.SimpleResource()

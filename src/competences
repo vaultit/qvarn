@@ -58,20 +58,20 @@ class CreateCompetencesTables_v1(unifiedapi.StoragePreparationStep):
             (u'sync_revision', unicode))
 
         db.create_table(
-            u'listener',
+            u'competences__listener',
             (u'type', unicode),
             (u'id', unicode),
             (u'revision', unicode),
             (u'notify_of_new', bool))
 
         db.create_table(
-            u'listener_listen_on',
+            u'competences__listener_listen_on',
             (u'id', unicode),
             (u'list_pos', int),
             (u'listen_on', unicode))
 
         db.create_table(
-            u'notification',
+            u'competences__notification',
             (u'type', unicode),
             (u'id', unicode),
             (u'listener_id', unicode),
@@ -110,7 +110,7 @@ def validate_competence(obj):
 if __name__ == '__main__':
     app = unifiedapi.BackendApplication()
 
-    prep = unifiedapi.StoragePreparer()
+    prep = unifiedapi.StoragePreparer(u'competence')
     prep.add_step(
         u'create_competences_tables_v1', CreateCompetencesTables_v1())
     app.set_storage_preparer(prep)

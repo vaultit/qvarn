@@ -60,10 +60,20 @@ class ListenerResource(object):
     def __init__(self):
         self._path = None
         self.database = None
+        self._notification_table = None
+        self._listener_table = None
 
     def set_top_resource_path(self, path):
         '''Set path of the top level resource, e.g., /persons.'''
         self._path = path
+        # Use double underscore to avoid conflicts with automatically
+        # generated table names.
+        self._notification_table = self._quote(path) + u'__notification'
+        self._listener_table = self._quote(path) + u'__listener'
+
+    def _quote(self, path):
+        path = path.lstrip('/')
+        return '_'.join(path.split('/'))
 
     def prepare_resource(self, database):
         '''Prepare the resource for action.'''
@@ -131,7 +141,7 @@ class ListenerResource(object):
     def get_listeners(self):
         '''Serve GET /foos/listeners to list all listeners.'''
         ro = self._create_resource_ro_storage(
-            u'listener', listener_prototype)
+            self._listener_table, listener_prototype)
         return {
             'resources': [
                 {'id': resource_id} for resource_id in ro.get_item_ids()
@@ -144,7 +154,7 @@ class ListenerResource(object):
         Lists all notifications.
         '''
         ro = self._create_resource_ro_storage(
-            u'notification', notification_prototype)
+            self._notification_table, notification_prototype)
         # Horribly inefficient start
         result = ro.search(
             [(u'exact', u'listener_id', listener_id)], [u'show_all'])
@@ -171,7 +181,7 @@ class ListenerResource(object):
         del listener[u'revision']
 
         wo = self._create_resource_wo_storage(
-            u'listener', listener_prototype)
+            self._listener_table, listener_prototype)
         added = wo.add_item(listener)
         resource_path = u'%s/listeners/%s' % (self._path, added[u'id'])
         resource_url = urlparse.urljoin(
@@ -186,7 +196,7 @@ class ListenerResource(object):
     def get_listener(self, listener_id):
         '''Serve GET /foos/listeners/123 to get an existing listener.'''
         ro = self._create_resource_ro_storage(
-            u'listener', listener_prototype)
+            self._listener_table, listener_prototype)
         return ro.get_item(listener_id)
 
     def get_notification(self, notification_id):
@@ -195,7 +205,7 @@ class ListenerResource(object):
         Gets an existing notification.
         '''
         ro = self._create_resource_ro_storage(
-            u'notification', notification_prototype)
+            self._notification_table, notification_prototype)
         return ro.get_item(notification_id)
 
     def put_listener(self, listener_id):
@@ -211,7 +221,7 @@ class ListenerResource(object):
         listener[u'id'] = listener_id
 
         wo = self._create_resource_wo_storage(
-            u'listener', listener_prototype)
+            self._listener_table, listener_prototype)
         updated = wo.update_item(listener)
 
         return updated
@@ -219,15 +229,15 @@ class ListenerResource(object):
     def delete_listener(self, listener_id):
         '''Serve DELETE /foos/listeners/123 to delete a listener.'''
         wo_listener = self._create_resource_wo_storage(
-            u'listener', listener_prototype)
+            self._listener_table, listener_prototype)
         wo_listener.delete_item(listener_id)
 
         ro = self._create_resource_ro_storage(
-            u'notification', notification_prototype)
+            self._notification_table, notification_prototype)
         notification_resources = ro.search(
             [(u'exact', u'listener_id', listener_id)], [])
         wo_notification = self._create_resource_wo_storage(
-            u'notification', notification_prototype)
+            self._notification_table, notification_prototype)
         for notification in notification_resources[u'resources']:
             try:
                 wo_notification.delete_item(notification[u'id'])
@@ -241,7 +251,7 @@ class ListenerResource(object):
         Deletes a notification.
         '''
         wo = self._create_resource_wo_storage(
-            u'notification', notification_prototype)
+            self._notification_table, notification_prototype)
         wo.delete_item(notification_id)
 
     def notify_create(self, item_id, item_revision):
@@ -251,12 +261,12 @@ class ListenerResource(object):
         enabled.
         '''
         ro = self._create_resource_ro_storage(
-            u'listener', listener_prototype)
+            self._listener_table, listener_prototype)
         listener_resources = ro.search(
             [(u'exact', u'notify_of_new', True)], [])
 
         wo = self._create_resource_wo_storage(
-            u'notification', notification_prototype)
+            self._notification_table, notification_prototype)
         for listener in listener_resources[u'resources']:
             notification = {
                 u'type': u'notification',
@@ -275,12 +285,12 @@ class ListenerResource(object):
         the updated item id.
         '''
         ro = self._create_resource_ro_storage(
-            u'listener', listener_prototype)
+            self._listener_table, listener_prototype)
         listener_resources = ro.search(
             [(u'exact', u'listen_on', item_id)], [])
 
         wo = self._create_resource_wo_storage(
-            u'notification', notification_prototype)
+            self._notification_table, notification_prototype)
         for listener in listener_resources[u'resources']:
             notification = {
                 u'type': u'notification',
@@ -299,12 +309,12 @@ class ListenerResource(object):
         the updated item id.
         '''
         ro = self._create_resource_ro_storage(
-            u'listener', listener_prototype)
+            self._listener_table, listener_prototype)
         listener_resources = ro.search(
             [(u'exact', u'listen_on', item_id)], [])
 
         wo = self._create_resource_wo_storage(
-            u'notification', notification_prototype)
+            self._notification_table, notification_prototype)
         for listener in listener_resources[u'resources']:
             notification = {
                 u'type': u'notification',
