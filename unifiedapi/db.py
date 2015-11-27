@@ -57,7 +57,7 @@ class Database(object):
                 'Cannot create an abstract Database instance')
         self.type_name = {}
 
-    def _get_cursor(self):
+    def _execute(self, sql_statement, values):
         raise NotImplementedError()
 
     def make_table_name(self, *components):
@@ -85,8 +85,7 @@ class Database(object):
         sql = u'CREATE TABLE IF NOT EXISTS %s ' % self._quote(table_name)
         sql += u'(' + u', '.join(col_spec) + u')'
 
-        c = self._get_cursor()
-        c.execute(sql)
+        self._execute(sql, {})
 
     def select(self, table_name, column_names):
         '''Retrieve the given columns from all rows.'''
@@ -115,20 +114,17 @@ class Database(object):
         sql += u'ADD '
         sql += '%s %s' % (self._quote(column_name),
                           self.type_name[column_type])
-        c = self._get_cursor()
-        c.execute(sql)
+        self._execute(sql, {})
 
     def drop_column(self, table_name, column_name):
         sql = u'ALTER TABLE %s ' % self._quote(table_name)
         sql += u'DROP '
         sql += '%s' % self._quote(column_name)
-        c = self._get_cursor()
-        c.execute(sql)
+        self._execute(sql, {})
 
     def drop_table(self, table_name):
         sql = u'DROP TABLE %s ' % self._quote(table_name)
-        c = self._get_cursor()
-        c.execute(sql)
+        self._execute(sql, {})
 
 
 class SQLiteDatabase(Database):
@@ -148,23 +144,31 @@ class SQLiteDatabase(Database):
             unicode: u'TEXT',
             bool: u'BOOLEAN',
         }
+
+        # This connection must exist as long as the SQLDatabase object
+        # exists, since it's memory backed. If we close the connection,
+        # the database disappears.
+        self._real_conn = self._get_conn()
+
+        # This connection is managed by the context manager.
         self._conn = None
+
         sqlite3.register_adapter(bool, int)
         sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
 
-    def _get_cursor(self):
-        assert self._conn is not None
-        return self._conn.cursor()
-
-    def __enter__(self):
-        assert self._conn is None
-        self._conn = sqlite3.connect(
+    def _get_conn(self):
+        conn = sqlite3.connect(
             u':memory:',
             isolation_level="IMMEDIATE",
             detect_types=sqlite3.PARSE_DECLTYPES,
             check_same_thread=False
         )
-        self._conn.row_factory = sqlite3.Row
+        conn.row_factory = sqlite3.Row
+        return conn
+
+    def __enter__(self):
+        assert self._conn is None
+        self._conn = self._real_conn
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         assert self._conn is not None
@@ -173,6 +177,11 @@ class SQLiteDatabase(Database):
         else:
             self._conn.rollback()
         self._conn = None
+
+    def _execute(self, sql, values):
+        c = self._real_conn.cursor()
+        c.execute(sql, values)
+        return [row for row in c]
 
     def insert(self, table_name, *columns):
         '''Insert a row into a table.
@@ -196,8 +205,7 @@ class SQLiteDatabase(Database):
                 u', '.join(':%s' % name for name in column_names) +
                 u')')
 
-        c = self._get_cursor()
-        c.execute(sql, values)
+        self._execute(sql, values)
 
     def _select_helper(self, table_name, column_names, match_columns):
         quoted_names = [self._quote(x) for x in column_names]
@@ -215,11 +223,10 @@ class SQLiteDatabase(Database):
                 '{0} IS :{0}'.format(self._quote(x)) for x in match_columns)
             sql += u' WHERE ' + condition
 
-        c = self._get_cursor()
-        c.execute(sql, match_columns)
+        rows = self._execute(sql, match_columns)
 
         result = []
-        for row in c:
+        for row in rows:
             a_dict = {}
             for i in range(len(column_names)):
                 a_dict[unicode(column_names[i])] = row[str(quoted_names[i])]
@@ -247,9 +254,7 @@ class SQLiteDatabase(Database):
             '{0} IS :{0}'.format(self._quote(x)) for x in match_columns)
         sql += u' WHERE ' + condition
 
-        c = self._get_cursor()
-        c.execute(sql, match_columns)
-        return c
+        self._execute(sql, match_columns)
 
 
 class PostgreSQLDatabase(Database):
@@ -283,10 +288,6 @@ class PostgreSQLDatabase(Database):
         psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
         self._conn = None
 
-    def _get_cursor(self):
-        assert self._conn is not None
-        return self._conn.cursor()
-
     def __enter__(self):
         assert self._conn is None
         self._conn = self._pool.getconn()
@@ -299,6 +300,20 @@ class PostgreSQLDatabase(Database):
             self._conn.rollback()
         self._pool.putconn(self._conn)
         self._conn = None
+
+    def _execute(self, sql, values):
+        if self._conn is None:
+            conn = self._pool.getconn()
+            rows = self._execute_with_conn(conn, sql, values)
+            self._pool.putconn(conn)
+            return rows
+        else:
+            return self._execute_with_conn(self._conn, sql, values)
+
+    def _execute_with_conn(self, conn, sql, values):
+        c = conn.cursor()
+        c.execute(sql, values)
+        return [row for row in c]
 
     def insert(self, table_name, *columns):
         '''Insert a row into a table.
@@ -323,8 +338,7 @@ class PostgreSQLDatabase(Database):
                 u')')
         print sql
 
-        with self._get_cursor() as c:
-            c.execute(sql, values)
+        self._execute(sql, values)
 
     def _select_helper(self, table_name, column_names, match_columns):
         quoted_names = [self._quote(x) for x in column_names]
@@ -342,15 +356,14 @@ class PostgreSQLDatabase(Database):
                 '{0} = %({0})s'.format(self._quote(x)) for x in match_columns)
             sql += u' WHERE ' + condition
 
-        with self._get_cursor() as c:
-            c.execute(sql, match_columns)
-            result = []
-            for row in c:
-                a_dict = {}
-                for i in range(len(column_names)):
-                    a_dict[unicode(column_names[i])] = row[
-                        str(quoted_names[i])]
-                result.append(a_dict)
+        rows = self._execute(sql, match_columns)
+        result = []
+        for row in rows:
+            a_dict = {}
+            for i in range(len(column_names)):
+                a_dict[unicode(column_names[i])] = row[
+                    str(quoted_names[i])]
+            result.append(a_dict)
         return result
 
     def delete_matching_rows(self, table_name, match_columns):
@@ -373,5 +386,4 @@ class PostgreSQLDatabase(Database):
             '{0} = %({0})s'.format(self._quote(x)) for x in match_columns)
         sql += u' WHERE ' + condition
 
-        with self._get_cursor() as c:
-            c.execute(sql, match_columns)
+        self._execute(sql, match_columns)
