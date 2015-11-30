@@ -91,7 +91,7 @@ FIXME: Add a URL here to a public description of the cards.
                 "modification_description": "M. issued card"
             }
         ],
-	"current_status": "NotConfirmed",
+        "current_status": "NotConfirmed",
         "org": "4444",
         "person": "7777"
     }
@@ -178,7 +178,7 @@ FIXME: Add a URL here to the card specification.
                 "modification_description": "Card created"
             }
         ],
-	"current_status": "active",
+        "current_status": "active",
         "org": "4444",
         "person": "7777"
     }
@@ -215,7 +215,9 @@ field                   card types      description
 `current_status`	all		current status of the card; the valid
 					values are the same as in `card_status`
 					field of the `card_status_history`
-					record
+					record; the value should be the same
+					as in the last entry of the
+					`card_status_history`
 
 `org`                   all             resource identifier of the
                                         organisation who issued the card
@@ -382,7 +384,7 @@ Create a new card.
     ...	       "modification_description": "M. didn't want to activate card yet"
     ...    }
     ...   ],
-    ...	 "current_status": "NotConfirmed",
+    ...  "current_status": "NotConfirmed",
     ...  "org": "4444",
     ...  "person": "7777"
     ... }
@@ -411,7 +413,7 @@ Create a new card.
     ...	       "modification_description": "M. didn't want to activate card yet"
     ...    }
     ...   ],
-    ...	 "current_status": "NotConfirmed",
+    ...  "current_status": "NotConfirmed",
     ...  "org": "4444",
     ...  "person": "7777"
     ... }
@@ -451,7 +453,7 @@ Check that the record is there.
     ...	       "modification_description": "M. didn't want to activate card yet"
     ...    }
     ...   ],
-    ...	 "current_status": "NotConfirmed",
+    ...  "current_status": "NotConfirmed",
     ...  "org": "4444",
     ...  "person": "7777"
     ... }
@@ -484,7 +486,7 @@ Update the record.
     ...	       "modification_description": "M. didn't want to activate card yet"
     ...    }
     ...   ],
-    ...	 "current_status": "NotConfirmed",
+    ...  "current_status": "NotConfirmed",
     ...  "org": "4444",
     ...  "person": "7777"
     ... }
