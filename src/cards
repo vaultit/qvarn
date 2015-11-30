@@ -33,6 +33,7 @@ card_prototype = {
             u'modification_description': u'',
         },
     ],
+    u'current_status': u'',
     u'org': u'',
     u'issuer_name': u'',
     u'issuer_gov_org_ids': [
@@ -101,6 +102,7 @@ class CreateCardsTables_v1(unifiedapi.StoragePreparationStep):
             (u'valid_from_date', unicode),
             (u'valid_until_date', unicode),
             (u'expiration_date', unicode),
+            (u'current_status', unicode),
             (u'org', unicode),
             (u'person', unicode),
             (u'issuer_name', unicode),
