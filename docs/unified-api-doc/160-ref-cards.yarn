@@ -201,6 +201,8 @@ field                   card types      description
 `issued_date`           all             date when issued, i.e., when the
                                         issuer ordered it
 
+`created_date`          all             date when the card was created
+
 `valid_from_date`       all             first date when card is valid
 
 `valid_until_date`      all             last date when card is valid
@@ -212,12 +214,12 @@ field                   card types      description
                                         entry in the list is the current
                                         status; see below for list items
 
-`current_status`	all		current status of the card; the valid
-					values are the same as in `card_status`
-					field of the `card_status_history`
-					record; the value should be the same
-					as in the last entry of the
-					`card_status_history`
+`current_status`        all             current status of the card; the valid
+                                        values are the same as in `card_status`
+                                        field of the `card_status_history`
+                                        record; the value should be the same
+                                        as in the last entry of the
+                                        `card_status_history`
 
 `org`                   all             resource identifier of the
                                         organisation who issued the card
@@ -373,6 +375,7 @@ Create a new card.
     ...    }
     ...   ],
     ...  "issued_date": "2015-04-01",
+    ...  "created_date": "2015-04-08",
     ...  "valid_until_date": null,
     ...  "expiration_date": null,
     ...  "card_status_history": [
@@ -402,6 +405,7 @@ Create a new card.
     ...    }
     ...   ],
     ...  "issued_date": "2015-04-01",
+    ...  "created_date": "2015-04-08",
     ...  "valid_until_date": null,
     ...  "expiration_date": null,
     ...  "card_status_history": [
@@ -442,6 +446,7 @@ Check that the record is there.
     ...    }
     ...   ],
     ...  "issued_date": "2015-04-01",
+    ...  "created_date": "2015-04-08",
     ...  "valid_until_date": null,
     ...  "expiration_date": null,
     ...  "card_status_history": [
@@ -475,6 +480,7 @@ Update the record.
     ...    }
     ...   ],
     ...  "issued_date": "2015-04-01",
+    ...  "created_date": "2015-04-08",
     ...  "valid_until_date": "2016-04-01",
     ...  "expiration_date": "2038-01-19",
     ...  "card_status_history": [
