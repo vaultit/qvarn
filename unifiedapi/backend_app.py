@@ -103,9 +103,10 @@ class BackendApplication(object):
             conf.get('database', 'name'), conf.get('database', 'user'),
             conf.get('database', 'password'), conf.get('database', 'minconn'),
             conf.get('database', 'maxconn'))
-        assert self._preparer
-        with self._db:
-            self._preparer.run(self._db)
+        if not conf.getboolean('database', 'readonly'):
+            assert self._preparer
+            with self._db:
+                self._preparer.run(self._db)
 
     def _setup_logging(self, conf):
         if conf.has_option('main', 'log'):
