@@ -108,7 +108,7 @@ allowed roles are dependent on the type of contract, as follows:
     - `user` --- must be a `person`
     - `target` --- must be an `org` or a `person`
 * `service_application` contracts:
-    - `applicant` must be an `org` or a `person`
+    - `applicant` --- must be an `org` or a `person`
 
 Contract state history is a list of structures of the following form:
 
