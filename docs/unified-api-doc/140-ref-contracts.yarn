@@ -28,7 +28,7 @@ The attached documentation is accessed separately.
 
 Example result for a contract:
 
-    EXAMPLE
+    EXAMPLE An example of an employment contract
     {
         "type": "contract",
         "id": "1234",
@@ -60,8 +60,12 @@ Fields in the result:
     - `ID06_cards` --- contract between an ID06 card issuer and
       supplier (see the cards resource for details)
     - `SBCC_account` --- a user account for SBCC service
+    - `service_application` --- an application for a service by an
+      organisation, applied by a person
 * `start_date` --- the date when the contract takes effect
 * `end_date` --- ending date of the contract
+* `date_created` --- date when the contract was created
+* `date_updated` --- date when the contract was last updated
 * `contract_parties` --- all parties in the contract, where each party
   is defined by the following fields:
     - `type` --- type of the party, one of `org`, `person`
@@ -79,6 +83,12 @@ Fields in the result:
 * `id06_issuer_requires_bankid` --- does the issuer require BankID
   authentication for enabling each virtual ID06 card?
 * `contract_state` --- state of the contract, if applicable
+* `contract_state_history` --- state history for the contract; the last
+  entry in the list is the current state; see below for list items
+* `signers` --- list of signers for the contract; see below for list
+  items
+* `preferred_language` --- preferred language of communication in cases
+  where this contract is a user account contract
 
 Contract parties have a role in which they appear in the contract. The
 allowed roles are dependent on the type of contract, as follows:
@@ -97,6 +107,21 @@ allowed roles are dependent on the type of contract, as follows:
 * `SBCC_account` contracts:
     - `user` --- must be a `person`
     - `target` --- must be an `org` or a `person`
+* `service_application` contracts:
+    - `applicant` must be an `org` or a `person`
+
+Contract state history is a list of structures of the following form:
+
+* `state` --- the new state of the contract
+* `modified_by` --- must be a `person`
+* `modification_timestamp` --- time of the state change
+
+The `signers` list consists of structures of the following form:
+
+* `signer` --- must be a `person`
+* `signing_request_timestamp` --- time when the request was sent
+* `signing_request_message` --- a custom message for the signer
+* `signing_timestamp` --- time when the signer signed the contract
 
 ### Tests
 
