@@ -87,7 +87,6 @@ class CreateContractsTables_v1(unifiedapi.StoragePreparationStep):
             (u'right_to_work_based_on', unicode),
             (u'date_created', unicode),
             (u'date_updated', unicode),
-            (u'right_to_work_based_on', unicode),
             (u'contract_state', unicode),
             (u'preferred_language', unicode))
 
