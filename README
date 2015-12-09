@@ -55,8 +55,7 @@ Integration tests
 -----------------
 
 The API document contains integration tests ("yarns"). These are run
-from the `dev-team-docs.git` repository's `unified-api-doc` directory.
-These can be run manually:
+from the `docs/unified-api-doc` directory. These can be run manually:
 
 * Start one of the backend applications, such as `src/persons`:
 
