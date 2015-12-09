@@ -151,8 +151,8 @@ class BackendApplication(object):
             return True
 
     def _start_wsgi_server(self, conf):
-        if not (conf.has_option('main', 'host')
-                and conf.has_option('main', 'port')):
+        if not (conf.has_option('main', 'host') and
+                conf.has_option('main', 'port')):
             WSGIServer(self._app).run()
 
     def _die_from_server_confusion(self):
