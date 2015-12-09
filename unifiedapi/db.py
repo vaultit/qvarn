@@ -164,12 +164,16 @@ class SQLiteDatabase(Database):
         conn.row_factory = sqlite3.Row
         return conn
 
+    @property
+    def _in_transaction(self):
+        return self._conn is not None
+
     def __enter__(self):
-        assert self._conn is None
+        assert not self._in_transaction
         self._conn = self._real_conn
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        assert self._conn is not None
+        assert self._in_transaction
         if exc_type is None:
             self._conn.commit()
         else:
@@ -188,6 +192,8 @@ class SQLiteDatabase(Database):
         Columns are provided as a list of (column name, value) pairs.
 
         '''
+
+        assert self._in_transaction
 
         for name, value in columns:
             assert value is None or type(value) in (unicode, int, bool, buffer)
@@ -239,6 +245,8 @@ class SQLiteDatabase(Database):
         select_matching_rows.
 
         '''
+
+        assert self._in_transaction
 
         sql = u'DELETE FROM %s' % self._quote(table_name)
 
@@ -305,12 +313,16 @@ class PostgreSQLDatabase(Database):
         psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
         self._conn = None
 
+    @property
+    def _in_transaction(self):
+        return self._conn is not None
+
     def __enter__(self):
-        assert self._conn is None
+        assert not self._in_transaction
         self._conn = self._pool.getconn()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        assert self._conn
+        assert self._in_transaction
         if exc_type is None:
             self._conn.commit()
         else:
@@ -341,6 +353,8 @@ class PostgreSQLDatabase(Database):
         Columns are provided as a list of (column name, value) pairs.
 
         '''
+
+        assert self._in_transaction
 
         for name, value in columns:
             assert value is None or type(value) in (unicode, int, bool, buffer)
@@ -392,6 +406,8 @@ class PostgreSQLDatabase(Database):
         select_matching_rows.
 
         '''
+
+        assert self._in_transaction
 
         sql = u'DELETE FROM %s' % self._quote(table_name)
 
