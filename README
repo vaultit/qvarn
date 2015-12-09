@@ -1,11 +1,10 @@
 README for Qvarn
 ================
 
-This source tree contains an implementation of the "Unified API" for
-the services provided by Suomen Tilaajavastuu Oy. For details of the
-API, see the "Tilaajavastuu backend API" (`dev-team-docs.git` on the
-company git server; document name is
-`unified-api-doc/unified-api-doc.pdf`).
+This source tree contains an implementation of the Qvarn RESTful
+HTTPS+JSON backend for the services provided by Suomen Tilaajavastuu
+Oy. For details of the API, see the "Tilaajavastuu unified resource
+API" document in `docs/unified-api-doc`.
 
 This README contains an introduction to the code, aimed at the people
 who develop and/or deploy the code.
