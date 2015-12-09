@@ -46,6 +46,9 @@ person_private_prototype = {
             u'address_lines': [u''],
             u'post_code': u'',
             u'post_area': u'',
+            u'verification_code': u'',
+            u'verification_code_expiration_date': u'',
+            u'email_verification_timestamp': u'',
         },
     ],
     u'nationalities': [u''],
@@ -131,7 +134,10 @@ class CreatePersonsTables_v1(unifiedapi.StoragePreparationStep):
             (u'full_address', unicode),
             (u'country', unicode),
             (u'post_code', unicode),
-            (u'post_area', unicode))
+            (u'post_area', unicode),
+            (u'verification_code', unicode),
+            (u'verification_code_expiration_date', unicode),
+            (u'email_verification_timestamp', unicode))
 
         db.create_table(
             u'person_private_contacts_address_lines',

@@ -16,6 +16,8 @@ contract_prototype = {
     u'contract_type': u'',
     u'start_date': u'',
     u'end_date': u'',
+    u'date_created': u'',
+    u'date_updated': u'',
     u'contract_parties': [
         {
             u'type': u'',
@@ -40,7 +42,23 @@ contract_prototype = {
         },
     ],
     u'right_to_work_based_on': u'',
-    u'contract_state': u''
+    u'contract_state': u'',
+    u'preferred_language': u'',
+    u'contract_state_history': [
+        {
+            u'state': u'',
+            u'modified_by': u'',
+            u'modification_timestamp': u'',
+        },
+    ],
+    u'signers': [
+        {
+            u'signer': u'',
+            u'signing_request_timestamp': u'',
+            u'signing_request_message': u'',
+            u'signing_timestamp': u'',
+        },
+    ],
 }
 
 
@@ -67,7 +85,11 @@ class CreateContractsTables_v1(unifiedapi.StoragePreparationStep):
             (u'start_date', unicode),
             (u'end_date', unicode),
             (u'right_to_work_based_on', unicode),
-            (u'contract_state', unicode))
+            (u'date_created', unicode),
+            (u'date_updated', unicode),
+            (u'right_to_work_based_on', unicode),
+            (u'contract_state', unicode),
+            (u'preferred_language', unicode))
 
         db.create_table(
             u'contract_contract_parties',
@@ -99,6 +121,23 @@ class CreateContractsTables_v1(unifiedapi.StoragePreparationStep):
             (u'dict_list_pos', int),
             (u'list_pos', int),
             (u'address-lines', unicode))
+
+        db.create_table(
+            u'contract_contract_state_history',
+            (u'id', unicode),
+            (u'list_pos', int),
+            (u'state', unicode),
+            (u'modified_by', unicode),
+            (u'modification_timestamp', unicode))
+
+        db.create_table(
+            u'contract_signers',
+            (u'id', unicode),
+            (u'list_pos', int),
+            (u'signer', unicode),
+            (u'signing_request_timestamp', unicode),
+            (u'signing_request_message', unicode),
+            (u'signing_timestamp', unicode))
 
         db.create_table(
             u'contract_document',
@@ -160,7 +199,11 @@ class InvalidRightToWorkBasedOn(unifiedapi.ValidationError):
 
 def validate_contract(obj):
     allowed_contract_types = [
-        u'employment', u'induction', u'ID06_cards', u'SBCC_account'
+        u'employment',
+        u'induction',
+        u'ID06_cards',
+        u'SBCC_account',
+        u'service_application'
     ]
     if obj[u'contract_type'] not in allowed_contract_types:
         raise InvalidContractType(id=obj[u'id'])
@@ -178,6 +221,11 @@ def validate_contract(obj):
     if obj[u'contract_type'] is u'SBCC_account':
         for party in obj[u'contract_parties']:
             if party[u'role'] not in [u'user', u'target']:
+                raise InvalidPartyType(id=obj[u'id'])
+
+    if obj[u'contract_type'] is u'service_application':
+        for party in obj[u'contract_parties']:
+            if party[u'role'] not in [u'applicant']:
                 raise InvalidPartyType(id=obj[u'id'])
 
     if (obj[u'contract_type'] is u'employment' or

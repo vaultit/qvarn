@@ -91,5 +91,6 @@ pylint --rcfile /dev/null \
        --disable cyclic-import \
        --disable missing-docstring \
        --disable fixme \
+       --disable too-many-branches \
        \
        unifiedapi src/*
