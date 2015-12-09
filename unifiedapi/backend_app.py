@@ -5,13 +5,14 @@
 
 
 import argparse
+import bottle
+import ConfigParser
 import logging
 import sys
 
 from flup.server.fcgi import WSGIServer
 
 import unifiedapi
-import bottle
 
 
 class BackendApplication(object):
@@ -71,65 +72,46 @@ class BackendApplication(object):
 
     def run(self):
         '''Run the application.'''
-        args = self._parse_command_line()
+        conf = self._parse_config()
         # Logging should be the first plugin (outermost wrapper)
-        self._setup_logging(args)
+        self._setup_logging(conf)
         # Error catching should also be as high as possible to catch all
         self._app.install(unifiedapi.ErrorTransformPlugin())
-        self._setup_storage(args)
-        self._setup_auth(args)
+        self._setup_storage(conf)
+        self._setup_auth(conf)
         self._app.install(unifiedapi.StringToUnicodePlugin())
         routes = self._prepare_resources()
         self.add_routes(routes)
-        self._start_service(args)
+        self._start_service(conf)
 
-    def _parse_command_line(self):
+    def _parse_config(self):
         parser = argparse.ArgumentParser()
-
         parser.add_argument(
-            '--host',
-            metavar='ADDR',
-            help='use debug HTTP server, bind to ADDR')
-
-        parser.add_argument(
-            '--port',
-            metavar='PORT',
-            type=int,
-            help='use debug HTTP server, bind to PORT')
-
-        parser.add_argument(
-            '--log',
+            '--config',
             metavar='FILE',
-            help='write log to FILE')
+            help='use FILE as configuration file')
+        args = parser.parse_args()
 
-        parser.add_argument(
-            '-d', '--database',
-            metavar='FILE',
-            help='use FILE as the SQLite3 database')
+        config = ConfigParser.RawConfigParser()
+        config.read(args.config)
+        return config
 
-        parser.add_argument(
-            '--token-validation-key',
-            metavar='KEY',
-            help='use KEY as the access token validation key')
-
-        parser.add_argument(
-            '--token-issuer',
-            metavar='ADDR',
-            help='use ADDR as the access token issuer url')
-
-        return parser.parse_args()
-
-    def _setup_storage(self, args):
+    def _setup_storage(self, conf):
         '''Prepare the database for use.'''
-        self._db = unifiedapi.open_disk_database(args.database)
-        assert self._preparer
-        with self._db:
-            self._preparer.run(self._db)
+        self._db = unifiedapi.open_disk_database(
+            conf.get('database', 'host'), conf.get('database', 'port'),
+            conf.get('database', 'name'), conf.get('database', 'user'),
+            conf.get('database', 'password'), conf.get('database', 'minconn'),
+            conf.get('database', 'maxconn'))
+        if not conf.getboolean('database', 'readonly'):
+            assert self._preparer
+            with self._db:
+                self._preparer.run(self._db)
 
-    def _setup_logging(self, args):
-        if args.log:
+    def _setup_logging(self, conf):
+        if conf.has_option('main', 'log'):
             logging.basicConfig(
-                filename=args.log,
+                filename=conf.get('main', 'log'),
                 level=logging.DEBUG,
                 format='%(asctime)s %(levelname)s %(message)s')
             logging.info('{} starts'.format(sys.argv[0]))
@@ -141,10 +123,14 @@ class BackendApplication(object):
         logging_plugin = unifiedapi.LoggingPlugin()
         self._app.install(logging_plugin)
 
-    def _setup_auth(self, args):
-        if args.token_validation_key and args.token_issuer:
+    def _setup_auth(self, conf):
+        if (conf.has_option('auth', 'token_validation_key') and
+                conf.has_option('auth', 'token_issuer')):
+
             authorization_plugin = unifiedapi.AuthorizationPlugin(
-                args.token_validation_key, args.token_issuer)
+                conf.get('auth', 'token_validation_key'),
+                conf.get('auth', 'token_issuer'))
+
             self._app.install(authorization_plugin)
 
     def _prepare_resources(self):
@@ -153,18 +139,20 @@ class BackendApplication(object):
             routes += resource.prepare_resource(self._db)
         return routes
 
-    def _start_service(self, args):
-        if not self._start_debug_server(args):
-            if not self._start_wsgi_server(args):
+    def _start_service(self, conf):
+        if not self._start_debug_server(conf):
+            if not self._start_wsgi_server(conf):
                 self._die_from_server_confusion()
 
-    def _start_debug_server(self, args):
-        if args.host is not None and args.port is not None:
-            self._app.run(host=args.host, port=args.port, quiet=True)
+    def _start_debug_server(self, conf):
+        if conf.has_option('main', 'host') and conf.has_option('main', 'port'):
+            self._app.run(host=conf.get('main', 'host'),
+                          port=conf.get('main', 'port'), quiet=True)
             return True
 
-    def _start_wsgi_server(self, args):
-        if args.host is None and args.port is None:
+    def _start_wsgi_server(self, conf):
+        if not (conf.has_option('main', 'host') and
+                conf.has_option('main', 'port')):
             WSGIServer(self._app).run()
 
     def _die_from_server_confusion(self):

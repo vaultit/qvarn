@@ -4,22 +4,27 @@
 # All rights reserved.
 
 
+import psycopg2
+import psycopg2.pool
+import psycopg2.extras
+import psycopg2.extensions
 import string
 import sqlite3
 
 
-def open_disk_database(filename):
-    '''Connect to (and create) a database on disk, given its filename.'''
-    return Database(filename)
+def open_disk_database(host, port, db_name, user, password, min_conn,
+                       max_conn):
+    '''Connect to a database on disk, given its connection parameters.'''
+    return PostgreSQLDatabase(host, port, db_name, user, password,
+                              min_conn, max_conn)
 
 
 def open_memory_database():
     '''Connect to (and create) a database in memory only.'''
-    return Database(u':memory:')
+    return SQLiteDatabase()
 
 
 class Database(object):
-
     '''A database abstraction.
 
     This class provides a minimal database abstraction, for the kinds
@@ -46,33 +51,23 @@ class Database(object):
 
     '''
 
-    def __init__(self, url):
-        self._conn = sqlite3.connect(
-            url,
-            isolation_level="IMMEDIATE",
-            detect_types=sqlite3.PARSE_DECLTYPES,
-            check_same_thread=False
-        )
-        sqlite3.register_adapter(bool, int)
-        sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
-        self._conn.row_factory = sqlite3.Row
-        self._in_transaction = False
+    def __init__(self):
+        if self.__class__ == Database:
+            raise NotImplementedError(
+                'Cannot create an abstract Database instance')
+        self.type_name = {}
 
-    def __enter__(self):
-        assert not self._in_transaction
-        self._in_transaction = True
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        assert self._in_transaction
-        if exc_type is None:
-            self._conn.commit()
-        else:
-            self._conn.rollback()
-        self._in_transaction = False
+    def _execute(self, sql_statement, values, expecting_results):
+        raise NotImplementedError()
 
     def make_table_name(self, *components):
         '''Create a name for a table from the given components.'''
         return '_'.join(self._quote(x) for x in components)
+
+    def _quote(self, name):
+        ok = string.ascii_letters + string.digits + '-_'
+        assert name.strip(ok) == ''
+        return '_'.join(name.split('-'))
 
     def create_table(self, table_name, *columns):
         '''Create a new table.
@@ -82,57 +77,15 @@ class Database(object):
 
         '''
 
-        assert self._in_transaction
-
-        type_name = {
-            buffer: u'BLOB',
-            int: u'INTEGER',
-            unicode: u'TEXT',
-            bool: u'BOOLEAN',
-        }
-
         col_spec = []
         for col_name, col_type in columns:
             col_spec.append(
-                u'%s %s' % (self._quote(col_name), type_name[col_type]))
+                u'%s %s' % (self._quote(col_name), self.type_name[col_type]))
 
-        sql = u'CREATE TABLE IF NOT EXISTS [%s] ' % self._quote(table_name)
+        sql = u'CREATE TABLE IF NOT EXISTS %s ' % self._quote(table_name)
         sql += u'(' + u', '.join(col_spec) + u')'
 
-        c = self._conn.cursor()
-        c.execute(sql)
-
-    def _quote(self, name):
-        ok = string.ascii_letters + string.digits + '-_'
-        assert name.strip(ok) == ''
-        return '_'.join(name.split('-'))
-
-    def insert(self, table_name, *columns):
-        '''Insert a row into a table.
-
-        Columns are provided as a list of (column name, value) pairs.
-
-        '''
-
-        assert self._in_transaction
-
-        for name, value in columns:
-            assert value is None or type(value) in (unicode, int, bool, buffer)
-
-        values = {}
-        for name, value in columns:
-            if value is not None:
-                values[self._quote(name)] = value
-        column_names = values.keys()
-
-        sql = u'INSERT INTO %s' % table_name
-        sql += u' (' + u', '.join(column_names) + u')'
-        sql += (u' VALUES ( ' +
-                u', '.join(':%s' % name for name in column_names) +
-                u')')
-
-        c = self._conn.cursor()
-        c.execute(sql, values)
+        self._execute(sql, {}, False)
 
     def select(self, table_name, column_names):
         '''Retrieve the given columns from all rows.'''
@@ -154,6 +107,108 @@ class Database(object):
             return []
 
     def _select_helper(self, table_name, column_names, match_columns):
+        raise NotImplementedError
+
+    def add_column(self, table_name, column_name, column_type):
+        sql = u'ALTER TABLE %s ' % self._quote(table_name)
+        sql += u'ADD '
+        sql += '%s %s' % (self._quote(column_name),
+                          self.type_name[column_type])
+        self._execute(sql, {}, False)
+
+    def drop_column(self, table_name, column_name):
+        sql = u'ALTER TABLE %s ' % self._quote(table_name)
+        sql += u'DROP '
+        sql += '%s' % self._quote(column_name)
+        self._execute(sql, {}, False)
+
+    def drop_table(self, table_name):
+        sql = u'DROP TABLE %s ' % self._quote(table_name)
+        self._execute(sql, {}, False)
+
+
+class SQLiteDatabase(Database):
+    '''An SQLite database abstraction.
+
+    This class provides a memory based SQLite specific implementation
+    for the Database abstraction. It is meant to be used only in unit
+    test cases.
+
+    '''
+
+    def __init__(self):
+        super(SQLiteDatabase, self).__init__()
+        self.type_name = {
+            buffer: u'BLOB',
+            int: u'INTEGER',
+            unicode: u'TEXT',
+            bool: u'BOOLEAN',
+        }
+
+        # This connection must exist as long as the SQLDatabase object
+        # exists, since it's memory backed. If we close the connection,
+        # the database disappears.
+        self._real_conn = self._get_conn()
+
+        # This connection is managed by the context manager.
+        self._conn = None
+
+        sqlite3.register_adapter(bool, int)
+        sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
+
+    def _get_conn(self):
+        conn = sqlite3.connect(
+            u':memory:',
+            isolation_level="IMMEDIATE",
+            detect_types=sqlite3.PARSE_DECLTYPES,
+            check_same_thread=False
+        )
+        conn.row_factory = sqlite3.Row
+        return conn
+
+    def __enter__(self):
+        assert self._conn is None
+        self._conn = self._real_conn
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        assert self._conn is not None
+        if exc_type is None:
+            self._conn.commit()
+        else:
+            self._conn.rollback()
+        self._conn = None
+
+    def _execute(self, sql, values, expecting_results):
+        c = self._real_conn.cursor()
+        c.execute(sql, values)
+        if expecting_results:
+            return [row for row in c]
+
+    def insert(self, table_name, *columns):
+        '''Insert a row into a table.
+
+        Columns are provided as a list of (column name, value) pairs.
+
+        '''
+
+        for name, value in columns:
+            assert value is None or type(value) in (unicode, int, bool, buffer)
+
+        values = {}
+        for name, value in columns:
+            if value is not None:
+                values[self._quote(name)] = value
+        column_names = values.keys()
+
+        sql = u'INSERT INTO %s' % table_name
+        sql += u' (' + u', '.join(column_names) + u')'
+        sql += (u' VALUES ( ' +
+                u', '.join(':%s' % name for name in column_names) +
+                u')')
+
+        self._execute(sql, values, False)
+
+    def _select_helper(self, table_name, column_names, match_columns):
         quoted_names = [self._quote(x) for x in column_names]
         sql = u'SELECT %s FROM %s' % (
             u','.join(quoted_names), self._quote(table_name))
@@ -169,11 +224,10 @@ class Database(object):
                 '{0} IS :{0}'.format(self._quote(x)) for x in match_columns)
             sql += u' WHERE ' + condition
 
-        c = self._conn.cursor()
-        c.execute(sql, match_columns)
+        rows = self._execute(sql, match_columns, True)
 
         result = []
-        for row in c:
+        for row in rows:
             a_dict = {}
             for i in range(len(column_names)):
                 a_dict[unicode(column_names[i])] = row[str(quoted_names[i])]
@@ -188,8 +242,6 @@ class Database(object):
 
         '''
 
-        assert self._in_transaction
-
         sql = u'DELETE FROM %s' % self._quote(table_name)
 
         # Add condition for a column. This results in an SQL
@@ -203,6 +255,139 @@ class Database(object):
             '{0} IS :{0}'.format(self._quote(x)) for x in match_columns)
         sql += u' WHERE ' + condition
 
-        c = self._conn.cursor()
-        c.execute(sql, match_columns)
-        return c
+        self._execute(sql, match_columns, False)
+
+
+class PostgreSQLDatabase(Database):
+    '''A PostgreSQL database abstraction.
+
+    This class provides a PostgreSQL specific implementation
+    for the Database abstraction. It is meant to be used in production
+    environment and will not be tested with unit tests.
+
+    '''
+
+    def __init__(self, host, port, db_name, user, password, min_conn,
+                 max_conn):
+        super(PostgreSQLDatabase, self).__init__()
+        self.type_name = {
+            buffer: u'BYTEA',
+            int: u'BIGINT',
+            unicode: u'TEXT',
+            bool: u'BOOLEAN',
+        }
+        self._pool = psycopg2.pool.ThreadedConnectionPool(
+            minconn=min_conn,
+            maxconn=max_conn,
+            database=db_name,
+            user=user,
+            password=password,
+            host=host,
+            port=port,
+            cursor_factory=psycopg2.extras.RealDictCursor)
+        psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
+        psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
+        self._conn = None
+
+    def __enter__(self):
+        assert self._conn is None
+        self._conn = self._pool.getconn()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        assert self._conn
+        if exc_type is None:
+            self._conn.commit()
+        else:
+            self._conn.rollback()
+        self._pool.putconn(self._conn)
+        self._conn = None
+
+    def _execute(self, sql, values, expecting_results):
+        if self._conn is None:
+            conn = self._pool.getconn()
+            rows = self._execute_with_conn(
+                conn, sql, values, expecting_results)
+            self._pool.putconn(conn)
+            return rows
+        else:
+            return self._execute_with_conn(
+                self._conn, sql, values, expecting_results)
+
+    def _execute_with_conn(self, conn, sql, values, expecting_results):
+        c = conn.cursor()
+        c.execute(sql, values)
+        if expecting_results:
+            return [row for row in c]
+
+    def insert(self, table_name, *columns):
+        '''Insert a row into a table.
+
+        Columns are provided as a list of (column name, value) pairs.
+
+        '''
+
+        for name, value in columns:
+            assert value is None or type(value) in (unicode, int, bool, buffer)
+
+        values = {}
+        for name, value in columns:
+            if value is not None:
+                values[self._quote(name)] = value
+        column_names = values.keys()
+
+        sql = u'INSERT INTO %s' % table_name
+        sql += u' (' + u', '.join(column_names) + u')'
+        sql += (u' VALUES ( ' +
+                u', '.join('%({0})s'.format(name) for name in column_names) +
+                u')')
+        print sql
+
+        self._execute(sql, values, False)
+
+    def _select_helper(self, table_name, column_names, match_columns):
+        quoted_names = [self._quote(x) for x in column_names]
+        sql = u'SELECT %s FROM %s' % (
+            u','.join(quoted_names), self._quote(table_name))
+
+        if match_columns:
+            # Add condition for a column. This results in an SQL
+            # snippets such as "foo = %(foo) AND bar IS %(bar)", where
+            # "foo" and "bar" are columns names, and "%(foo)" and "%(bar)"
+            # are placeholders for the value, using PostgreSQL Python
+            # binding syntax.
+
+            condition = ' AND '.join(
+                '{0} = %({0})s'.format(self._quote(x)) for x in match_columns)
+            sql += u' WHERE ' + condition
+
+        rows = self._execute(sql, match_columns, True)
+        result = []
+        for row in rows:
+            a_dict = {}
+            for i in range(len(column_names)):
+                a_dict[unicode(column_names[i])] = row[
+                    str(quoted_names[i])]
+            result.append(a_dict)
+        return result
+
+    def delete_matching_rows(self, table_name, match_columns):
+        '''Delete rows matching a condition.
+
+        The condition is given the same way as for
+        select_matching_rows.
+
+        '''
+
+        sql = u'DELETE FROM %s' % self._quote(table_name)
+
+        # Add condition for a column. This results in an SQL
+        # snippets such as "foo = %(foo) AND bar IS %(bar)", where
+        # "foo" and "bar" are columns names, and "%(foo)" and "%(bar)"
+        # are placeholders for the value, using PostgreSQL Python
+        # binding syntax.
+
+        condition = ' AND '.join(
+            '{0} = %({0})s'.format(self._quote(x)) for x in match_columns)
+        sql += u' WHERE ' + condition
+
+        self._execute(sql, match_columns, False)

@@ -16,8 +16,5 @@ set -eu
 app="$1"
 
 exec "/usr/lib/unified-api-backend/$1" \
-    --database "/var/lib/unified-api-backend/storage/$1.db" \
-    --log "/var/log/unified-api-backend/$1.log" \
-    --token-validation-key "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC734ixqQ9op4ZNDQfsqNZmKDcZZi5Zu4WqyYKxDxpj/lmC0OCPNn2l/7sMZ4/0dHZxz/ktEotTkOAfHiFzx7pEFDcF/xWRxeJcLOnd05cbPBDHMJdBcD5bMMP+/cqJF+QHY5ARxACTl5vFWiW1/UUVYcSb18FfX7h8pqOrp7myzI2Q1GvKOvzXiTJ/JjJgXum4zlQHtqjdCz7doMFNPhbQjz4OA0+FPBtIDYB0zpfBLHJTaZ166ZXVK2KzVUY/DFOOXA1Jq6wHtMcZwVYdpNbjnTeaMS5p858AZeolu+GolaK2CMfzFpARX16ega/8M7E0c7I9o0U//nppKD6+TKGB" \
-    --token-issuer "https://dev-gluu.tilaajavastuu.io" \
+     --config "/etc/qvarn/$1.conf" \
     >> "/var/log/unified-api-backend/$1.start.log" 2>&1

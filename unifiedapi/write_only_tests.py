@@ -78,7 +78,7 @@ class WriteOnlyStorageTests(unittest.TestCase):
     def setUp(self):
         db = unifiedapi.open_memory_database()
 
-        prep = unifiedapi.StoragePreparer()
+        prep = unifiedapi.StoragePreparer(self.person[u'type'])
         prep.add_step(u'create', self.create_tables)
         with db:
             prep.run(db)

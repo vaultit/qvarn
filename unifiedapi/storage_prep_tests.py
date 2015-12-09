@@ -24,7 +24,7 @@ class StoragePreparerTests(unittest.TestCase):
 
     def setUp(self):
         self.step = CallCatcher()
-        self.prep = unifiedapi.StoragePreparer()
+        self.prep = unifiedapi.StoragePreparer(u'fooresource')
         self.db = unifiedapi.open_memory_database()
 
     def test_has_no_steps_by_default(self):
