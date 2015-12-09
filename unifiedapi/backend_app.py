@@ -116,11 +116,11 @@ class BackendApplication(object):
             log = logging.getLogger()
             log.setLevel(logging.DEBUG)
             handler = logging.handlers.RotatingFileHandler(
-                args.log, maxBytes=10*1024**2, backupCount=10
-            )
-            handler.setFormatter(logging.Formatter(
-                '%(asctime)s %(levelname)s %(message)s')
-            )
+                conf.option('main', 'log'),
+                maxBytes=10*1024**2,
+                backupCount=10)
+            handler.setFormatter(
+                logging.Formatter('%(asctime)s %(levelname)s %(message)s'))
             log.addHandler(handler)
             logging.info('{} starts'.format(sys.argv[0]))
         else:
