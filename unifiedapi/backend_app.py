@@ -100,10 +100,13 @@ class BackendApplication(object):
     def _setup_storage(self, conf):
         '''Prepare the database for use.'''
         self._db = unifiedapi.open_disk_database(
-            conf.get('database', 'host'), conf.get('database', 'port'),
-            conf.get('database', 'name'), conf.get('database', 'user'),
-            conf.get('database', 'password'), conf.get('database', 'minconn'),
-            conf.get('database', 'maxconn'))
+            host=conf.get('database', 'host'),
+            port=conf.get('database', 'port'),
+            db_name=conf.get('database', 'name'),
+            user=conf.get('database', 'user'),
+            password=conf.get('database', 'password'),
+            min_conn=conf.get('database', 'minconn'),
+            max_conn=conf.get('database', 'maxconn'))
         if not conf.getboolean('database', 'readonly'):
             assert self._preparer
             with self._db:

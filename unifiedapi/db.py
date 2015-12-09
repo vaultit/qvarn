@@ -12,11 +12,9 @@ import string
 import sqlite3
 
 
-def open_disk_database(host, port, db_name, user, password, min_conn,
-                       max_conn):
+def open_disk_database(**kwargs):
     '''Connect to a database on disk, given its connection parameters.'''
-    return PostgreSQLDatabase(host, port, db_name, user, password,
-                              min_conn, max_conn)
+    return PostgreSQLDatabase(**kwargs)
 
 
 def open_memory_database():
@@ -267,8 +265,26 @@ class PostgreSQLDatabase(Database):
 
     '''
 
-    def __init__(self, host, port, db_name, user, password, min_conn,
-                 max_conn):
+    def __init__(self, **kwargs):
+        # Check arguments. We do it this way, to force keyword
+        # arguments to be used, since there's too many arguments to
+        # use positional ones. We also verify that all arguments are
+        # give, none of them are None, and that no extra ones are
+        # given.
+        args = [
+            'host',
+            'port',
+            'db_name',
+            'user',
+            'password',
+            'min_conn',
+            'max_conn'
+        ]
+        for arg in args:
+            assert arg in kwargs
+            assert kwargs[arg] is not None
+        assert sorted(args) == sorted(kwargs.keys())
+
         super(PostgreSQLDatabase, self).__init__()
         self.type_name = {
             buffer: u'BYTEA',
@@ -277,13 +293,13 @@ class PostgreSQLDatabase(Database):
             bool: u'BOOLEAN',
         }
         self._pool = psycopg2.pool.ThreadedConnectionPool(
-            minconn=min_conn,
-            maxconn=max_conn,
-            database=db_name,
-            user=user,
-            password=password,
-            host=host,
-            port=port,
+            minconn=kwargs['min_conn'],
+            maxconn=kwargs['max_conn'],
+            database=kwargs['db_name'],
+            user=kwargs['user'],
+            password=kwargs['password'],
+            host=kwargs['host'],
+            port=kwargs['port'],
             cursor_factory=psycopg2.extras.RealDictCursor)
         psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
         psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
