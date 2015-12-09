@@ -382,7 +382,8 @@ Create a new service account contract.
     ...         "resource_id": "MI6",
     ...         "role": "target"
     ...     }
-    ... ]
+    ... ],
+    ... "preferred_language": "en"
     ... }
     THEN HTTP status code is 201
     AND result matches
@@ -403,7 +404,8 @@ Create a new service account contract.
     ...         "resource_id": "MI6",
     ...         "role": "target"
     ...     }
-    ... ]
+    ... ],
+    ... "preferred_language": "en"
     ... }
     AND result has key "id" containing a string, saved as $ID5
     AND HTTP Location header is API_URL/contracts/$ID5
@@ -431,12 +433,122 @@ Check that the record is there.
     ...         "resource_id": "MI6",
     ...         "role": "target"
     ...     }
-    ... ]
+    ... ],
+    ... "preferred_language": "en"
     ... }
     AND result has key "id" containing a string, saved as $ID6
     AND values "$ID5" and "$ID6" are identical
     AND result has key "revision" containing a string, saved as $REV7
     AND values "$REV6" and "$REV7" are identical
+
+Create a new service application contract.
+
+    WHEN client POSTs /contracts with
+    ... {
+    ... "contract_type": "service_application",
+    ... "date_created": "2015-11-30",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "person",
+    ...         "resource_id": "123",
+    ...         "role": "applicant",
+    ...     },
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "536457",
+    ...         "role": "applicant"
+    ...     }
+    ... ],
+    ... "contract_state_history": [
+    ...     {
+    ...         "state": "incomplete",
+    ...         "modified_by": "123",
+    ...         "modification_timestamp": "2015-11-30T14:30:45+0200"
+    ...     }
+    ... ],
+    ... "signers": [
+    ...     {
+    ...         "signer": "1234",
+    ...         "signing_request_timestamp": "2015-11-30T14:30:45+0200",
+    ...         "signing_request_message": "Please, sign this."
+    ...     }
+    ... ]
+    ... }
+    THEN HTTP status code is 201
+    AND result matches
+    ... {
+    ... "contract_type": "service_application",
+    ... "date_created": "2015-11-30",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "person",
+    ...         "resource_id": "123",
+    ...         "role": "applicant",
+    ...     },
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "536457",
+    ...         "role": "applicant"
+    ...     }
+    ... ],
+    ... "contract_state_history": [
+    ...     {
+    ...         "state": "incomplete",
+    ...         "modified_by": "123",
+    ...         "modification_timestamp": "2015-11-30T14:30:45+0200"
+    ...     }
+    ... ],
+    ... "signers": [
+    ...     {
+    ...         "signer": "1234",
+    ...         "signing_request_timestamp": "2015-11-30T14:30:45+0200",
+    ...         "signing_request_message": "Please, sign this."
+    ...     }
+    ... ]
+    ... }
+    AND result has key "id" containing a string, saved as $ID7
+    AND HTTP Location header is API_URL/contracts/$ID7
+    AND result has key "revision" containing a string, saved as $REV8
+
+Check that the record is there.
+
+    WHEN client GETs /contracts/$ID7
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ... "contract_type": "service_application",
+    ... "date_created": "2015-11-30",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "person",
+    ...         "resource_id": "123",
+    ...         "role": "applicant",
+    ...     },
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "536457",
+    ...         "role": "applicant"
+    ...     }
+    ... ],
+    ... "contract_state_history": [
+    ...     {
+    ...         "state": "incomplete",
+    ...         "modified_by": "123",
+    ...         "modification_timestamp": "2015-11-30T14:30:45+0200"
+    ...     }
+    ... ],
+    ... "signers": [
+    ...     {
+    ...         "signer": "1234",
+    ...         "signing_request_timestamp": "2015-11-30T14:30:45+0200",
+    ...         "signing_request_message": "Please, sign this."
+    ...     }
+    ... ]
+    ... }
+    AND result has key "id" containing a string, saved as $ID8
+    AND values "$ID7" and "$ID8" are identical
+    AND result has key "revision" containing a string, saved as $REV9
+    AND values "$REV8" and "$REV9" are identical
 
 Attempt to send invalid data.
 
