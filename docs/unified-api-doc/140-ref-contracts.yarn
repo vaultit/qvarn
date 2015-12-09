@@ -522,7 +522,7 @@ Check that the record is there.
     ...     {
     ...         "type": "person",
     ...         "resource_id": "123",
-    ...         "role": "applicant",
+    ...         "role": "applicant"
     ...     },
     ...     {
     ...         "type": "org",
