@@ -356,7 +356,6 @@ class PostgreSQLDatabase(Database):
         sql += (u' VALUES ( ' +
                 u', '.join('%({0})s'.format(name) for name in column_names) +
                 u')')
-        print sql
 
         self._execute(sql, values, False)
 
