@@ -451,7 +451,7 @@ Create a new service application contract.
     ...     {
     ...         "type": "person",
     ...         "resource_id": "123",
-    ...         "role": "applicant",
+    ...         "role": "applicant"
     ...     },
     ...     {
     ...         "type": "org",
