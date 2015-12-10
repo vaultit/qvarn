@@ -24,8 +24,9 @@ def version():
 def main():
     app = unifiedapi.BackendApplication()
 
-    prep = unifiedapi.StoragePreparer(u'version')
-    app.set_storage_preparer(prep)
+    vs = unifiedapi.VersionedStorage()
+    vs.set_resource_type(u'version')
+    app.set_versioned_storage(vs)
 
     resource = unifiedapi.SimpleResource()
     resource.set_path(u'/version', version)

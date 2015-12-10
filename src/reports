@@ -9,6 +9,9 @@
 import unifiedapi
 
 
+resource_type = u'report'
+
+
 report_prototype = {
     u'type': u'',
     u'id': u'',
@@ -17,6 +20,12 @@ report_prototype = {
     u'report_type': u'',
     u'generated_timestamp': u'',
     u'tilaajavastuu_status': u'',
+}
+
+
+report_pdf_prototype = {
+    u'body': buffer(''),
+    u'content_type': u'',
 }
 
 
@@ -31,62 +40,6 @@ report_sync_prototype = {
 }
 
 
-class CreateReportsTables_v1(unifiedapi.StoragePreparationStep):
-
-    def run(self, db):
-        db.create_table(
-            u'report',
-            (u'type', unicode),
-            (u'id', unicode),
-            (u'revision', unicode),
-            (u'org', unicode),
-            (u'report_type', unicode),
-            (u'generated_timestamp', unicode),
-            (u'tilaajavastuu_status', unicode))
-
-        db.create_table(
-            u'report_pdf',
-            (u'id', unicode),
-            (u'body', buffer),
-            (u'content_type', unicode))
-
-        db.create_table(
-            u'report_sync',
-            (u'id', unicode),
-            (u'sync_revision', unicode))
-
-        db.create_table(
-            u'report_sync_sync_sources',
-            (u'id', unicode),
-            (u'list_pos', int),
-            (u'sync_source', unicode),
-            (u'sync_id', unicode))
-
-        db.create_table(
-            u'reports__listener',
-            (u'type', unicode),
-            (u'id', unicode),
-            (u'revision', unicode),
-            (u'notify_of_new', bool))
-
-        db.create_table(
-            u'reports__listener_listen_on',
-            (u'id', unicode),
-            (u'list_pos', int),
-            (u'listen_on', unicode))
-
-        db.create_table(
-            u'reports__notification',
-            (u'type', unicode),
-            (u'id', unicode),
-            (u'listener_id', unicode),
-            (u'revision', unicode),
-            (u'resource_id', unicode),
-            (u'resource_revision', unicode),
-            (u'resource_change', unicode),
-            (u'last_modified', int))
-
-
 def validate_report(obj):
     pass
 
@@ -94,17 +47,24 @@ def validate_report(obj):
 if __name__ == '__main__':
     app = unifiedapi.BackendApplication()
 
-    prep = unifiedapi.StoragePreparer(u'report')
-    prep.add_step(u'create-reports-tables-v1', CreateReportsTables_v1())
-    app.set_storage_preparer(prep)
+    vs = unifiedapi.VersionedStorage()
+    vs.set_resource_type(resource_type)
+    vs.start_version(u'v1', None)
+    vs.add_prototype(report_prototype)
+    vs.add_prototype(report_pdf_prototype, subpath=u'pdf')
+    vs.add_prototype(report_sync_prototype, subpath=u'sync')
+    vs.add_prototype(unifiedapi.listener_prototype, auxtable=u'listener')
+    vs.add_prototype(
+        unifiedapi.notification_prototype, auxtable=u'notification')
+    app.set_versioned_storage(vs)
 
     listener_resource = unifiedapi.ListenerResource()
-    listener_resource.set_top_resource_path(u'/reports')
+    listener_resource.set_top_resource_path(resource_type, u'/reports')
     app.add_resource(listener_resource)
 
     resource = unifiedapi.ListResource()
     resource.set_path(u'/reports')
-    resource.set_item_type(u'report')
+    resource.set_item_type(resource_type)
     resource.set_item_prototype(report_prototype)
     resource.set_item_validator(validate_report)
     resource.set_subitem_prototype(u'sync', report_sync_prototype)
@@ -114,7 +74,7 @@ if __name__ == '__main__':
     file_resource = unifiedapi.FileResource()
     file_resource.set_item_prototype(report_prototype)
     file_resource.set_top_resource_path(u'/reports')
-    file_resource.set_item_type(u'report')
+    file_resource.set_item_type(resource_type)
     file_resource.set_file_resource_name(u'pdf')
     file_resource.set_listener(listener_resource)
     app.add_resource(file_resource)

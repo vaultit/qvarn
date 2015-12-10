@@ -63,13 +63,15 @@ class ListenerResource(object):
         self._notification_table = None
         self._listener_table = None
 
-    def set_top_resource_path(self, path):
-        '''Set path of the top level resource, e.g., /persons.'''
+    def set_top_resource_path(self, item_type, path):
+        '''Set the type of resource items we operate on, and its path.'''
+
         self._path = path
-        # Use double underscore to avoid conflicts with automatically
-        # generated table names.
-        self._notification_table = self._quote(path) + u'__notification'
-        self._listener_table = self._quote(path) + u'__listener'
+
+        self._listener_table = unifiedapi.table_name(
+            resource_type=item_type, auxtable=u'listener')
+        self._notification_table = unifiedapi.table_name(
+            resource_type=item_type, auxtable=u'notification')
 
     def _quote(self, path):
         path = path.lstrip('/')

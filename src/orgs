@@ -9,6 +9,9 @@
 import unifiedapi
 
 
+resource_type = u'org'
+
+
 org_prototype = {
     u'type': u'',
     u'id': u'',
@@ -51,89 +54,6 @@ org_sync_prototype = {
 }
 
 
-class CreateOrgsTables_v1(unifiedapi.StoragePreparationStep):
-
-    def run(self, db):
-        db.create_table(
-            u'org',
-            (u'type', unicode),
-            (u'id', unicode),
-            (u'revision', unicode),
-            (u'country', unicode),
-            (u'is_luotettava_kumppani_member', bool))
-
-        db.create_table(
-            u'org_names',
-            (u'id', unicode),
-            (u'list_pos', int),
-            (u'names', unicode))
-
-        db.create_table(
-            u'org_gov-org-ids',
-            (u'id', unicode),
-            (u'list_pos', int),
-            (u'country', unicode),
-            (u'org_id_type', unicode),
-            (u'gov_org_id', unicode))
-
-        db.create_table(
-            u'org_contacts',
-            (u'id', unicode),
-            (u'list_pos', int),
-            (u'contact_type', unicode),
-            (u'contact_source', unicode),
-            (u'contact_timestamp', unicode),
-            (u'phone_number', unicode),
-            (u'email_address', unicode),
-            (u'full_address', unicode),
-            (u'country', unicode),
-            (u'post_code', unicode),
-            (u'post_area', unicode))
-
-        db.create_table(
-            u'org_contacts_address-lines',
-            (u'id', unicode),
-            (u'dict_list_pos', int),
-            (u'list_pos', int),
-            (u'address-lines', unicode))
-
-        db.create_table(
-            u'org_sync',
-            (u'id', unicode),
-            (u'sync_revision', unicode))
-
-        db.create_table(
-            u'org_sync_sync_sources',
-            (u'id', unicode),
-            (u'list_pos', int),
-            (u'sync_source', unicode),
-            (u'sync_id', unicode))
-
-        db.create_table(
-            u'orgs__listener',
-            (u'type', unicode),
-            (u'id', unicode),
-            (u'revision', unicode),
-            (u'notify_of_new', bool))
-
-        db.create_table(
-            u'orgs__listener_listen_on',
-            (u'id', unicode),
-            (u'list_pos', int),
-            (u'listen_on', unicode))
-
-        db.create_table(
-            u'orgs__notification',
-            (u'type', unicode),
-            (u'id', unicode),
-            (u'listener_id', unicode),
-            (u'revision', unicode),
-            (u'resource_id', unicode),
-            (u'resource_revision', unicode),
-            (u'resource_change', unicode),
-            (u'last_modified', int))
-
-
 class NamelessOrg(unifiedapi.ValidationError):
 
     msg = u'Organisation {id} does not have any names'
@@ -147,17 +67,23 @@ def validate_org(obj):
 if __name__ == '__main__':
     app = unifiedapi.BackendApplication()
 
-    prep = unifiedapi.StoragePreparer(u'org')
-    prep.add_step(u'create-orgs-tables-v1', CreateOrgsTables_v1())
-    app.set_storage_preparer(prep)
+    vs = unifiedapi.VersionedStorage()
+    vs.set_resource_type(resource_type)
+    vs.start_version(u'v1', None)
+    vs.add_prototype(org_prototype)
+    vs.add_prototype(org_sync_prototype, subpath=u'sync')
+    vs.add_prototype(unifiedapi.listener_prototype, auxtable=u'listener')
+    vs.add_prototype(
+        unifiedapi.notification_prototype, auxtable=u'notification')
+    app.set_versioned_storage(vs)
 
     listener_resource = unifiedapi.ListenerResource()
-    listener_resource.set_top_resource_path(u'/orgs')
+    listener_resource.set_top_resource_path(resource_type, u'/orgs')
     app.add_resource(listener_resource)
 
     resource = unifiedapi.ListResource()
     resource.set_path(u'/orgs')
-    resource.set_item_type(u'org')
+    resource.set_item_type(resource_type)
     resource.set_item_prototype(org_prototype)
     resource.set_item_validator(validate_org)
     resource.set_subitem_prototype(u'sync', org_sync_prototype)

@@ -39,12 +39,11 @@ class BackendApplication(object):
     def __init__(self):
         self._app = bottle.app()
         self._db = None
-        self._preparer = None
+        self._vs = None
         self._resources = []
 
-    def set_storage_preparer(self, preparer):
-        '''Set the storage preparer.'''
-        self._preparer = preparer
+    def set_versioned_storage(self, versioned_storage):
+        self._vs = versioned_storage
 
     def add_resource(self, resource):
         '''Adds a resource that this application serves.
@@ -108,9 +107,9 @@ class BackendApplication(object):
             min_conn=conf.get('database', 'minconn'),
             max_conn=conf.get('database', 'maxconn'))
         if not conf.getboolean('database', 'readonly'):
-            assert self._preparer
+            assert self._vs
             with self._db:
-                self._preparer.run(self._db)
+                self._vs.prepare_storage(self._db)
 
     def _setup_logging(self, conf):
         format_string = ('%(asctime)s %(levelname)s %(process)d.%(thread)d '

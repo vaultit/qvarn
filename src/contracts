@@ -9,6 +9,9 @@
 import unifiedapi
 
 
+resource_type = u'contract'
+
+
 contract_prototype = {
     u'type': u'',
     u'id': u'',
@@ -65,6 +68,12 @@ contract_prototype = {
 }
 
 
+contract_document_prototype = {
+    u'body': buffer(''),
+    u'content_type': u'',
+}
+
+
 contract_sync_prototype = {
     u'sync_sources': [
         {
@@ -74,117 +83,6 @@ contract_sync_prototype = {
     ],
     u'sync_revision': u'',
 }
-
-
-class CreateContractsTables_v1(unifiedapi.StoragePreparationStep):
-
-    def run(self, db):
-        db.create_table(
-            u'contract',
-            (u'type', unicode),
-            (u'id', unicode),
-            (u'revision', unicode),
-            (u'contract_type', unicode),
-            (u'start_date', unicode),
-            (u'end_date', unicode),
-            (u'right_to_work_based_on', unicode),
-            (u'date_created', unicode),
-            (u'date_updated', unicode),
-            (u'id06_issuer_requires_bankid', bool),
-            (u'id06_contact_name', unicode),
-            (u'id06_contact_email', unicode),
-            (u'contract_state', unicode),
-            (u'preferred_language', unicode))
-
-        db.create_table(
-            u'contract_contract_parties',
-            (u'id', unicode),
-            (u'list_pos', int),
-            (u'resource_id', unicode),
-            (u'type', unicode),
-            (u'role', unicode),
-            (u'username', unicode),
-            (u'user_role', unicode))
-
-        db.create_table(
-            u'contract_contract_parties_contacts',
-            (u'id', unicode),
-            (u'list_pos', int),
-            (u'contact_type', unicode),
-            (u'contact_source', unicode),
-            (u'contact_timestamp', unicode),
-            (u'phone_number', unicode),
-            (u'email_address', unicode),
-            (u'full_address', unicode),
-            (u'country', unicode),
-            (u'post_code', unicode),
-            (u'post_area', unicode))
-
-        db.create_table(
-            u'contract_contract_parties_contacts_address_lines',
-            (u'id', unicode),
-            (u'dict_list_pos', int),
-            (u'list_pos', int),
-            (u'address-lines', unicode))
-
-        db.create_table(
-            u'contract_contract_state_history',
-            (u'id', unicode),
-            (u'list_pos', int),
-            (u'state', unicode),
-            (u'modified_by', unicode),
-            (u'modification_timestamp', unicode))
-
-        db.create_table(
-            u'contract_signers',
-            (u'id', unicode),
-            (u'list_pos', int),
-            (u'signer', unicode),
-            (u'signing_request_timestamp', unicode),
-            (u'signing_request_message', unicode),
-            (u'signing_timestamp', unicode))
-
-        db.create_table(
-            u'contract_document',
-            (u'id', unicode),
-            (u'body', buffer),
-            (u'content_type', unicode))
-
-        db.create_table(
-            u'contract_sync',
-            (u'id', unicode),
-            (u'sync_revision', unicode))
-
-        db.create_table(
-            u'contract_sync_sync_sources',
-            (u'id', unicode),
-            (u'list_pos', int),
-            (u'sync_source', unicode),
-            (u'sync_id', unicode))
-
-        db.create_table(
-            u'contracts__listener',
-            (u'type', unicode),
-            (u'id', unicode),
-            (u'revision', unicode),
-            (u'notify_of_new', bool))
-
-        db.create_table(
-            u'contracts__listener_listen_on',
-            (u'id', unicode),
-            (u'list_pos', int),
-            (u'listen_on', unicode))
-
-        db.create_table(
-            u'contracts__notification',
-            (u'type', unicode),
-            (u'id', unicode),
-            (u'listener_id', unicode),
-            (u'revision', unicode),
-            (u'resource_id', unicode),
-            (u'resource_revision', unicode),
-            (u'resource_change', unicode),
-            (u'last_modified', int))
 
 
 class InvalidContractType(unifiedapi.ValidationError):
@@ -250,17 +148,24 @@ def validate_contract(obj):
 if __name__ == '__main__':
     app = unifiedapi.BackendApplication()
 
-    prep = unifiedapi.StoragePreparer(u'contract')
-    prep.add_step(u'create-contracts-tables-v1', CreateContractsTables_v1())
-    app.set_storage_preparer(prep)
+    vs = unifiedapi.VersionedStorage()
+    vs.set_resource_type(resource_type)
+    vs.start_version(u'v1', None)
+    vs.add_prototype(contract_prototype)
+    vs.add_prototype(contract_document_prototype, subpath=u'document')
+    vs.add_prototype(contract_sync_prototype, subpath=u'sync')
+    vs.add_prototype(unifiedapi.listener_prototype, auxtable=u'listener')
+    vs.add_prototype(
+        unifiedapi.notification_prototype, auxtable=u'notification')
+    app.set_versioned_storage(vs)
 
     listener_resource = unifiedapi.ListenerResource()
-    listener_resource.set_top_resource_path(u'/contracts')
+    listener_resource.set_top_resource_path(resource_type, u'/contracts')
     app.add_resource(listener_resource)
 
     resource = unifiedapi.ListResource()
     resource.set_path(u'/contracts')
-    resource.set_item_type(u'contract')
+    resource.set_item_type(resource_type)
     resource.set_item_prototype(contract_prototype)
     resource.set_item_validator(validate_contract)
     resource.set_subitem_prototype(u'sync', contract_sync_prototype)
