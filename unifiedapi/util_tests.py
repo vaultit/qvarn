@@ -3,7 +3,7 @@ import unittest
 import unifiedapi
 
 
-class UtilTests(unittest.TestCase):
+class BasicRouteTests(unittest.TestCase):
 
     def test_basic_route_to_scope(self):
         route_scope = unifiedapi.route_to_scope('/orgs', 'GET')
