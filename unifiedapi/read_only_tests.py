@@ -11,6 +11,8 @@ import unifiedapi
 
 class ReadOnlyStorageTests(unittest.TestCase):
 
+    resource_type = u'yo'
+
     prototype = {
         u'type': u'',
         u'id': u'',
@@ -51,60 +53,22 @@ class ReadOnlyStorageTests(unittest.TestCase):
         u'secret_identity': u'',
     }
 
-    def create_tables(self, db):
-        db.create_table(
-            unifiedapi.table_name(resource_type=u'yo'),
-            (u'type', unicode),
-            (u'id', unicode),
-            (u'revision', unicode),
-            (u'foo', unicode),
-            (u'bar', unicode),
-            (u'bool', bool))
-        db.create_table(
-            unifiedapi.table_name(resource_type=u'yo', list_field=u'bars'),
-            (u'id', unicode),
-            (u'list_pos', int),
-            (u'bars', unicode))
-        db.create_table(
-            unifiedapi.table_name(resource_type=u'yo', list_field=u'dicts'),
-            (u'id', unicode),
-            (u'list_pos', int),
-            (u'baz', unicode),
-            (u'bar', unicode))
-        db.create_table(
-            unifiedapi.table_name(
-                resource_type=u'yo', list_field=u'dicts',
-                subdict_list_field=u'foo'),
-            (u'id', unicode),
-            (u'dict_list_pos', int),
-            (u'list_pos', int),
-            (u'foo', unicode))
-        db.create_table(
-            unifiedapi.table_name(
-                resource_type=u'yo', list_field=u'dicts',
-                subdict_list_field=u'foobars'),
-            (u'id', unicode),
-            (u'dict_list_pos', int),
-            (u'list_pos', int),
-            (u'foobars', unicode))
-        db.create_table(
-            unifiedapi.table_name(resource_type=u'yo', subpath=u'secret'),
-            (u'id', unicode),
-            (u'secret_identity', unicode))
-
     def setUp(self):
         db = unifiedapi.open_memory_database()
+
+        vs = unifiedapi.VersionedStorage()
+        vs.set_resource_type(self.resource_type)
+        vs.start_version(u'first-version', None)
+        vs.add_prototype(self.prototype)
+        vs.add_prototype(self.subitem_prototype, subpath=self.subitem_name)
+        with db:
+            vs.prepare_storage(db)
 
         self.ro = unifiedapi.ReadOnlyStorage()
         self.ro.set_db(db)
         self.ro.set_item_prototype(self.item[u'type'], self.prototype)
         self.ro.set_subitem_prototype(
             self.item[u'type'], self.subitem_name, self.subitem_prototype)
-
-        prep = unifiedapi.StoragePreparer(self.item[u'type'])
-        prep.add_step(u'create-tables', self.create_tables)
-        with db:
-            prep.run(db)
 
         self.wo = unifiedapi.WriteOnlyStorage()
         self.wo.set_db(db)

@@ -11,6 +11,8 @@ import unifiedapi
 
 class WriteOnlyStorageTests(unittest.TestCase):
 
+    resource_type = u'person'
+
     prototype = {
         u'type': u'',
         u'id': u'',
@@ -47,45 +49,17 @@ class WriteOnlyStorageTests(unittest.TestCase):
         u'secret_identity': u'',
     }
 
-    def create_tables(self, db):
-        db.create_table(
-            unifiedapi.table_name(resource_type=u'person'),
-            (u'type', unicode),
-            (u'id', unicode),
-            (u'revision', unicode),
-            (u'name', unicode))
-        db.create_table(
-            unifiedapi.table_name(
-                resource_type=u'person', list_field=u'aliases'),
-            (u'id', unicode),
-            (u'list_pos', int),
-            (u'aliases', unicode))
-        db.create_table(
-            unifiedapi.table_name(
-                resource_type=u'person', list_field=u'addrs'),
-            (u'id', unicode),
-            (u'list_pos', int),
-            (u'country', unicode))
-        db.create_table(
-            unifiedapi.table_name(
-                resource_type=u'person', list_field=u'addrs',
-                subdict_list_field=u'lines'),
-            (u'id', unicode),
-            (u'dict_list_pos', int),
-            (u'list_pos', int),
-            (u'lines', unicode))
-        db.create_table(
-            unifiedapi.table_name(resource_type=u'person', subpath=u'secret'),
-            (u'id', unicode),
-            (u'secret_identity', unicode))
-
     def setUp(self):
         db = unifiedapi.open_memory_database()
 
-        prep = unifiedapi.StoragePreparer(self.person[u'type'])
-        prep.add_step(u'create', self.create_tables)
+        vs = unifiedapi.VersionedStorage()
+        vs.set_resource_type(self.resource_type)
+        vs.start_version(u'1', None)
+        vs.add_prototype(self.prototype)
+        vs.add_prototype(self.subitem_prototype, subpath=self.subitem_name)
         with db:
-            prep.run(db)
+            vs.prepare_storage(db)
+
         self.wo = unifiedapi.WriteOnlyStorage()
         self.wo.set_db(db)
         self.wo.set_item_prototype(self.person[u'type'], self.prototype)

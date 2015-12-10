@@ -120,3 +120,54 @@ class ComplicatedTableNameError(unifiedapi.BackendException):
 
     msg = (u'Internal error: tried to construct a database table name '
            u'that was too complicated')
+
+
+def create_tables_for_resource_type(
+        db, resource_type, prototype_list):  # pragma: no cover
+    '''Create database tables for a resource type.
+
+    This creates all the tables for one resource type, given a list of
+    prototypes and additional information. The list of prototypes is
+    a list of tuples (prototype, kwargs), where kwargs are given to
+    schema_from_prototype (which gives them to unifiedapi.table_name).
+
+    However, the resource type is given as a separate argument, so
+    that it does not need to be repeated for each kwargs.
+
+    For example:
+
+        resource_type = u'foo'
+        prototype_list = [
+            (prototype, {}),
+            (photo_prototype, {u'subpath': u'photo'}),
+            (unifiedapi.listener_prototype, {u'auxtable': u'listener'}),
+            (unifiedapi.notification_prototype,
+             {u'auxtable': u'notification'}),
+        ]
+
+        create_tables_for_resource_type(db, resource_type, prototype_list)
+
+    '''
+
+    for prototype, kwargs in prototype_list:
+        schema = unifiedapi.schema_from_prototype(
+            prototype, resource_type=resource_type, **kwargs)
+        create_tables_from_schema(db, schema)
+
+
+def create_tables_from_schema(db, schema):  # pragma: no cover
+    '''Create tables from a schema.
+
+    See schema.py for what a schema is. The tables are assumed to
+    not exist yet.
+
+    '''
+
+    tables = {}
+    for table, column, column_type in schema:
+        if table not in tables:
+            tables[table] = []
+        tables[table].append((column, column_type))
+
+    for table in tables:
+        db.create_table(table, *tables[table])

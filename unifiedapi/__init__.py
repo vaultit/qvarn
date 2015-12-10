@@ -22,7 +22,11 @@ from .write_only import (
 from .read_only import ReadOnlyStorage, ItemDoesNotExist
 from .backend_app import BackendApplication
 from .filler import add_missing_item_fields
-from .util import route_to_scope, table_name, ComplicatedTableNameError
+from .util import (
+    route_to_scope,
+    table_name,
+    ComplicatedTableNameError,
+    create_tables_for_resource_type)
 from .simple_resource import SimpleResource
 from .list_resource import ListResource
 from .idgen import ResourceIdGenerator
@@ -38,3 +42,4 @@ from .file_resource import (
     FileResource, ContentLengthMissing, InvalidContentType)
 from .error_transform_plugin import ErrorTransformPlugin
 from .schema import schema_from_prototype
+from .versioned_storage import VersionedStorage
