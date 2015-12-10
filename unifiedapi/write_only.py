@@ -69,7 +69,8 @@ class WriteOnlyStorage(object):
 
     def _insert_subitem_into_database(self, item_id, subitem_name, subitem):
         prototype = self._subitem_prototypes.get(self._item_type, subitem_name)
-        table_name = u'%s_%s' % (self._item_type, subitem_name)
+        table_name = unifiedapi.table_name(
+            resource_type=self._item_type, subpath=subitem_name)
         ww = WriteWalker(self._db, table_name, item_id)
         self._delete_subitem_in_transaction(item_id, subitem_name)
         ww.walk_item(subitem, prototype)
@@ -96,7 +97,7 @@ class WriteOnlyStorage(object):
         return updated
 
     def _get_current_revision(self, item_id):
-        table_name = self._item_type
+        table_name = unifiedapi.table_name(resource_type=self._item_type)
         column_names = [u'revision']
         match_columns = {u'id': item_id}
         rows = self._db.select_matching_rows(
@@ -140,7 +141,8 @@ class WriteOnlyStorage(object):
                 self._delete_subitem_in_transaction(item_id, subitem_name)
 
     def _delete_subitem_in_transaction(self, item_id, subitem_name):
-        table_name = u'%s_%s' % (self._item_type, subitem_name)
+        table_name = unifiedapi.table_name(
+            resource_type=self._item_type, subpath=subitem_name)
         prototype = self._subitem_prototypes.get(self._item_type, subitem_name)
         dw = DeleteWalker(self._db, table_name, item_id)
         dw.walk_item(prototype, prototype)
@@ -177,7 +179,8 @@ class WriteWalker(unifiedapi.ItemWalker):
         self._db.insert(self._item_type, *columns)
 
     def visit_main_str_list(self, item, field):
-        table_name = self._db.make_table_name(self._item_type, field)
+        table_name = unifiedapi.table_name(
+            resource_type=self._item_type, list_field=field)
         self._insert_str_list(table_name, field, self._item_id, None,
                               item[field])
 
@@ -194,7 +197,8 @@ class WriteWalker(unifiedapi.ItemWalker):
             self._db.insert(table_name, *columns)
 
     def visit_dict_in_list(self, item, field, pos, column_names):
-        table_name = self._db.make_table_name(self._item_type, field)
+        table_name = unifiedapi.table_name(
+            resource_type=self._item_type, list_field=field)
         some_dict = item[field][pos]
         columns = [
             (u'id', self._item_id),
@@ -204,8 +208,10 @@ class WriteWalker(unifiedapi.ItemWalker):
         self._db.insert(table_name, *columns)
 
     def visit_dict_in_list_str_list(self, item, field, pos, str_list_field):
-        table_name = self._db.make_table_name(
-            self._item_type, field, str_list_field)
+        table_name = unifiedapi.table_name(
+            resource_type=self._item_type,
+            list_field=field,
+            subdict_list_field=str_list_field)
         strings = item[field][pos][str_list_field]
         self._insert_str_list(table_name, str_list_field, self._item_id,
                               pos, strings)
@@ -227,14 +233,18 @@ class DeleteWalker(unifiedapi.ItemWalker):
         self._db.delete_matching_rows(table_name, {u'id': item_id})
 
     def visit_main_str_list(self, item, field):
-        table_name = self._db.make_table_name(self._item_type, field)
+        table_name = unifiedapi.table_name(
+            resource_type=self._item_type, list_field=field)
         self._delete_rows(table_name, self._item_id)
 
     def visit_main_dict_list(self, item, field, column_names):
-        table_name = self._db.make_table_name(self._item_type, field)
+        table_name = unifiedapi.table_name(
+            resource_type=self._item_type, list_field=field)
         self._delete_rows(table_name, self._item_id)
 
     def visit_dict_in_list_str_list(self, item, field, pos, str_list_field):
-        table_name = self._db.make_table_name(
-            self._item_type, field, str_list_field)
+        table_name = unifiedapi.table_name(
+            resource_type=self._item_type,
+            list_field=field,
+            subdict_list_field=str_list_field)
         self._delete_rows(table_name, self._item_id)

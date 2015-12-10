@@ -53,7 +53,7 @@ class ReadOnlyStorageTests(unittest.TestCase):
 
     def create_tables(self, db):
         db.create_table(
-            u'yo',
+            unifiedapi.table_name(resource_type=u'yo'),
             (u'type', unicode),
             (u'id', unicode),
             (u'revision', unicode),
@@ -61,30 +61,34 @@ class ReadOnlyStorageTests(unittest.TestCase):
             (u'bar', unicode),
             (u'bool', bool))
         db.create_table(
-            u'yo_bars',
+            unifiedapi.table_name(resource_type=u'yo', list_field=u'bars'),
             (u'id', unicode),
             (u'list_pos', int),
             (u'bars', unicode))
         db.create_table(
-            u'yo_dicts',
+            unifiedapi.table_name(resource_type=u'yo', list_field=u'dicts'),
             (u'id', unicode),
             (u'list_pos', int),
             (u'baz', unicode),
             (u'bar', unicode))
         db.create_table(
-            u'yo_dicts_foo',
+            unifiedapi.table_name(
+                resource_type=u'yo', list_field=u'dicts',
+                subdict_list_field=u'foo'),
             (u'id', unicode),
             (u'dict_list_pos', int),
             (u'list_pos', int),
             (u'foo', unicode))
         db.create_table(
-            u'yo_dicts_foobars',
+            unifiedapi.table_name(
+                resource_type=u'yo', list_field=u'dicts',
+                subdict_list_field=u'foobars'),
             (u'id', unicode),
             (u'dict_list_pos', int),
             (u'list_pos', int),
             (u'foobars', unicode))
         db.create_table(
-            u'yo_secret',
+            unifiedapi.table_name(resource_type=u'yo', subpath=u'secret'),
             (u'id', unicode),
             (u'secret_identity', unicode))
 

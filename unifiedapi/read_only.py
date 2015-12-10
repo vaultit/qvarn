@@ -51,7 +51,8 @@ class ReadOnlyStorage(object):
     def get_subitem(self, item_id, subitem_name):
         '''Get a specific subitem.'''
         subitem = {}
-        table_name = u'%s_%s' % (self._item_type, subitem_name)
+        table_name = unifiedapi.table_name(
+            resource_type=self._item_type, subpath=subitem_name)
         prototype = self._subitem_prototypes.get(self._item_type, subitem_name)
         rw = ReadWalker(self._db, table_name, item_id)
         rw.walk_item(subitem, prototype)
@@ -76,8 +77,11 @@ class ReadOnlyStorage(object):
         for subitem in subprotos:
             subproto = subitem[1]
             tsw = TableSearchWalker(
-                self._db, '_'.join([self._item_type, subitem[0]]),
-                subproto, tsw.table_map)
+                self._db,
+                unifiedapi.table_name(
+                    resource_type=self._item_type, subpath=subitem[0]),
+                subproto,
+                tsw.table_map)
             tsw.walk_item(subproto, subproto)
 
         result = self._do_search(search_params, tsw.table_map)
@@ -167,7 +171,8 @@ class ReadWalker(unifiedapi.ItemWalker):
         raise ItemDoesNotExist(item_id=item_id)
 
     def visit_main_str_list(self, item, field):
-        table_name = self._db.make_table_name(self._item_type, field)
+        table_name = unifiedapi.table_name(
+            resource_type=self._item_type, list_field=field)
         item[field] = self._get_str_list(table_name, field, self._item_id)
 
     def _get_str_list(self, table_name, column_name, item_id):
@@ -196,12 +201,15 @@ class ReadWalker(unifiedapi.ItemWalker):
         return result
 
     def visit_main_dict_list(self, item, field, column_names):
-        table_name = self._db.make_table_name(self._item_type, field)
+        table_name = unifiedapi.table_name(
+            resource_type=self._item_type, list_field=field)
         item[field] = self._get_list(table_name, self._item_id, column_names)
 
     def visit_dict_in_list_str_list(self, item, field, pos, str_list_field):
-        table_name = self._db.make_table_name(
-            self._item_type, field, str_list_field)
+        table_name = unifiedapi.table_name(
+            resource_type=self._item_type,
+            list_field=field,
+            subdict_list_field=str_list_field)
 
         match = {
             u'id': self._item_id,
@@ -233,7 +241,8 @@ class TableSearchWalker(unifiedapi.ItemWalker):
             else:
                 table_set = set()
                 self.table_map[name] = table_set
-            table_set.add(self._item_type)
+            table_name = unifiedapi.table_name(resource_type=self._item_type)
+            table_set.add(table_name)
 
     def visit_main_str_list(self, item, field):
         if field in self.table_map:
@@ -241,7 +250,9 @@ class TableSearchWalker(unifiedapi.ItemWalker):
         else:
             table_set = set()
             self.table_map[field] = table_set
-        table_set.add(self._db.make_table_name(self._item_type, field))
+        table_name = unifiedapi.table_name(
+            resource_type=self._item_type, list_field=field)
+        table_set.add(table_name)
 
     def visit_main_dict_list(self, item, field, column_names):
         for name in column_names:
@@ -250,7 +261,9 @@ class TableSearchWalker(unifiedapi.ItemWalker):
             else:
                 table_set = set()
                 self.table_map[name] = table_set
-            table_set.add(self._db.make_table_name(self._item_type, field))
+            table_name = unifiedapi.table_name(
+                resource_type=self._item_type, list_field=field)
+            table_set.add(table_name)
 
     def visit_dict_in_list(self, item, field, pos, column_names):
         for name in column_names:
@@ -259,7 +272,9 @@ class TableSearchWalker(unifiedapi.ItemWalker):
             else:
                 table_set = set()  # pragma: no cover
                 self.table_map[name] = table_set  # pragma: no cover
-            table_set.add(self._db.make_table_name(self._item_type, field))
+            table_name = unifiedapi.table_name(
+                resource_type=self._item_type, list_field=field)
+            table_set.add(table_name)
 
     def visit_dict_in_list_str_list(self, item, field, pos, str_list_field):
         if str_list_field in self.table_map:
@@ -267,5 +282,8 @@ class TableSearchWalker(unifiedapi.ItemWalker):
         else:
             table_set = set()
             self.table_map[str_list_field] = table_set
-        table_set.add(self._db.make_table_name(self._item_type, field,
-                                               str_list_field))
+        table_name = unifiedapi.table_name(
+            resource_type=self._item_type,
+            list_field=field,
+            subdict_list_field=str_list_field)
+        table_set.add(table_name)

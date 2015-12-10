@@ -28,7 +28,8 @@ class StoragePreparer(object):
     def __init__(self, item_type):
         # Use double underscore so that automatically constructed
         # table names do not clash.
-        self._migrations_table_name = u'%s__%s' % (item_type, u'migrations')
+        self._migrations_table_name = unifiedapi.table_name(
+            resource_type=item_type, auxtable=u'migrations')
 
         self._mandatory_steps = [
             (u'prepare-migrations-table',

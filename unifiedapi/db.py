@@ -60,10 +60,6 @@ class Database(object):
     def _execute(self, sql_statement, values, expecting_results):
         raise NotImplementedError()
 
-    def make_table_name(self, *components):
-        '''Create a name for a table from the given components.'''
-        return '_'.join(self._quote(x) for x in components)
-
     def _quote(self, name):
         ok = string.ascii_letters + string.digits + '-_'
         assert name.strip(ok) == ''

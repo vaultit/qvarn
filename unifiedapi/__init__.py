@@ -22,7 +22,7 @@ from .write_only import (
 from .read_only import ReadOnlyStorage, ItemDoesNotExist
 from .backend_app import BackendApplication
 from .filler import add_missing_item_fields
-from .util import route_to_scope
+from .util import route_to_scope, table_name, ComplicatedTableNameError
 from .simple_resource import SimpleResource
 from .list_resource import ListResource
 from .idgen import ResourceIdGenerator

@@ -49,29 +49,33 @@ class WriteOnlyStorageTests(unittest.TestCase):
 
     def create_tables(self, db):
         db.create_table(
-            u'person',
+            unifiedapi.table_name(resource_type=u'person'),
             (u'type', unicode),
             (u'id', unicode),
             (u'revision', unicode),
             (u'name', unicode))
         db.create_table(
-            u'person_aliases',
+            unifiedapi.table_name(
+                resource_type=u'person', list_field=u'aliases'),
             (u'id', unicode),
             (u'list_pos', int),
             (u'aliases', unicode))
         db.create_table(
-            u'person_addrs',
+            unifiedapi.table_name(
+                resource_type=u'person', list_field=u'addrs'),
             (u'id', unicode),
             (u'list_pos', int),
             (u'country', unicode))
         db.create_table(
-            u'person_addrs_lines',
+            unifiedapi.table_name(
+                resource_type=u'person', list_field=u'addrs',
+                subdict_list_field=u'lines'),
             (u'id', unicode),
             (u'dict_list_pos', int),
             (u'list_pos', int),
             (u'lines', unicode))
         db.create_table(
-            u'person_secret',
+            unifiedapi.table_name(resource_type=u'person', subpath=u'secret'),
             (u'id', unicode),
             (u'secret_identity', unicode))
 
