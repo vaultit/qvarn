@@ -30,7 +30,10 @@ from .authorization_plugin import AuthorizationPlugin
 from .authorization_validator import AuthorizationValidator
 from .logging_plugin import LoggingPlugin
 from .string_to_unicode_plugin import StringToUnicodePlugin
-from .listener_resource import ListenerResource
+from .listener_resource import (
+    ListenerResource,
+    listener_prototype,
+    notification_prototype)
 from .file_resource import (
     FileResource, ContentLengthMissing, InvalidContentType)
 from .error_transform_plugin import ErrorTransformPlugin
