@@ -60,6 +60,10 @@ class Database(object):
                 'Cannot create an abstract Database instance')
         self.type_name = {}
 
+    @property
+    def _in_transaction(self):
+        raise NotImplementedError()
+
     def _execute(self, sql_statement, values, expecting_results):
         raise NotImplementedError()
 
@@ -86,6 +90,14 @@ class Database(object):
         sql += u'(' + u', '.join(col_spec) + u')'
 
         self._execute(sql, {}, False)
+
+    def rename_table(self, old_name, new_name):
+        '''Rename a table.'''
+        assert self._in_transaction
+        self._execute(
+            'ALTER TABLE {} RENAME TO {}'.format(
+                self._quote(old_name), self._quote(new_name)),
+            {}, False)
 
     def select(self, table_name, column_names):
         '''Retrieve the given columns from all rows.'''
