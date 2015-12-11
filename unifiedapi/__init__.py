@@ -37,3 +37,4 @@ from .listener_resource import (
 from .file_resource import (
     FileResource, ContentLengthMissing, InvalidContentType)
 from .error_transform_plugin import ErrorTransformPlugin
+from .schema import schema_from_prototype
