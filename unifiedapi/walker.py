@@ -4,6 +4,9 @@
 # All rights reserved.
 
 
+import unifiedapi
+
+
 class ItemWalker(object):
 
     '''Visit every part of an API item or item prototype.
@@ -62,7 +65,7 @@ class ItemWalker(object):
 
     def _get_simple_columns(self, proto):
         def is_simple(proto_value):
-            return type(proto_value) in (unicode, bool, int)
+            return type(proto_value) in unifiedapi.column_types
         return sorted(x for x in proto if is_simple(proto[x]))
 
     def _get_str_lists(self, proto):

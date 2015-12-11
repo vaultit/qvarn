@@ -24,6 +24,9 @@ def open_memory_database():
     return SQLiteDatabase()
 
 
+column_types = (unicode, int, bool, buffer)
+
+
 class Database(object):
     '''A database abstraction.
 
@@ -141,6 +144,7 @@ class SQLiteDatabase(Database):
             unicode: u'TEXT',
             bool: u'BOOLEAN',
         }
+        assert set(self.type_name.keys()) == set(column_types)
 
         # This connection must exist as long as the SQLDatabase object
         # exists, since it's memory backed. If we close the connection,
@@ -195,7 +199,7 @@ class SQLiteDatabase(Database):
         assert self._in_transaction
 
         for name, value in columns:
-            assert value is None or type(value) in (unicode, int, bool, buffer)
+            assert value is None or type(value) in column_types
 
         values = {}
         for name, value in columns:
@@ -299,6 +303,8 @@ class PostgreSQLDatabase(Database):
             unicode: u'TEXT',
             bool: u'BOOLEAN',
         }
+        assert set(self.type_name.keys()) == set(column_types)
+
         self._pool = psycopg2.pool.ThreadedConnectionPool(
             minconn=kwargs['min_conn'],
             maxconn=kwargs['max_conn'],
@@ -356,7 +362,7 @@ class PostgreSQLDatabase(Database):
         assert self._in_transaction
 
         for name, value in columns:
-            assert value is None or type(value) in (unicode, int, bool, buffer)
+            assert value is None or type(value) in column_types
 
         values = {}
         for name, value in columns:
