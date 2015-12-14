@@ -12,7 +12,14 @@ import unifiedapi
 resource_type = u'person'
 
 
-person_prototype = {
+person_prototype_v0 = {
+    u'type': u'',
+    u'id': u'',
+    u'revision': u'',
+}
+
+
+person_prototype_current = person_prototype_v1 = {
     u'type': u'',
     u'id': u'',
     u'revision': u'',
@@ -100,18 +107,22 @@ def validate_person(obj):
 
 
 if __name__ == '__main__':
-    app = unifiedapi.BackendApplication()
-
     vs = unifiedapi.VersionedStorage()
     vs.set_resource_type(resource_type)
+
+    vs.start_version(u'v0', None)
+    vs.add_prototype(person_prototype_v0)
+
     vs.start_version(u'v1', None)
-    vs.add_prototype(person_prototype)
+    vs.add_prototype(person_prototype_v1)
     vs.add_prototype(person_photo_prototype, subpath=u'photo')
     vs.add_prototype(person_private_prototype, subpath=u'private')
     vs.add_prototype(person_sync_prototype, subpath=u'sync')
     vs.add_prototype(unifiedapi.listener_prototype, auxtable=u'listener')
     vs.add_prototype(
         unifiedapi.notification_prototype, auxtable=u'notification')
+
+    app = unifiedapi.BackendApplication()
     app.set_versioned_storage(vs)
 
     listener_resource = unifiedapi.ListenerResource()
@@ -121,7 +132,7 @@ if __name__ == '__main__':
     resource = unifiedapi.ListResource()
     resource.set_path(u'/persons')
     resource.set_item_type(resource_type)
-    resource.set_item_prototype(person_prototype)
+    resource.set_item_prototype(person_prototype_current)
     resource.set_item_validator(validate_person)
     resource.set_subitem_prototype(u'private', person_private_prototype)
     resource.set_subitem_prototype(u'sync', person_sync_prototype)
@@ -129,7 +140,7 @@ if __name__ == '__main__':
     app.add_resource(resource)
 
     file_resource = unifiedapi.FileResource()
-    file_resource.set_item_prototype(person_prototype)
+    file_resource.set_item_prototype(person_prototype_current)
     file_resource.set_top_resource_path(u'/persons')
     file_resource.set_item_type(resource_type)
     file_resource.set_file_resource_name(u'photo')

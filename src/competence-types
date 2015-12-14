@@ -12,7 +12,14 @@ import unifiedapi
 resource_type = u'competence_type'
 
 
-competence_type_prototype = {
+competence_type_prototype_v0 = {
+    u'type': u'',
+    u'id': u'',
+    u'revision': u'',
+}
+
+
+competence_type_prototype_current = competence_type_prototype_v1 = {
     u'type': u'',
     u'id': u'',
     u'revision': u'',
@@ -37,15 +44,19 @@ def validate_competence_type(obj):
 
 
 if __name__ == '__main__':
-    app = unifiedapi.BackendApplication()
-
     vs = unifiedapi.VersionedStorage()
     vs.set_resource_type(resource_type)
+
+    vs.start_version(u'v0', None)
+    vs.add_prototype(competence_type_prototype_v0)
+
     vs.start_version(u'v1', None)
-    vs.add_prototype(competence_type_prototype)
+    vs.add_prototype(competence_type_prototype_v1)
     vs.add_prototype(unifiedapi.listener_prototype, auxtable=u'listener')
     vs.add_prototype(
         unifiedapi.notification_prototype, auxtable=u'notification')
+
+    app = unifiedapi.BackendApplication()
     app.set_versioned_storage(vs)
 
     listener_resource = unifiedapi.ListenerResource()
@@ -56,7 +67,7 @@ if __name__ == '__main__':
     resource = unifiedapi.ListResource()
     resource.set_path(u'/competence_types')
     resource.set_item_type(resource_type)
-    resource.set_item_prototype(competence_type_prototype)
+    resource.set_item_prototype(competence_type_prototype_current)
     resource.set_item_validator(validate_competence_type)
     resource.set_listener(listener_resource)
     app.add_resource(resource)

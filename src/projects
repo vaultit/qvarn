@@ -12,7 +12,14 @@ import unifiedapi
 resource_type = u'project'
 
 
-project_prototype = {
+project_prototype_v0 = {
+    u'type': u'',
+    u'id': u'',
+    u'revision': u'',
+}
+
+
+project_prototype_current = project_prototype_v1 = {
     u'type': u'',
     u'id': u'',
     u'revision': u'',
@@ -44,16 +51,20 @@ def validate_project(obj):
 
 
 if __name__ == '__main__':
-    app = unifiedapi.BackendApplication()
-
     vs = unifiedapi.VersionedStorage()
     vs.set_resource_type(resource_type)
+
+    vs.start_version(u'v0', None)
+    vs.add_prototype(project_prototype_v0)
+
     vs.start_version(u'v1', None)
-    vs.add_prototype(project_prototype)
+    vs.add_prototype(project_prototype_v1)
     vs.add_prototype(project_sync_prototype, subpath=u'sync')
     vs.add_prototype(unifiedapi.listener_prototype, auxtable=u'listener')
     vs.add_prototype(
         unifiedapi.notification_prototype, auxtable=u'notification')
+
+    app = unifiedapi.BackendApplication()
     app.set_versioned_storage(vs)
 
     listener_resource = unifiedapi.ListenerResource()
@@ -63,7 +74,7 @@ if __name__ == '__main__':
     resource = unifiedapi.ListResource()
     resource.set_path(u'/projects')
     resource.set_item_type(resource_type)
-    resource.set_item_prototype(project_prototype)
+    resource.set_item_prototype(project_prototype_current)
     resource.set_item_validator(validate_project)
     resource.set_subitem_prototype(u'sync', project_sync_prototype)
     resource.set_listener(listener_resource)

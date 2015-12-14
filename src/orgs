@@ -12,7 +12,14 @@ import unifiedapi
 resource_type = u'org'
 
 
-org_prototype = {
+org_prototype_v0 = {
+    u'type': u'',
+    u'id': u'',
+    u'revision': u'',
+}
+
+
+org_prototype_current = org_prototype_v1 = {
     u'type': u'',
     u'id': u'',
     u'revision': u'',
@@ -69,8 +76,12 @@ if __name__ == '__main__':
 
     vs = unifiedapi.VersionedStorage()
     vs.set_resource_type(resource_type)
+
+    vs.start_version(u'v0', None)
+    vs.add_prototype(org_prototype_v0)
+
     vs.start_version(u'v1', None)
-    vs.add_prototype(org_prototype)
+    vs.add_prototype(org_prototype_v1)
     vs.add_prototype(org_sync_prototype, subpath=u'sync')
     vs.add_prototype(unifiedapi.listener_prototype, auxtable=u'listener')
     vs.add_prototype(
@@ -84,7 +95,7 @@ if __name__ == '__main__':
     resource = unifiedapi.ListResource()
     resource.set_path(u'/orgs')
     resource.set_item_type(resource_type)
-    resource.set_item_prototype(org_prototype)
+    resource.set_item_prototype(org_prototype_current)
     resource.set_item_validator(validate_org)
     resource.set_subitem_prototype(u'sync', org_sync_prototype)
     resource.set_listener(listener_resource)

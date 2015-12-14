@@ -12,7 +12,14 @@ import unifiedapi
 resource_type = u'event'
 
 
-event_prototype = {
+event_prototype_v0 = {
+    u'type': u'',
+    u'id': u'',
+    u'revision': u'',
+}
+
+
+event_prototype_current = event_prototype_v1 = {
     u'type': u'',
     u'id': u'',
     u'revision': u'',
@@ -55,16 +62,20 @@ def validate_event(obj):
 
 
 if __name__ == '__main__':
-    app = unifiedapi.BackendApplication()
-
     vs = unifiedapi.VersionedStorage()
     vs.set_resource_type(resource_type)
+
+    vs.start_version(u'v0', None)
+    vs.add_prototype(event_prototype_v0)
+
     vs.start_version(u'v1', None)
-    vs.add_prototype(event_prototype)
+    vs.add_prototype(event_prototype_v1)
     vs.add_prototype(event_sync_prototype, subpath=u'sync')
     vs.add_prototype(unifiedapi.listener_prototype, auxtable=u'listener')
     vs.add_prototype(
         unifiedapi.notification_prototype, auxtable=u'notification')
+
+    app = unifiedapi.BackendApplication()
     app.set_versioned_storage(vs)
 
     listener_resource = unifiedapi.ListenerResource()
@@ -74,7 +85,7 @@ if __name__ == '__main__':
     resource = unifiedapi.ListResource()
     resource.set_path(u'/events')
     resource.set_item_type(resource_type)
-    resource.set_item_prototype(event_prototype)
+    resource.set_item_prototype(event_prototype_current)
     resource.set_item_validator(validate_event)
     resource.set_subitem_prototype(u'sync', event_sync_prototype)
     resource.set_listener(listener_resource)
