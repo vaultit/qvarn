@@ -4,6 +4,7 @@
 # All rights reserved.
 
 
+import logging
 import psycopg2
 import psycopg2.pool
 import psycopg2.extras
@@ -75,6 +76,7 @@ class Database(object):
 
         '''
 
+        logging.info('Creating table %r', table_name)
         col_spec = []
         for col_name, col_type in columns:
             col_spec.append(
