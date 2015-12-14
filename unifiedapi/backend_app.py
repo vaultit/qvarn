@@ -113,6 +113,8 @@ class BackendApplication(object):
                 self._preparer.run(self._db)
 
     def _setup_logging(self, conf):
+        format_string = ('%(asctime)s %(levelname)s %(process)d.%(thread)d '
+                         '%(message)s')
         if conf.has_option('main', 'log'):
             # TODO: probably add rotation parameters to conf file
             # Also possible to use fileConfig() directly for this.
@@ -123,14 +125,12 @@ class BackendApplication(object):
                 maxBytes=10*1024**2,
                 backupCount=10)
             handler.setFormatter(
-                logging.Formatter('%(asctime)s %(levelname)s %(message)s'))
+                logging.Formatter(format_string))
             log.addHandler(handler)
-            logging.info('{} starts'.format(sys.argv[0]))
         else:
-            logging.basicConfig(
-                level=logging.DEBUG,
-                format='%(asctime)s %(levelname)s %(message)s')
-            logging.info('{} starts'.format(sys.argv[0]))
+            logging.basicConfig(level=logging.DEBUG, format=format_string)
+        logging.info('========================================')
+        logging.info('{} starts'.format(sys.argv[0]))
         logging_plugin = unifiedapi.LoggingPlugin()
         self._app.install(logging_plugin)
 
