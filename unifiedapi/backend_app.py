@@ -165,6 +165,7 @@ class BackendApplication(object):
         if not (conf.has_option('main', 'host') and
                 conf.has_option('main', 'port')):
             WSGIServer(self._app).run()
+            return True
 
     def _die_from_server_confusion(self):
         msg = (
