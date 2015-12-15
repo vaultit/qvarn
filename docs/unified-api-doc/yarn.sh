@@ -5,12 +5,13 @@
 
 save_value()
 {
-    printf 's \$%s %s g\n' "$1" "$2" >> "$DATADIR/expand-values.sed"
+    printf 's \$%s$ %s g\n' "$1" "$2" >> "$DATADIR/expand-values.sed"
+    printf 's \$%s([^0-9]) %s\\1 g\n' "$1" "$2" >> "$DATADIR/expand-values.sed"
 }
 
 
 expand_values()
 {
     touch "$DATADIR/expand-values.sed"
-    echo "$1" | sed -f "$DATADIR/expand-values.sed"
+    echo "$1" | sed -r -f "$DATADIR/expand-values.sed"
 }
