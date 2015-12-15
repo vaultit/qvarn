@@ -42,7 +42,7 @@ contract_prototype = {
         },
     ],
     u'right_to_work_based_on': u'',
-    u'id06_issuer_requires_bank_id': False,
+    u'id06_issuer_requires_bankid': False,
     u'id06_contact_name': u'',
     u'id06_contact_email': u'',
     u'contract_state': u'',
