@@ -91,8 +91,8 @@ class CreateContractsTables_v1(unifiedapi.StoragePreparationStep):
             (u'date_created', unicode),
             (u'date_updated', unicode),
             (u'id06_issuer_requires_bankid', bool),
-            (u'id06_issuer_contact_name', unicode),
-            (u'id06_issuer_contact_email', unicode),
+            (u'id06_contact_name', unicode),
+            (u'id06_contact_email', unicode),
             (u'contract_state', unicode),
             (u'preferred_language', unicode))
 
