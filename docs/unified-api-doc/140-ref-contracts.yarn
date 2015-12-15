@@ -82,6 +82,8 @@ Fields in the result:
     - `other` --- an unspecified other basis
 * `id06_issuer_requires_bankid` --- does the issuer require BankID
   authentication for enabling each virtual ID06 card?
+* `id06_contact_name` --- name of ID06 contact person
+* `id06_contact_email` --- email address of the ID06 contact person
 * `contract_state` --- state of the contract, if applicable
 * `contract_state_history` --- state history for the contract; the last
   entry in the list is the current state; see below for list items
@@ -549,6 +551,100 @@ Check that the record is there.
     AND values "$ID7" and "$ID8" are identical
     AND result has key "revision" containing a string, saved as $REV9
     AND values "$REV8" and "$REV9" are identical
+
+Create a new ID06 contract.
+
+    WHEN client POSTs /contracts with
+    ... {
+    ... "contract_type": "ID06_cards",
+    ... "start_date": "2016-01-01",
+    ... "end_date": "2038-01-19",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "123",
+    ...         "role": "issuer"
+    ...     },
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "536457",
+    ...         "role": "supplier"
+    ...     },
+    ...     {
+    ...         "type": "person",
+    ...         "resource_id": "543534",
+    ...         "role": "issuer_contact"
+    ...     }
+    ... ],
+    ... "id06_issuer_requires_bankid": false,
+    ... "id06_contact_name": "Mikael Blomkvist",
+    ... "id06_contact_email": "mikael.blomkvist@millennium.se"
+    ... }
+    THEN HTTP status code is 201
+    AND result matches
+    ... {
+    ... "contract_type": "ID06_cards",
+    ... "start_date": "2016-01-01",
+    ... "end_date": "2038-01-19",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "123",
+    ...         "role": "issuer"
+    ...     },
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "536457",
+    ...         "role": "supplier"
+    ...     },
+    ...     {
+    ...         "type": "person",
+    ...         "resource_id": "543534",
+    ...         "role": "issuer_contact"
+    ...     }
+    ... ],
+    ... "id06_issuer_requires_bankid": false,
+    ... "id06_contact_name": "Mikael Blomkvist",
+    ... "id06_contact_email": "mikael.blomkvist@millennium.se"
+    ... }
+    AND result has key "id" containing a string, saved as $ID9
+    AND HTTP Location header is API_URL/contracts/$ID9
+    AND result has key "revision" containing a string, saved as $REV10
+
+Check that the record is there.
+
+    WHEN client GETs /contracts/$ID9
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ... "contract_type": "ID06_cards",
+    ... "start_date": "2016-01-01",
+    ... "end_date": "2038-01-19",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "123",
+    ...         "role": "issuer"
+    ...     },
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "536457",
+    ...         "role": "supplier"
+    ...     },
+    ...     {
+    ...         "type": "person",
+    ...         "resource_id": "543534",
+    ...         "role": "issuer_contact"
+    ...     }
+    ... ],
+    ... "id06_issuer_requires_bankid": false,
+    ... "id06_contact_name": "Mikael Blomkvist",
+    ... "id06_contact_email": "mikael.blomkvist@millennium.se"
+    ... }
+    AND result has key "id" containing a string, saved as $ID10
+    AND values "$ID9" and "$ID10" are identical
+    AND result has key "revision" containing a string, saved as $REV11
+    AND values "$REV10" and "$REV11" are identical
 
 Attempt to send invalid data.
 
