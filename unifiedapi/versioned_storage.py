@@ -124,6 +124,12 @@ class VersionedStorage(object):
             logging.info('Dropping table %r', table)
             db.drop_table(table)
 
+        # Drop all old tables that are no longer needed.
+        for table in old_tables:  # pragma: no cover
+            if table not in new_tables:
+                logging.info('Dropping table %r', table)
+                db.drop_table(table)
+
     def _make_table_dict_from_version(self, version):
         tables = {}
         for prototype, kwargs in version.prototype_list:
