@@ -72,20 +72,32 @@ class BackendApplication(object):
 
     def run(self):
         '''Run the application.'''
-        conf = self._parse_config()
-        # Logging should be the first plugin (outermost wrapper)
-        self._setup_logging(conf)
-        # Error catching should also be as high as possible to catch all
-        self._app.install(unifiedapi.ErrorTransformPlugin())
-        self._setup_storage(conf)
-        self._setup_auth(conf)
-        self._app.install(unifiedapi.StringToUnicodePlugin())
-        routes = self._prepare_resources()
-        self.add_routes(routes)
-        self._start_service(conf)
+        conf, args = self._parse_config()
+
+        if args.prepare_storage:
+            # Logging should be the first plugin (outermost wrapper)
+            self._configure_logging(conf)
+            self._connect_to_storage(conf)
+            self._prepare_storage(conf)
+        else:
+            # Logging should be the first plugin (outermost wrapper)
+            self._configure_logging(conf)
+            self._install_logging_plugin()
+            # Error catching should also be as high as possible to catch all
+            self._app.install(unifiedapi.ErrorTransformPlugin())
+            self._connect_to_storage(conf)
+            self._setup_auth(conf)
+            self._app.install(unifiedapi.StringToUnicodePlugin())
+            routes = self._prepare_resources()
+            self.add_routes(routes)
+            self._start_service(conf)
 
     def _parse_config(self):
         parser = argparse.ArgumentParser()
+        parser.add_argument(
+            '--prepare-storage',
+            action='store_true',
+            help='only prepare database storage')
         parser.add_argument(
             '--config',
             metavar='FILE',
@@ -94,9 +106,9 @@ class BackendApplication(object):
 
         config = ConfigParser.RawConfigParser()
         config.read(args.config)
-        return config
+        return config, args
 
-    def _setup_storage(self, conf):
+    def _connect_to_storage(self, conf):
         '''Prepare the database for use.'''
         self._db = unifiedapi.open_disk_database(
             host=conf.get('database', 'host'),
@@ -106,12 +118,14 @@ class BackendApplication(object):
             password=conf.get('database', 'password'),
             min_conn=conf.get('database', 'minconn'),
             max_conn=conf.get('database', 'maxconn'))
+
+    def _prepare_storage(self, conf):
+        '''Prepare the database for use.'''
         if not conf.getboolean('database', 'readonly'):
-            assert self._vs
             with self._db:
                 self._vs.prepare_storage(self._db)
 
-    def _setup_logging(self, conf):
+    def _configure_logging(self, conf):
         format_string = ('%(asctime)s %(levelname)s %(process)d.%(thread)d '
                          '%(message)s')
         if conf.has_option('main', 'log'):
@@ -130,6 +144,8 @@ class BackendApplication(object):
             logging.basicConfig(level=logging.DEBUG, format=format_string)
         logging.info('========================================')
         logging.info('{} starts'.format(sys.argv[0]))
+
+    def _install_logging_plugin(self):
         logging_plugin = unifiedapi.LoggingPlugin()
         self._app.install(logging_plugin)
 

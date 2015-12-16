@@ -13,8 +13,9 @@
 
 set -eu
 
-app="$1"
+app="/usr/lib/unified-api-backend/$1"
+config="--config=/etc/qvarn/$1.conf"
+startlog="/var/log/unified-api-backend/$1.start.log"
 
-exec "/usr/lib/unified-api-backend/$1" \
-     --config "/etc/qvarn/$1.conf" \
-    >> "/var/log/unified-api-backend/$1.start.log" 2>&1
+flock /run/qvarn.lock "$app" "$config" --prepare-storage
+exec "$app" "$config" >> "$startlog" 2>&1
