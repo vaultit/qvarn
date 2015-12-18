@@ -12,6 +12,7 @@ unifiedapi/__init__.py
 
 # The database abstraction layer. This is meant to be simple and obvious
 # enough that unit tests are not needed.
+unifiedapi/sql.py
 unifiedapi/db.py
 
 # The backend application main program. This does things like parsing
