@@ -7,10 +7,19 @@ class LoggingPlugin(object):
 
     def apply(self, callback, route):
         def wrapper(*args, **kwargs):
-            data = callback(*args, **kwargs)
-            self._log_request()
-            self._log_response(data)
-            return data
+            # Do the thing and catch any exceptions.
+            try:
+                data = callback(*args, **kwargs)
+                self._log_request()
+                self._log_response(data)
+                return data
+            except SystemExit:
+                raise
+            except BaseException as e:
+                logging.critical(str(e), exc_info=True)
+                # Do not exit here. We don't want to die, we just give up
+                # on handling this request.
+
         return wrapper
 
     def _log_request(self):

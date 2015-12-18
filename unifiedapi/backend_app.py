@@ -72,6 +72,19 @@ class BackendApplication(object):
 
     def run(self):
         '''Run the application.'''
+
+        # The actual running is in run_helper. Here we just catch
+        # exceptions and handle them in some useful manner.
+
+        try:
+            self.run_helper()
+        except SystemExit as e:
+            sys.exit(e.code if type(e.code) == int else 1)
+        except BaseException as e:
+            logging.critical(str(e), exc_info=True)
+            sys.exit(1)
+
+    def run_helper(self):
         conf, args = self._parse_config()
 
         if args.prepare_storage:
