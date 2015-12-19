@@ -9,8 +9,8 @@ class LoggingPlugin(object):
         def wrapper(*args, **kwargs):
             # Do the thing and catch any exceptions.
             try:
-                data = callback(*args, **kwargs)
                 self._log_request()
+                data = callback(*args, **kwargs)
                 self._log_response(data)
                 return data
             except SystemExit:
