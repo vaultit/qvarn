@@ -13,7 +13,6 @@ from .validate import ItemValidator, ValidationError
 from .basic_validation_plugin import (
     BasicValidationPlugin, NoItemRevision, ContentTypeIsNotJSON)
 from .sql import SqliteAdapter, PostgresAdapter, column_types
-from .db import open_disk_database, open_memory_database
 from .transaction import Transaction
 from .dbconn import DatabaseConnection
 from .subitem_protos import SubItemPrototypes
