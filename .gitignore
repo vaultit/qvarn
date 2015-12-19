@@ -1,5 +1,4 @@
 *.pyc
-*.db
 .coverage
 build
 debian/files
