@@ -123,7 +123,7 @@ class ComplicatedTableNameError(unifiedapi.BackendException):
 
 
 def create_tables_for_resource_type(
-        db, resource_type, prototype_list):  # pragma: no cover
+        transaction, resource_type, prototype_list):  # pragma: no cover
     '''Create database tables for a resource type.
 
     This creates all the tables for one resource type, given a list of
@@ -145,17 +145,18 @@ def create_tables_for_resource_type(
              {u'auxtable': u'notification'}),
         ]
 
-        create_tables_for_resource_type(db, resource_type, prototype_list)
+        create_tables_for_resource_type(
+            transaction, resource_type, prototype_list)
 
     '''
 
     for prototype, kwargs in prototype_list:
         schema = unifiedapi.schema_from_prototype(
             prototype, resource_type=resource_type, **kwargs)
-        create_tables_from_schema(db, schema)
+        create_tables_from_schema(transaction, schema)
 
 
-def create_tables_from_schema(db, schema):  # pragma: no cover
+def create_tables_from_schema(transaction, schema):  # pragma: no cover
     '''Create tables from a schema.
 
     See schema.py for what a schema is. The tables are assumed to
@@ -166,8 +167,8 @@ def create_tables_from_schema(db, schema):  # pragma: no cover
     tables = {}
     for table, column, column_type in schema:
         if table not in tables:
-            tables[table] = []
-        tables[table].append((column, column_type))
+            tables[table] = {}
+        tables[table][column] = column_type
 
     for table in tables:
-        db.create_table(table, *tables[table])
+        transaction.create_table(table, tables[table])

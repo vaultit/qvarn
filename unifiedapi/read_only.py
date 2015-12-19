@@ -11,20 +11,14 @@ class ReadOnlyStorage(object):
 
     '''Read-only interface to a database.
 
-    You MUST call ``set_db`` and ``set_item_prototype`` before doing
-    anything else.
+    You MUST call ``set_item_prototype`` before doing anything else.
 
     '''
 
     def __init__(self):
-        self._db = None
         self._item_type = None
         self._prototype = None
         self._subitem_prototypes = unifiedapi.SubItemPrototypes()
-
-    def set_db(self, db):
-        '''Set the database to use.'''
-        self._db = db
 
     def set_item_prototype(self, item_type, prototype):
         '''Set type and prototype of items in this database.'''
@@ -35,30 +29,30 @@ class ReadOnlyStorage(object):
         '''Set prototype for a subitem.'''
         self._subitem_prototypes.add(item_type, subitem_name, prototype)
 
-    def get_item_ids(self):
+    def get_item_ids(self, transaction):
         '''Get list of ids of all items.'''
         return [
             row['id']
-            for row in self._db.select(self._item_type, [u'id'])]
+            for row in transaction.select(self._item_type, [u'id'], {})]
 
-    def get_item(self, item_id):
+    def get_item(self, transaction, item_id):
         '''Get a specific item.'''
         item = {}
-        rw = ReadWalker(self._db, self._item_type, item_id)
+        rw = ReadWalker(transaction, self._item_type, item_id)
         rw.walk_item(item, self._prototype)
         return item
 
-    def get_subitem(self, item_id, subitem_name):
+    def get_subitem(self, transaction, item_id, subitem_name):
         '''Get a specific subitem.'''
         subitem = {}
         table_name = unifiedapi.table_name(
             resource_type=self._item_type, subpath=subitem_name)
         prototype = self._subitem_prototypes.get(self._item_type, subitem_name)
-        rw = ReadWalker(self._db, table_name, item_id)
+        rw = ReadWalker(transaction, table_name, item_id)
         rw.walk_item(subitem, prototype)
         return subitem
 
-    def search(self, search_params, show_params):
+    def search(self, transaction, search_params, show_params):
         '''Do a search.
 
         ``search_params`` is a list of (matching rule, key, value)
@@ -70,26 +64,28 @@ class ReadOnlyStorage(object):
 
         '''
 
-        tsw = TableSearchWalker(self._db, self._item_type, self._prototype, {})
+        tsw = TableSearchWalker(
+            transaction, self._item_type, self._prototype, {})
         tsw.walk_item(self._prototype, self._prototype)
 
         subprotos = self._subitem_prototypes.get_all()
         for subitem in subprotos:
             subproto = subitem[1]
             tsw = TableSearchWalker(
-                self._db,
+                transaction,
                 unifiedapi.table_name(
                     resource_type=self._item_type, subpath=subitem[0]),
                 subproto,
                 tsw.table_map)
             tsw.walk_item(subproto, subproto)
 
-        result = self._do_search(search_params, tsw.table_map)
+        result = self._do_search(transaction, search_params, tsw.table_map)
         if show_params:
             if u'show_all' in show_params:
                 return {
                     u'resources': [
-                        self.get_item(resource_id) for resource_id in result
+                        self.get_item(transaction, resource_id)
+                        for resource_id in result
                     ],
                 }
         else:
@@ -99,7 +95,7 @@ class ReadOnlyStorage(object):
                 ],
             }
 
-    def _do_search(self, search_params, table_map):
+    def _do_search(self, transaction, search_params, table_map):
 
         final_result = set()
         results_added = False
@@ -114,8 +110,7 @@ class ReadOnlyStorage(object):
             param_result = set()
             for table_name in table_names:
                 if search_param[0] == 'exact':
-                    for row in self._db.select_matching_rows(
-                            table_name, [u'id'], match):
+                    for row in transaction.select(table_name, [u'id'], match):
                         result.add(row[u'id'])
                 param_result.update(result)
             if results_added:
@@ -144,8 +139,8 @@ class ReadWalker(unifiedapi.ItemWalker):
 
     '''Visit every part of an item to retrieve it from the database.'''
 
-    def __init__(self, db, item_type, item_id):
-        self._db = db
+    def __init__(self, transaction, item_type, item_id):
+        self._transaction = transaction
         self._item_type = item_type
         self._item_id = item_id
 
@@ -156,15 +151,15 @@ class ReadWalker(unifiedapi.ItemWalker):
 
     def _get_row(self, table_name, item_id, column_names):
         # If a dict has no non-list fields, column_names is empty.
-        # This breaks the self._db.select_matching_rows call below.
-        # There's no sensible way to fix the select method, so we look
-        # for the id column instead.
+        # This breaks the self._transaction.select call below. There's
+        # no sensible way to fix the select method, so we look for the
+        # id column instead.
         lookup_names = column_names or [u'id']
 
         match = {
             u'id': item_id
         }
-        rows = self._db.select_matching_rows(table_name, lookup_names, match)
+        rows = self._transaction.select(table_name, lookup_names, match)
         for row in rows:
             # If we don't have any columns, return an empty dict.
             return row if column_names else {}
@@ -183,7 +178,7 @@ class ReadWalker(unifiedapi.ItemWalker):
         match = {
             u'id': item_id
         }
-        rows = self._db.select_matching_rows(
+        rows = self._transaction.select(
             table_name, [u'list_pos'] + column_names, match)
         in_order = self._sort_rows(rows)
         return self._make_dicts_from_rows(in_order, column_names)
@@ -215,7 +210,7 @@ class ReadWalker(unifiedapi.ItemWalker):
             u'id': self._item_id,
             u'dict_list_pos': unicode(pos),
         }
-        rows = self._db.select_matching_rows(
+        rows = self._transaction.select(
             table_name, [u'list_pos', str_list_field], match)
 
         in_order = self._sort_rows(rows)
@@ -228,8 +223,8 @@ class TableSearchWalker(unifiedapi.ItemWalker):
     '''Visit every part of an item to find the correct parent item
     for a selected item.'''
 
-    def __init__(self, db, item_type, proto_type, table_map):
-        self._db = db
+    def __init__(self, transaction, item_type, proto_type, table_map):
+        self._transaction = transaction
         self._item_type = item_type
         self._proto_type = proto_type
         self.table_map = table_map

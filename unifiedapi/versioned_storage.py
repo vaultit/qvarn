@@ -38,46 +38,47 @@ class VersionedStorage(object):
         v = self._versions[-1]
         v.add_prototype(prototype, kwargs)
 
-    def prepare_storage(self, db):
+    def prepare_storage(self, transaction):
         logging.info('Preparing storage')
 
-        self._prepare_versions_table(db)
-        versions = self._get_known_versions(db)
+        self._prepare_versions_table(transaction)
+        versions = self._get_known_versions(transaction)
         logging.info('Prepared versions: %r', versions)
 
         if self._versions:
             first = self._versions[0]
             if first.version not in versions:
-                self._prepare_first_version(db, first)
-                self._remember_version(db, first)
+                self._prepare_first_version(transaction, first)
+                self._remember_version(transaction, first)
 
             prev_version = first
             for v in self._versions[1:]:
                 if v.version not in versions:
-                    self._prepare_next_version(db, prev_version, v)
-                    self._remember_version(db, v)
+                    self._prepare_next_version(transaction, prev_version, v)
+                    self._remember_version(transaction, v)
                 prev_version = v
 
-    def _prepare_versions_table(self, db):
-        db.create_table(self._versions_table_name, (u'version', unicode))
+    def _prepare_versions_table(self, transaction):
+        transaction.create_table(
+            self._versions_table_name, {u'version': unicode})
 
-    def _get_known_versions(self, db):
-        return [
-            row['version']
-            for row in db.select(self._versions_table_name, [u'version'])]
+    def _get_known_versions(self, transaction):
+        rows = transaction.select(self._versions_table_name, [u'version'], {})
+        return [row['version'] for row in rows]
 
-    def _remember_version(self, db, version):
-        db.insert(self._versions_table_name, (u'version', version.version))
+    def _remember_version(self, transaction, version):
+        transaction.insert(
+            self._versions_table_name, {u'version': version.version})
 
-    def _prepare_first_version(self, db, version):
+    def _prepare_first_version(self, transaction, version):
         logging.info('First version: %r', version.version)
         logging.info('Creating tables: %r', version.prototype_list)
         unifiedapi.create_tables_for_resource_type(
-            db, self._resource_type, version.prototype_list)
+            transaction, self._resource_type, version.prototype_list)
         if version.func:
-            version.func(db, {})
+            version.func(transaction, {})
 
-    def _prepare_next_version(self, db, old_version, new_version):
+    def _prepare_next_version(self, transaction, old_version, new_version):
         # This method is tricky. Pay attention.
 
         logging.info(
@@ -93,14 +94,16 @@ class VersionedStorage(object):
         changed_tables = self._find_changed_tables(old_tables, new_tables)
         for table in changed_tables:
             logging.info('Changed table: %r', table)
-        temp_tables = self._rename_tables(db, changed_tables)
-        self._create_tables(db, new_version.prototype_list, changed_tables)
+        temp_tables = self._rename_tables(transaction, changed_tables)
+        self._create_tables(
+            transaction, new_version.prototype_list, changed_tables)
 
         # Create all added tables.
         added_tables = self._find_added_tables(old_tables, new_tables)
         for table in added_tables:  # pragma: no cover
             logging.info('Added table: %r', table)
-        self._create_tables(db, new_version.prototype_list, added_tables)
+        self._create_tables(
+            transaction, new_version.prototype_list, added_tables)
 
         # Copy columns that haven't changed, for any changed
         # tables.
@@ -110,25 +113,25 @@ class VersionedStorage(object):
             shared_columns = old_columns.intersection(new_columns)
             if shared_columns:
                 self._copy_shared_columns(
-                    db, temp_tables[table], table, shared_columns)
+                    transaction, temp_tables[table], table, shared_columns)
 
         # This is where the app gets to munge data so nothing
         # important is lost during the schema transition, or to
         # fill in new columns with useful values, etc.
         logging.info('Calling conversion function %r', new_version.func)
         if new_version.func:
-            new_version.func(db, temp_tables)
+            new_version.func(transaction, temp_tables)
 
         # Drop all old, renamed tables.
         for table in temp_tables.values():
             logging.info('Dropping table %r', table)
-            db.drop_table(table)
+            transaction.drop_table(table)
 
         # Drop all old tables that are no longer needed.
         for table in old_tables:  # pragma: no cover
             if table not in new_tables:
                 logging.info('Dropping table %r', table)
-                db.drop_table(table)
+                transaction.drop_table(table)
 
     def _make_table_dict_from_version(self, version):
         tables = {}
@@ -155,7 +158,7 @@ class VersionedStorage(object):
         new_names = set(new_tables.keys())
         return new_names.difference(old_names)
 
-    def _create_tables(self, db, prototype_list, table_names):
+    def _create_tables(self, transaction, prototype_list, table_names):
         delta_prototype_list = []
         for prototype, kwargs in prototype_list:
             schema = unifiedapi.schema_from_prototype(
@@ -165,24 +168,27 @@ class VersionedStorage(object):
 
         logging.info('Creating tables: %r', delta_prototype_list)
         unifiedapi.create_tables_for_resource_type(
-            db, self._resource_type, delta_prototype_list)
+            transaction, self._resource_type, delta_prototype_list)
 
-    def _rename_tables(self, db, tables):
+    def _rename_tables(self, transaction, tables):
         temp_tables = {}
         for old_name in tables:
             # This assumes the likelihood of a 64-bit integer clashing
             # is low enough.
             temp_name = '%s_%s' % (old_name, random.randint(1, 2**64-1))
             logging.info('Renaming %r to %r', old_name, temp_name)
-            db.rename_table(old_name, temp_name)
+            transaction.rename_table(old_name, temp_name)
             temp_tables[old_name] = temp_name
         return temp_tables
 
-    def _copy_shared_columns(self, db, old_table, new_table, column_names):
-        for row in db.select(old_table, list(column_names)):
-            pairs = [(x, row[x]) for x in column_names if row[x] is not None]
-            if pairs:
-                db.insert(new_table, *pairs)
+    def _copy_shared_columns(self,
+                             transaction, old_table, new_table, column_names):
+        for row in transaction.select(old_table, list(column_names), {}):
+            values = dict(
+                (x, row[x])
+                for x in column_names if row[x] is not None)
+            if values:
+                transaction.insert(new_table, values)
 
 
 class Version(object):

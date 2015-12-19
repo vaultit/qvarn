@@ -36,7 +36,7 @@ class ListResource(object):
         self._item_validator = None
         self._subitem_prototypes = unifiedapi.SubItemPrototypes()
         self._listener = None
-        self.database = None
+        self._dbconn = None
 
     def set_path(self, path):
         '''Set path of the top level resource, e.g., /persons.'''
@@ -74,10 +74,10 @@ class ListResource(object):
         '''
         self._listener = listener
 
-    def prepare_resource(self, database):
+    def prepare_resource(self, dbconn):
         '''Prepare the resource for action.'''
 
-        self.database = database
+        self._dbconn = dbconn
 
         item_paths = [
             {
@@ -140,15 +140,15 @@ class ListResource(object):
     def get_items(self):
         '''Serve GET /foos to list all items.'''
         ro = self._create_ro_storage()
-        return {
-            'resources': [
-                {'id': resource_id} for resource_id in ro.get_item_ids()
-            ],
-        }
+        with self._dbconn.transaction() as t:
+            return {
+                'resources': [
+                    {'id': resource_id} for resource_id in ro.get_item_ids(t)
+                ],
+            }
 
     def get_matching_items(self, search_criteria):
         '''Serve GET /foos/search to list items matching search criteria.'''
-        ro = self._create_ro_storage()
 
         criteria = search_criteria.split('/')
         search_params = []
@@ -170,10 +170,13 @@ class ListResource(object):
                 search_param = (matching_rule, search_field, search_value)
                 search_params.append(search_param)
 
-        return ro.search(search_params, show_params)
+        ro = self._create_ro_storage()
+        with self._dbconn.transaction() as t:
+            return ro.search(t, search_params, show_params)
 
     def post_item(self):
         '''Serve POST /foos to create a new item.'''
+
         item = bottle.request.json
         unifiedapi.add_missing_item_fields(
             self._item_type, self._item_prototype, item)
@@ -188,7 +191,9 @@ class ListResource(object):
         del item[u'revision']
 
         wo = self._create_wo_storage()
-        added = wo.add_item(item)
+        with self._dbconn.transaction() as t:
+            added = wo.add_item(t, item)
+
         self._listener.notify_create(added[u'id'], added[u'revision'])
         resource_path = u'%s/%s' % (self._path, added[u'id'])
         resource_url = urlparse.urljoin(
@@ -203,14 +208,16 @@ class ListResource(object):
     def get_item(self, item_id):
         '''Serve GET /foos/123 to get an existing item.'''
         ro = self._create_ro_storage()
-        return ro.get_item(item_id)
+        with self._dbconn.transaction() as t:
+            return ro.get_item(t, item_id)
 
     def get_subitem(self, item_id, subitem_path):
         '''Serve GET /foos/123/subitem.'''
         ro = self._create_ro_storage()
-        subitem = ro.get_subitem(item_id, subitem_path)
+        with self._dbconn.transaction() as t:
+            subitem = ro.get_subitem(t, item_id, subitem_path)
+            item = ro.get_item(t, item_id)
 
-        item = ro.get_item(item_id)
         subitem[u'revision'] = item[u'revision']
         return subitem
 
@@ -228,7 +235,8 @@ class ListResource(object):
         self._item_validator(item)
 
         wo = self._create_wo_storage()
-        updated = wo.update_item(item)
+        with self._dbconn.transaction() as t:
+            updated = wo.update_item(t, item)
 
         self._listener.notify_update(updated[u'id'], updated[u'revision'])
         return updated
@@ -247,8 +255,9 @@ class ListResource(object):
         iv.validate_item(subitem_type, prototype, subitem)
 
         wo = self._create_wo_storage()
-        subitem[u'revision'] = wo.update_subitem(
-            item_id, revision, subitem_name, subitem)
+        with self._dbconn.transaction() as t:
+            subitem[u'revision'] = wo.update_subitem(
+                t, item_id, revision, subitem_name, subitem)
 
         updated = dict(subitem)
         updated.update({u'id': item_id})
@@ -258,7 +267,8 @@ class ListResource(object):
     def delete_item(self, item_id):
         '''Serve DELETE /foos/123 to delete an item.'''
         wo = self._create_wo_storage()
-        wo.delete_item(item_id)
+        with self._dbconn.transaction() as t:
+            wo.delete_item(t, item_id)
         self._listener.notify_delete(item_id)
 
     def _create_ro_storage(self):
@@ -266,7 +276,6 @@ class ListResource(object):
         ro.set_item_prototype(self._item_type, self._item_prototype)
         for subitem_name, prototype in self._subitem_prototypes.get_all():
             ro.set_subitem_prototype(self._item_type, subitem_name, prototype)
-        ro.set_db(self.database)
         return ro
 
     def _create_wo_storage(self):
@@ -274,17 +283,14 @@ class ListResource(object):
         wo.set_item_prototype(self._item_type, self._item_prototype)
         for subitem_name, prototype in self._subitem_prototypes.get_all():
             wo.set_subitem_prototype(self._item_type, subitem_name, prototype)
-        wo.set_db(self.database)
         return wo
 
     def _create_resource_ro_storage(self, resource_name, prototype):
         ro = unifiedapi.ReadOnlyStorage()
         ro.set_item_prototype(resource_name, prototype)
-        ro.set_db(self.database)
         return ro
 
     def _create_resource_wo_storage(self, resource_name, prototype):
         wo = unifiedapi.WriteOnlyStorage()
         wo.set_item_prototype(resource_name, prototype)
-        wo.set_db(self.database)
         return wo

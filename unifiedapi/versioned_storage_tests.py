@@ -41,15 +41,18 @@ class VersionedStorageTests(unittest.TestCase):
         def callback_v1(*args):
             called.append(callback_v1)
 
+        sql = unifiedapi.SqliteAdapter()
+        dbconn = unifiedapi.DatabaseConnection()
+        dbconn.set_sql(sql)
+
         vs = unifiedapi.VersionedStorage()
         vs.set_resource_type(u'foo')
 
         vs.start_version(u'v1', callback_v1)
         vs.add_prototype(prototype_v1)
 
-        db = unifiedapi.open_memory_database()
-        with db:
-            vs.prepare_storage(db)
+        with dbconn.transaction() as t:
+            vs.prepare_storage(t)
         self.assertEqual(called, [callback_v1])
 
     def test_updates_data_for_each_version(self):
@@ -76,15 +79,15 @@ class VersionedStorageTests(unittest.TestCase):
         resource_type = u'resource'
         table_name = unifiedapi.table_name(resource_type=resource_type)
 
-        def callback_v1(db, temp_tables):
+        def callback_v1(t, temp_tables):
             # Insert a row with an id. It should remain at end.
-            db.insert(table_name, (u'id', u'foo.id'))
+            t.insert(table_name, {u'id': u'foo.id'})
             called.append(callback_v1)
 
-        def callback_v2(db, temp_tables):
+        def callback_v2(t, temp_tables):
             called.append(callback_v2)
 
-        def callback_v3(db, temp_tables):
+        def callback_v3(t, temp_tables):
             called.append(callback_v3)
 
         vs = unifiedapi.VersionedStorage()
@@ -99,12 +102,14 @@ class VersionedStorageTests(unittest.TestCase):
         vs.start_version(u'v3', callback_v3)
         vs.add_prototype(prototype_v3)
 
-        db = unifiedapi.open_memory_database()
-        with db:
-            vs.prepare_storage(db)
-        self.assertEqual(called, [callback_v1, callback_v2, callback_v3])
+        sql = unifiedapi.SqliteAdapter()
+        dbconn = unifiedapi.DatabaseConnection()
+        dbconn.set_sql(sql)
+        with dbconn.transaction() as t:
+            vs.prepare_storage(t)
+            self.assertEqual(called, [callback_v1, callback_v2, callback_v3])
 
-        rows = db.select(table_name, [u'bar', u'foobar', u'id'])
-        self.assertEqual(
-            rows,
-            [{u'id': u'foo.id', u'bar': None, u'foobar': None}])
+            rows = t.select(table_name, [u'bar', u'foobar', u'id'], {})
+            self.assertEqual(
+                rows,
+                [{u'id': u'foo.id', u'bar': None, u'foobar': None}])

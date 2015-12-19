@@ -27,7 +27,7 @@ class FileResource(object):
     def __init__(self):
         self._path = None
         self._listener = None
-        self.database = None
+        self._dbconn = None
         self._item_type = None
         self._item_prototype = None
         self._subitem_prototypes = unifiedapi.SubItemPrototypes()
@@ -62,10 +62,10 @@ class FileResource(object):
         '''Set the file resource name.'''
         self._file_resource_name = resource_name
 
-    def prepare_resource(self, database):
+    def prepare_resource(self, dbconn):
         '''Prepare the resource for action.'''
 
-        self.database = database
+        self._dbconn = dbconn
 
         file_paths = []
         if self._file_resource_name:
@@ -91,9 +91,10 @@ class FileResource(object):
     def get_file(self, item_id):
         '''Serve GET /foos/123/<file_resource_name> to get a file.'''
         ro = self._create_ro_storage()
-        subitem = ro.get_subitem(item_id, self._file_resource_name)
+        with self._dbconn.transaction() as t:
+            subitem = ro.get_subitem(t, item_id, self._file_resource_name)
+            item = ro.get_item(t, item_id)
 
-        item = ro.get_item(item_id)
         bottle.response.set_header('Revision', item[u'revision'])
         bottle.response.set_header('Content-Type', subitem[u'content_type'])
         return subitem[u'body']
@@ -118,8 +119,9 @@ class FileResource(object):
         added = {u'id': item_id}
 
         wo = self._create_wo_storage()
-        added[u'revision'] = wo.update_subitem(
-            item_id, revision, self._file_resource_name, subitem)
+        with self._dbconn.transaction() as t:
+            added[u'revision'] = wo.update_subitem(
+                t, item_id, revision, self._file_resource_name, subitem)
         self._listener.notify_update(added[u'id'], added[u'revision'])
         return added
 
@@ -128,7 +130,6 @@ class FileResource(object):
         ro.set_item_prototype(self._item_type, self._item_prototype)
         for subitem_name, prototype in self._subitem_prototypes.get_all():
             ro.set_subitem_prototype(self._item_type, subitem_name, prototype)
-        ro.set_db(self.database)
         return ro
 
     def _create_wo_storage(self):
@@ -136,7 +137,6 @@ class FileResource(object):
         wo.set_item_prototype(self._item_type, self._item_prototype)
         for subitem_name, prototype in self._subitem_prototypes.get_all():
             wo.set_subitem_prototype(self._item_type, subitem_name, prototype)
-        wo.set_db(self.database)
         return wo
 
 

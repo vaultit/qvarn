@@ -38,7 +38,7 @@ class BackendApplication(object):
 
     def __init__(self):
         self._app = bottle.app()
-        self._db = None
+        self._dbconn = None
         self._vs = None
         self._resources = []
 
@@ -123,20 +123,25 @@ class BackendApplication(object):
 
     def _connect_to_storage(self, conf):
         '''Prepare the database for use.'''
-        self._db = unifiedapi.open_disk_database(
+
+        sql = unifiedapi.PostgresAdapter(
             host=conf.get('database', 'host'),
             port=conf.get('database', 'port'),
             db_name=conf.get('database', 'name'),
             user=conf.get('database', 'user'),
             password=conf.get('database', 'password'),
             min_conn=conf.get('database', 'minconn'),
-            max_conn=conf.get('database', 'maxconn'))
+            max_conn=conf.get('database', 'maxconn'),
+        )
+
+        self._dbconn = unifiedapi.DatabaseConnection()
+        self._dbconn.set_sql(sql)
 
     def _prepare_storage(self, conf):
         '''Prepare the database for use.'''
         if not conf.getboolean('database', 'readonly'):
-            with self._db:
-                self._vs.prepare_storage(self._db)
+            with self._dbconn.transaction() as t:
+                self._vs.prepare_storage(t)
 
     def _configure_logging(self, conf):
         format_string = ('%(asctime)s %(levelname)s %(process)d.%(thread)d '
@@ -175,7 +180,7 @@ class BackendApplication(object):
     def _prepare_resources(self):
         routes = []
         for resource in self._resources:
-            routes += resource.prepare_resource(self._db)
+            routes += resource.prepare_resource(self._dbconn)
         return routes
 
     def _start_service(self, conf):
