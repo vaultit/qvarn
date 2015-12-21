@@ -197,7 +197,11 @@ class BackendApplication(object):
     def _start_wsgi_server(self, conf):
         if not (conf.has_option('main', 'host') and
                 conf.has_option('main', 'port')):
-            WSGIServer(self._app).run()
+            if conf.has_option('main', 'maxthreads'):
+                maxThreads = conf.getint('main', 'maxthreads')
+            else:
+                maxThreads = 1
+            WSGIServer(self._app, maxThreads=maxThreads).run()
             return True
 
     def _die_from_server_confusion(self):
