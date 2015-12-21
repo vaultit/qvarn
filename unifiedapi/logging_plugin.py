@@ -16,9 +16,11 @@ class LoggingPlugin(object):
             except SystemExit:
                 raise
             except BaseException as e:
-                logging.critical(str(e), exc_info=True)
-                # Do not exit here. We don't want to die, we just give up
-                # on handling this request.
+                # Log an error, not critical, since we're not
+                # necessarily exiting due to the exception. In fact,
+                # we hopefully aren't.
+                logging.error(str(e), exc_info=True)
+                raise
 
         return wrapper
 
