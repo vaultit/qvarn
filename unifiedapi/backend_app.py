@@ -144,7 +144,7 @@ class BackendApplication(object):
                 self._vs.prepare_storage(t)
 
     def _configure_logging(self, conf):
-        format_string = ('%(asctime)s %(levelname)s %(process)d.%(thread)d '
+        format_string = ('%(asctime)s %(process)d.%(thread)d %(levelname)s '
                          '%(message)s')
         if conf.has_option('main', 'log'):
             # TODO: probably add rotation parameters to conf file
