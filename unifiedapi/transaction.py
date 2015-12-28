@@ -79,10 +79,11 @@ class Transaction(object):
 
     def _construct_row_dicts(self, column_names, cursor):
         result = []
+        indexes = range(len(column_names))
         for row in cursor:
             row_dict = {}
-            for i in range(len(column_names)):
-                row_dict[unicode(column_names[i])] = row[i]
+            for i in indexes:
+                row_dict[column_names[i]] = row[i]
             result.append(row_dict)
         return result
 
