@@ -151,12 +151,20 @@ class BackendApplication(object):
             # Also possible to use fileConfig() directly for this.
             log = logging.getLogger()
             log.setLevel(logging.DEBUG)
+
+            max_bytes = 10 * 1024**2
+            if conf.has_option('main', 'log-max-bytes'):
+                max_bytes = conf.getint('main', 'log-max-bytes')
+
+            max_logs = 10
+            if conf.has_option('main', 'log-max-files'):
+                max_logs = conf.getint('main', 'log-max-files')
+
             handler = logging.handlers.RotatingFileHandler(
                 conf.get('main', 'log'),
-                maxBytes=10*1024**2,
-                backupCount=10)
-            handler.setFormatter(
-                logging.Formatter(format_string))
+                maxBytes=max_bytes,
+                backupCount=max_logs)
+            handler.setFormatter(logging.Formatter(format_string))
             log.addHandler(handler)
         else:
             logging.basicConfig(level=logging.DEBUG, format=format_string)
