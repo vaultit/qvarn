@@ -22,6 +22,7 @@ class Transaction(object):
         assert self._sql is not None
         assert self._conn is None
         assert self._started is None
+        logging.debug('Transaction starts')
         self._started = time.time()
         self._conn = self._sql.get_conn()
         return self
@@ -36,6 +37,10 @@ class Transaction(object):
         self._sql.put_conn(self._conn)
         duration = time.time() - self._started
         logging.info('Transaction duration: %.3f ms', duration * 1000.0)
+        if exc_type is None:  # pragma: no cover
+            logging.info('Transaction OK')
+        else:
+            logging.warning('Transaction failed')
         self._conn = None
         self._started = None
 
