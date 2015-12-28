@@ -1,6 +1,12 @@
 README for Qvarn
 ================
 
+NOTE: The software is now called Qvarn, even if everything in this
+source tree still refers to unified-api-backend. This will be fixed.
+
+NOTE: The software will be released as open source, but hasn't
+happened yet.
+
 This source tree contains an implementation of the Qvarn RESTful
 HTTPS+JSON backend for the services provided by Suomen Tilaajavastuu
 Oy. For details of the API, see the "Tilaajavastuu Qvarn
