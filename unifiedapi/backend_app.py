@@ -11,8 +11,6 @@ import logging
 import logging.handlers
 import sys
 
-from flup.server.fcgi import WSGIServer
-
 import unifiedapi
 
 
@@ -70,8 +68,14 @@ class BackendApplication(object):
         for route in routes:
             self._app.route(**route)
 
-    def run(self):
-        '''Run the application.'''
+    def prepare_for_uwsgi(self):
+        '''Prepare the application to be run by uwsgi.
+
+        Return a Bottle application that uwsgi can use. The caller
+        should assign it to a global variable called "application", or
+        some other name uwsgi is configured to use.
+
+        '''
 
         # The actual running is in run_helper. Here we just catch
         # exceptions and handle them in some useful manner.
@@ -83,6 +87,8 @@ class BackendApplication(object):
         except BaseException as e:
             logging.critical(str(e), exc_info=True)
             sys.exit(1)
+        else:
+            return self._app
 
     def run_helper(self):
         conf, args = self._parse_config()
@@ -103,7 +109,6 @@ class BackendApplication(object):
             self._app.install(unifiedapi.StringToUnicodePlugin())
             routes = self._prepare_resources()
             self.add_routes(routes)
-            self._start_service(conf)
 
     def _parse_config(self):
         parser = argparse.ArgumentParser()
@@ -190,33 +195,3 @@ class BackendApplication(object):
         for resource in self._resources:
             routes += resource.prepare_resource(self._dbconn)
         return routes
-
-    def _start_service(self, conf):
-        if not self._start_debug_server(conf):
-            if not self._start_wsgi_server(conf):
-                self._die_from_server_confusion()
-
-    def _start_debug_server(self, conf):
-        if conf.has_option('main', 'host') and conf.has_option('main', 'port'):
-            self._app.run(host=conf.get('main', 'host'),
-                          port=conf.get('main', 'port'), quiet=True)
-            return True
-
-    def _start_wsgi_server(self, conf):
-        if not (conf.has_option('main', 'host') and
-                conf.has_option('main', 'port')):
-            if conf.has_option('main', 'maxthreads'):
-                maxThreads = conf.getint('main', 'maxthreads')
-            else:
-                maxThreads = 1
-            WSGIServer(self._app, maxThreads=maxThreads).run()
-            return True
-
-    def _die_from_server_confusion(self):
-        msg = (
-            'Cannot understand which server to start. '
-            'Eiher both of of --help and --port must be given, '
-            'or neither.')
-        logging.error(msg)
-        sys.stderr.write('{}\n'.format(msg))
-        sys.exit(1)

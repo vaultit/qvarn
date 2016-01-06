@@ -121,7 +121,7 @@ def validate_card(obj):
         raise TypelessCard(id=obj.get(u'id', u'(no id provided)'))
 
 
-if __name__ == '__main__':
+def setup():
     vs = unifiedapi.VersionedStorage()
     vs.set_resource_type(resource_type)
 
@@ -169,4 +169,7 @@ if __name__ == '__main__':
     issuer_logo_resource.set_listener(listener_resource)
     app.add_resource(issuer_logo_resource)
 
-    app.run()
+    return app.prepare_for_uwsgi()
+
+
+application = setup()

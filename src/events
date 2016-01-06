@@ -61,7 +61,7 @@ def validate_event(obj):
         raise TimelessEvent(id=obj.get(u'id', u'(no id provided)'))
 
 
-if __name__ == '__main__':
+def setup():
     vs = unifiedapi.VersionedStorage()
     vs.set_resource_type(resource_type)
 
@@ -91,4 +91,7 @@ if __name__ == '__main__':
     resource.set_listener(listener_resource)
     app.add_resource(resource)
 
-    app.run()
+    return app.prepare_for_uwsgi()
+
+
+application = setup()

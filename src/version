@@ -21,7 +21,7 @@ def version():
     }
 
 
-def main():
+def setup():
     app = unifiedapi.BackendApplication()
 
     vs = unifiedapi.VersionedStorage()
@@ -32,8 +32,7 @@ def main():
     resource.set_path(u'/version', version)
     app.add_resource(resource)
 
-    app.run()
+    return app.prepare_for_uwsgi()
 
 
-if __name__ == '__main__':
-    main()
+application = setup()
