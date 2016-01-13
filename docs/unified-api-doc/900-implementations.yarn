@@ -31,7 +31,7 @@ Authorization scopes
 Scopes are saved to a temp file that the mock authentication server reads.
 
     IMPLEMENTS GIVEN client has access to scopes? "(.+)"
-    echo "$MATCH_1" | "$SRCDIR/createtoken" > "$DATADIR/token"
+    echo "$MATCH_1" | "$SRCDIR/createtoken" "$API_URL" > "$DATADIR/token"
 
 Files
 -----
