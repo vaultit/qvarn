@@ -8,39 +8,64 @@
 # named after the API URL), or a file named in the environment variable
 # QVARN_CREATETOKEN_CONF.
 
-import ConfigParser, os, sys, requests, base64
 
-api_url = sys.argv[1]
+import base64
+import ConfigParser
+import os
+import sys
 
-scopes = sys.stdin.read().strip()
+import requests
 
-default_filename = os.path.expanduser('~/.config/qvarn/createtoken.conf')
-filename = os.environ.get('QVARN_CREATETOKEN_CONF', default_filename)
 
-cp = ConfigParser.ConfigParser()
-cp.read([filename])
-if not cp.has_section(api_url):
-    sys.stderr.write(
-        'In config file {}, no section {}'.format(filename, api_url))
-    sys.exit(2)
+def main():
+    api_url = sys.argv[1]
+    client_id, client_secret = get_credentials(api_url)
+    scopes = get_scopes()
+    token = get_token(api_url, client_id, client_secret, scopes)
+    sys.stdout.write(token + u'\n')
 
-token_endpoint_url = u'{}/auth/token'.format(api_url)
-client_id = cp.get(api_url, 'client_id')
-client_secret = cp.get(api_url, 'client_secret')
 
-basic_auth_token = base64.standard_b64encode(client_id + u':' + client_secret)
+def get_scopes():
+    return sys.stdin.read().strip()
 
-response = requests.post(token_endpoint_url, {
-    u'grant_type': u'client_credentials',
-    u'scope': scopes
-}, headers={
-    u'Authorization': u'Basic ' + basic_auth_token
-}, verify=False)
 
-if not response.ok:
-    sys.stderr.write(str(response.status_code) + u'\n')
-    sys.stderr.write(str(response.headers) + u'\n')
-    sys.stderr.write(str(response.json()) + u'\n')
-    sys.exit(1)
+def get_credentials(api_url):
+    default_filename = os.path.expanduser('~/.config/qvarn/createtoken.conf')
+    filename = os.environ.get('QVARN_CREATETOKEN_CONF', default_filename)
 
-sys.stdout.write(response.json()[u'access_token'] + u'\n')
+    cp = ConfigParser.ConfigParser()
+    cp.read([filename])
+    if not cp.has_section(api_url):
+        sys.stderr.write(
+            'In config file {}, no section {}'.format(filename, api_url))
+        sys.exit(2)
+
+    return cp.get(api_url, 'client_id'), cp.get(api_url, 'client_secret')
+
+
+def get_token(api_url, client_id, client_secret, scopes):
+    token_endpoint_url = u'{}/auth/token'.format(api_url)
+    response = requests.post(token_endpoint_url, {
+        u'grant_type': u'client_credentials',
+        u'scope': scopes,
+    }, headers={
+        u'Authorization': u'Basic {}'.format(
+            make_basic_auth_token(client_id, client_secret)),
+    }, verify=False)
+
+    if not response.ok:
+        sys.stderr.write('Failed to get access token\n')
+        sys.stderr.write('Status code: {}\n'.format(response.status_code))
+        sys.stderr.write('Response headers: {}\n'.format(response.headers))
+        sys.stderr.write('Response body: {}\n'.format(response.json()))
+        sys.exit(1)
+
+    return response.json()[u'access_token']
+
+
+def make_basic_auth_token(client_id, client_secret):
+    return base64.standard_b64encode(client_id + u':' + client_secret)
+
+
+if __name__ == '__main__':
+    main()
