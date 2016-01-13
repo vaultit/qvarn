@@ -41,11 +41,9 @@ Example result for a competence certification:
               "surnames": ["Bond"]
           }
         ],
+	"competence_trainer": "Bill Tanner",
         "validation_status": "unknown"
     }
-
-FIXME: fields validation_status, competence_registry_id and granted_by_org_id
-are not implemented
 
 Fields in the result:
 
@@ -65,6 +63,8 @@ Fields in the result:
   certification, as recorded on the card.
 * `competence_card_holder_names` ---  **optional** names as recorded on the
   card. Same structure as `person.names`.
+* `competence_trainer` --- **optional** person listed as giving the training
+  for this competence
 * `validation_status` --- status of the validation of this competence
   against the external registry specified in the
   `competence_registry_id` field; the value must be one of the
@@ -85,12 +85,12 @@ Client has needed access rights for competence resource.
     ... "uapi_competences_post uapi_competences_get uapi_competences_id_get
     ...  uapi_competences_id_put uapi_competences_id_delete"
 
-Try to create a new project. Test with an invalid field.
+Try to create a new competence. Test with an invalid field.
 
     WHEN client POSTs /competences with {"invalid_field": true}
     THEN HTTP status code is 400
 
-Create a new project.
+Create a new competence.
 
     WHEN client POSTs /competences with
     ... {
@@ -99,6 +99,8 @@ Create a new project.
     ...     "valid_from_date": "2015-05-11",
     ...     "valid_until_date": "2015-05-11",
     ...     "competence_type_id": "abc",
+    ...	    "granted_by_org_id": "123",
+    ...	    "competence_registry_id": "456",
     ...     "competence_card_id": "876",
     ...     "competence_card_holder_names": [
     ...       {
@@ -107,7 +109,9 @@ Create a new project.
     ...           "given_names": ["James"],
     ...           "surnames": ["Bond"]
     ...       }
-    ...     ]
+    ...     ],
+    ...	    "competence_trainer": "Bill Tanner",
+    ...	    "validation_status": "unknown"
     ... }
     THEN HTTP status code is 201
     AND result matches
@@ -118,6 +122,8 @@ Create a new project.
     ...     "valid_from_date": "2015-05-11",
     ...     "valid_until_date": "2015-05-11",
     ...     "competence_type_id": "abc",
+    ...	    "granted_by_org_id": "123",
+    ...	    "competence_registry_id": "456",
     ...     "competence_card_id": "876",
     ...     "competence_card_holder_names": [
     ...       {
@@ -126,7 +132,9 @@ Create a new project.
     ...           "given_names": ["James"],
     ...           "surnames": ["Bond"]
     ...       }
-    ...     ]
+    ...     ],
+    ...	    "competence_trainer": "Bill Tanner",
+    ...	    "validation_status": "unknown"
     ... }
     AND result has key "id" containing a string, saved as $ID1
     AND HTTP Location header is API_URL/competences/$ID1
@@ -148,6 +156,8 @@ Check that the record is there.
     ...     "valid_from_date": "2015-05-11",
     ...     "valid_until_date": "2015-05-11",
     ...     "competence_type_id": "abc",
+    ...	    "granted_by_org_id": "123",
+    ...	    "competence_registry_id": "456",
     ...     "competence_card_id": "876",
     ...     "competence_card_holder_names": [
     ...       {
@@ -156,7 +166,9 @@ Check that the record is there.
     ...           "given_names": ["James"],
     ...           "surnames": ["Bond"]
     ...       }
-    ...     ]
+    ...     ],
+    ...	    "competence_trainer": "Bill Tanner",
+    ...	    "validation_status": "unknown"
     ... }
     AND result has key "id" containing a string, saved as $ID2
     AND values "$ID1" and "$ID2" are identical
