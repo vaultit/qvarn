@@ -19,7 +19,7 @@ competence_prototype_v0 = {
 }
 
 
-competence_prototype_current = competence_prototype_v1 = {
+competence_prototype_v1 = {
     u'type': u'',
     u'id': u'',
     u'revision': u'',
@@ -37,6 +37,31 @@ competence_prototype_current = competence_prototype_v1 = {
             u'surnames': [u''],
         },
     ],
+}
+
+
+competence_prototype_current = competence_prototype_v2 = {
+    u'type': u'',
+    u'id': u'',
+    u'revision': u'',
+    u'employee_person_id': u'',
+    u'employer_org_id': u'',
+    u'valid_from_date': u'',
+    u'valid_until_date': u'',
+    u'competence_type_id': u'',
+    u'granted_by_org_id': u'',
+    u'competence_registry_id': u'',
+    u'competence_card_id': u'',
+    u'competence_card_holder_names': [
+        {
+            u'full_name': u'',
+            u'sort_key': u'',
+            u'given_names': [u''],
+            u'surnames': [u''],
+        },
+    ],
+    u'competence_trainer': u'',
+    u'validation_status': u'',
 }
 
 
@@ -59,6 +84,13 @@ def setup():
 
     vs.start_version(u'v1', None)
     vs.add_prototype(competence_prototype_v1)
+    vs.add_prototype(competence_sync_prototype, subpath=u'sync')
+    vs.add_prototype(unifiedapi.listener_prototype, auxtable=u'listener')
+    vs.add_prototype(
+        unifiedapi.notification_prototype, auxtable=u'notification')
+
+    vs.start_version(u'v2', None)
+    vs.add_prototype(competence_prototype_v2)
     vs.add_prototype(competence_sync_prototype, subpath=u'sync')
     vs.add_prototype(unifiedapi.listener_prototype, auxtable=u'listener')
     vs.add_prototype(
