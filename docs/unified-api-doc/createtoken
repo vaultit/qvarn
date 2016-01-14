@@ -50,13 +50,14 @@ def get_credentials(api_url):
 
 def get_token(api_url, client_id, client_secret, scopes):
     token_endpoint_url = u'{}/auth/token'.format(api_url)
-    response = requests.post(token_endpoint_url, {
-        u'grant_type': u'client_credentials',
-        u'scope': scopes,
-    }, headers={
-        u'Authorization': u'Basic {}'.format(
-            make_basic_auth_token(client_id, client_secret)),
-    }, verify=False)
+    response = requests.post(
+        token_endpoint_url,
+        data={
+            u'grant_type': u'client_credentials',
+            u'scope': scopes,
+        },
+        auth=(client_id, client_secret),
+        verify=False)
 
     if not response.ok:
         sys.stderr.write('Failed to get access token\n')
@@ -66,10 +67,6 @@ def get_token(api_url, client_id, client_secret, scopes):
         sys.exit(1)
 
     return response.json()[u'access_token']
-
-
-def make_basic_auth_token(client_id, client_secret):
-    return base64.standard_b64encode(client_id + u':' + client_secret)
 
 
 if __name__ == '__main__':
