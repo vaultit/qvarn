@@ -39,6 +39,7 @@ class BackendApplication(object):
         self._dbconn = None
         self._vs = None
         self._resources = []
+        self._conf = None
 
     def set_versioned_storage(self, versioned_storage):
         self._vs = versioned_storage
@@ -91,24 +92,35 @@ class BackendApplication(object):
             return self._app
 
     def run_helper(self):
-        conf, args = self._parse_config()
+        self._conf, args = self._parse_config()
 
         if args.prepare_storage:
             # Logging should be the first plugin (outermost wrapper)
-            self._configure_logging(conf)
-            self._connect_to_storage(conf)
-            self._prepare_storage(conf)
+            self._configure_logging(self._conf)
+            self._connect_to_storage(self._conf)
+            self._prepare_storage(self._conf)
         else:
             # Logging should be the first plugin (outermost wrapper)
-            self._configure_logging(conf)
+            self._configure_logging(self._conf)
             self._install_logging_plugin()
             # Error catching should also be as high as possible to catch all
             self._app.install(unifiedapi.ErrorTransformPlugin())
-            self._connect_to_storage(conf)
-            self._setup_auth(conf)
+            self._setup_auth(self._conf)
             self._app.install(unifiedapi.StringToUnicodePlugin())
-            routes = self._prepare_resources()
-            self.add_routes(routes)
+            # Import is here to not fail tests and is only used on uWSGI
+            import uwsgidecorators
+            uwsgidecorators.postfork(self._uwsgi_postfork_setup)
+
+    def _uwsgi_postfork_setup(self):
+        '''Setup after uWSGI has forked the process.
+
+        We create the database connection pool after uWSGI has forked the
+        process to not share the pool connections between processes.
+
+        '''
+        self._connect_to_storage(self._conf)
+        routes = self._prepare_resources()
+        self.add_routes(routes)
 
     def _parse_config(self):
         parser = argparse.ArgumentParser()
