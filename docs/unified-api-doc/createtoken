@@ -1,28 +1,73 @@
 #!/usr/bin/python2
 #
-# Reads scopes from STDIN, gets JWT from gluu and writes it to STDOUT
+# Reads scopes from STDIN, gets JWT from gluu and writes it to STDOUT.
+# The API URL is given as a command line argument.
+#
+# The API client id and corresponding secret are stored in a file,
+# either ~/.config/qvarn/createtoken.conf (an INI file, with sections
+# named after the API URL), or a file named in the environment variable
+# QVARN_CREATETOKEN_CONF.
 
-import sys, requests, base64
 
-scopes = sys.stdin.read().strip()
-token_endpoint_url = u'https://dev-gluu.tilaajavastuu.io/oxauth/seam/resource/' + \
-                     u'restv1/oxauth/token'
-client_id = u'@!D0B3.42FF.3A77.681D!0001!0105.03F6!0008!5B05.DDAB'
-client_secret = u'secret'
+import base64
+import ConfigParser
+import os
+import sys
 
-basic_auth_token = base64.standard_b64encode(client_id + u':' + client_secret)
+import requests
+import urllib3
 
-response = requests.post(token_endpoint_url, {
-    u'grant_type': u'client_credentials',
-    u'scope': scopes
-}, headers={
-    u'Authorization': u'Basic ' + basic_auth_token
-}, verify=False)
 
-if not response.ok:
-    sys.stderr.write(str(response.status_code) + u'\n')
-    sys.stderr.write(str(response.headers) + u'\n')
-    sys.stderr.write(str(response.json()) + u'\n')
-    sys.exit(1)
+# We do not currently care about verify certificates. Maybe later.
+urllib3.disable_warnings()
 
-sys.stdout.write(response.json()[u'access_token'] + u'\n')
+
+def main():
+    api_url = sys.argv[1]
+    client_id, client_secret = get_credentials(api_url)
+    scopes = get_scopes()
+    token = get_token(api_url, client_id, client_secret, scopes)
+    sys.stdout.write(token + u'\n')
+
+
+def get_scopes():
+    return sys.stdin.read().strip()
+
+
+def get_credentials(api_url):
+    default_filename = os.path.expanduser('~/.config/qvarn/createtoken.conf')
+    filename = os.environ.get('QVARN_CREATETOKEN_CONF', default_filename)
+
+    cp = ConfigParser.ConfigParser()
+    cp.read([filename])
+    if not cp.has_section(api_url):
+        sys.stderr.write(
+            'In config file {}, no section {}'.format(filename, api_url))
+        sys.exit(2)
+
+    return cp.get(api_url, 'client_id'), cp.get(api_url, 'client_secret')
+
+
+def get_token(api_url, client_id, client_secret, scopes):
+    token_endpoint_url = u'{}/auth/token'.format(api_url)
+    response = requests.post(
+        token_endpoint_url,
+        data={
+            u'grant_type': u'client_credentials',
+            u'scope': scopes,
+        },
+        auth=(client_id, client_secret),
+        verify=False)
+
+    if not response.ok:
+        sys.stderr.write('Failed to get access token\n')
+        sys.stderr.write('Status code: {}\n'.format(response.status_code))
+        sys.stderr.write('Response headers: {}\n'.format(response.headers))
+        sys.stderr.write('Response body: {}\n'.format(response.json()))
+        sys.exit(1)
+
+    return response.json()[u'access_token']
+
+
+if __name__ == '__main__':
+    main()

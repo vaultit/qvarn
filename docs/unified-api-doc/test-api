@@ -15,6 +15,14 @@ function clean
 }
 trap clean EXIT
 
+# When yarn runs createtoken, it sets HOME to a temporary directory. Thus,
+# createtoken won't find its config file automatically. We tell it, via
+# yarn's --env, where to find it.
+CONF="${QVARN_CREATETOKEN_CONF:=$HOME/.config/qvarn/createtoken.conf}"
+
 # Run yarn.
 sed '/^    *EXAMPLE/,/^ *$/d' *.yarn > "$TEMP"
-yarn -s yarn.sh --env "API_URL=$API_URL" "$TEMP" "$@"
+yarn -s yarn.sh \
+     --env "API_URL=$API_URL" \
+     --env "QVARN_CREATETOKEN_CONF=$CONF" \
+     "$TEMP" "$@"

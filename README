@@ -61,19 +61,29 @@ Integration tests
 -----------------
 
 The API document contains integration tests ("yarns"). These are run
-from the `docs/unified-api-doc` directory. These can be run manually:
+from the `docs/unified-api-doc` directory. These are run by first
+deploying the software on a host, using instructions that do not yet
+exist (please nag).
 
-* Start one of the backend applications, such as `src/persons`:
+The yarns require the `createtoken` tool to be configured. Create
+`~/.config/qvarn/createtoken.conf` with contents like this:
 
-        PYTHONPATH=. src/persons --host 127.0.0.1 --port 12765 \
-            --database persons.db
+    [https://dev-gluu.tilaajavastuu.io]
+    client_id = G00G00G000
+    client_secret = thisisveryverysecrethushhush
 
-* Run the relevant scenario for that backend application:
+In other words, it's an INI file with a section named after the URL of
+the API instance that runs. The client id and secret are set up in the
+Gluu instance associated with the API instance.
 
-        ./test-api http://127.0.0.1:12765 --run "manage a person" -v
+The integration tests are run like this:
 
-    where `manage a person` is the scenario for testing `/persons` in
-    the API. See the yarn files for other scenarios.
+    cd docs/unified-api-doc
+    ./test-api https://qvarncd-alpha.qvarn.io
+
+where `qvarncd-alpha.qvarn.io` is the API instance being tested.
+
+See the documentation for `yarn` for more options.
 
 
 Writing unit tests
