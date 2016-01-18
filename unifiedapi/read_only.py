@@ -117,7 +117,7 @@ class ReadOnlyStorage(object):
             result = set()
             for row in transaction.select(table_name, [u'id'], match):
                 result.add(row[u'id'])
-            if result.__len__() > 0:
+            if len(result) > 0:
                 if results_added:
                     final_result.intersection_update(result)
                 else:
