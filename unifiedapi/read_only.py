@@ -98,25 +98,29 @@ class ReadOnlyStorage(object):
     def _do_search(self, transaction, search_params, table_map):
 
         final_result = set()
+        params_by_table = {}
         results_added = False
 
-        for i in range(len(search_params)):
+        for search_param in search_params:
+            if search_param[0] == 'exact':
+                field = unicode(search_param[1])
+                table_names = table_map[field]
+                for table_name in table_names:
+                    if table_name in params_by_table:
+                        match = params_by_table[table_name]
+                    else:
+                        match = {}
+                        params_by_table[table_name] = match
+                    match[field] = self._format_search_param(search_param[2])
+
+        for table_name, match in params_by_table.iteritems():
             result = set()
-            search_param = search_params[i]
-            field = unicode(search_param[1])
-            match = {}
-            match[field] = self._format_search_param(search_param[2])
-            table_names = table_map[field]
-            param_result = set()
-            for table_name in table_names:
-                if search_param[0] == 'exact':
-                    for row in transaction.select(table_name, [u'id'], match):
-                        result.add(row[u'id'])
-                param_result.update(result)
+            for row in transaction.select(table_name, [u'id'], match):
+                result.add(row[u'id'])
             if results_added:
-                final_result.intersection_update(param_result)
+                final_result.intersection_update(result)
             else:
-                final_result.update(param_result)
+                final_result.update(result)
             results_added = True
 
         return final_result
