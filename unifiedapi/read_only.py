@@ -117,12 +117,12 @@ class ReadOnlyStorage(object):
             result = set()
             for row in transaction.select(table_name, [u'id'], match):
                 result.add(row[u'id'])
-            if results_added:
-                final_result.intersection_update(result)
-            else:
-                final_result.update(result)
-            results_added = True
-
+            if result.__len__() > 0:
+                if results_added:
+                    final_result.intersection_update(result)
+                else:
+                    final_result.update(result)
+                results_added = True
         return final_result
 
     def _format_search_param(self, search_param):
