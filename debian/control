@@ -17,8 +17,7 @@ Depends: ${python:Depends}, ${misc:Depends},
  python-bottle,
  python-psycopg2,
  python-uwsgidecorators
-Description: services provided by Suomen Tilaajavastuu
- This is the backend implementation of the "Unified API" specified for the
- services provided by Suomen Tilaajavastuu.
- .
- This package uses PostgreSQL instead of SQLite.
+Description: web service backend for structured data storage
+ This is a backend service for storing structured (JSON) and some
+ associated binary data using a REST-ful HTTP API and OpenID Connect
+ authentication.
