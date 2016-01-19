@@ -6,7 +6,7 @@
 
 set -eu
 
-for x in $(ls /usr/lib/unified-api-backend)
+for x in $(ls /usr/lib/qvarn)
 do
-    "/usr/lib/unified-api-backend/$x" "--config=/etc/qvarn/$x.conf" --prepare-storage
+    "/usr/lib/qvarn/$x" "--config=/etc/qvarn/$x.conf" --prepare-storage
 done

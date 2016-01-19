@@ -280,8 +280,7 @@ this:
 * The Python library `qvarn` is installed in the usual location
   for such, in Debian: `/usr/lib/python2.7/dist-packages/qvarn`.
 
-* The backend applications are installed in
-  `/usr/lib/unified-api-backend`.
+* The backend applications are installed in `/usr/lib/qvarn`.
 
 * The backend applications are started by the `uwsgi`, which is
   configured via `/etc/uwsgi`. It should start each backend

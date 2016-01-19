@@ -1,2 +1,2 @@
-src/* usr/lib/unified-api-backend
+src/* usr/lib/qvarn
 qvarn-prepare-db usr/bin
