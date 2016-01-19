@@ -10,7 +10,7 @@ happened yet.
 This source tree contains an implementation of the Qvarn RESTful
 HTTPS+JSON backend for the services provided by Suomen Tilaajavastuu
 Oy. For details of the API, see the "Tilaajavastuu Qvarn
-API" document in `docs/unified-api-doc`.
+API" document in `docs/qvarn-api-doc`.
 
 This README contains an introduction to the code, aimed at the people
 who develop and/or deploy the code.
@@ -61,7 +61,7 @@ Integration tests
 -----------------
 
 The API document contains integration tests ("yarns"). These are run
-from the `docs/unified-api-doc` directory. These are run by first
+from the `docs/qvarn-api-doc` directory. These are run by first
 deploying the software on a host, using instructions that do not yet
 exist (please nag).
 
@@ -78,7 +78,7 @@ Gluu instance associated with the API instance.
 
 The integration tests are run like this:
 
-    cd docs/unified-api-doc
+    cd docs/qvarn-api-doc
     ./test-api https://qvarncd-alpha.qvarn.io
 
 where `qvarncd-alpha.qvarn.io` is the API instance being tested.
