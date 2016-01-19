@@ -6,7 +6,7 @@
 # All rights reserved.
 
 
-import unifiedapi
+import qvarn
 
 
 resource_type = u'contract'
@@ -149,17 +149,17 @@ contract_sync_prototype = {
 }
 
 
-class InvalidContractType(unifiedapi.ValidationError):
+class InvalidContractType(qvarn.ValidationError):
 
     msg = u'Contract {id} contract type is invalid'
 
 
-class InvalidPartyType(unifiedapi.ValidationError):
+class InvalidPartyType(qvarn.ValidationError):
 
     msg = u'Contract {id} contract party party type is invalid'
 
 
-class InvalidRightToWorkBasedOn(unifiedapi.ValidationError):
+class InvalidRightToWorkBasedOn(qvarn.ValidationError):
 
     msg = u'Contract {id} right to work based on is invalid'
 
@@ -210,7 +210,7 @@ def validate_contract(obj):
 
 
 def setup():
-    vs = unifiedapi.VersionedStorage()
+    vs = qvarn.VersionedStorage()
     vs.set_resource_type(resource_type)
 
     vs.start_version(u'v0', None)
@@ -220,26 +220,25 @@ def setup():
     vs.add_prototype(contract_prototype_v1)
     vs.add_prototype(contract_document_prototype, subpath=u'document')
     vs.add_prototype(contract_sync_prototype, subpath=u'sync')
-    vs.add_prototype(unifiedapi.listener_prototype, auxtable=u'listener')
+    vs.add_prototype(qvarn.listener_prototype, auxtable=u'listener')
     vs.add_prototype(
-        unifiedapi.notification_prototype, auxtable=u'notification')
+        qvarn.notification_prototype, auxtable=u'notification')
 
     vs.start_version(u'v2', None)
     vs.add_prototype(contract_prototype_v2)
     vs.add_prototype(contract_document_prototype, subpath=u'document')
     vs.add_prototype(contract_sync_prototype, subpath=u'sync')
-    vs.add_prototype(unifiedapi.listener_prototype, auxtable=u'listener')
-    vs.add_prototype(
-        unifiedapi.notification_prototype, auxtable=u'notification')
+    vs.add_prototype(qvarn.listener_prototype, auxtable=u'listener')
+    vs.add_prototype(qvarn.notification_prototype, auxtable=u'notification')
 
-    app = unifiedapi.BackendApplication()
+    app = qvarn.BackendApplication()
     app.set_versioned_storage(vs)
 
-    listener_resource = unifiedapi.ListenerResource()
+    listener_resource = qvarn.ListenerResource()
     listener_resource.set_top_resource_path(resource_type, u'/contracts')
     app.add_resource(listener_resource)
 
-    resource = unifiedapi.ListResource()
+    resource = qvarn.ListResource()
     resource.set_path(u'/contracts')
     resource.set_item_type(resource_type)
     resource.set_item_prototype(contract_prototype_current)
@@ -248,7 +247,7 @@ def setup():
     resource.set_listener(listener_resource)
     app.add_resource(resource)
 
-    file_resource = unifiedapi.FileResource()
+    file_resource = qvarn.FileResource()
     file_resource.set_item_prototype(contract_prototype_current)
     file_resource.set_top_resource_path(u'/contracts')
     file_resource.set_item_type(u'contract')

@@ -13,7 +13,7 @@ set -eu
 # See http://liw.fi/coverage-test-runner/ for the module
 # (python-coverage-test-runner package in Debian).
 
-python -m CoverageTestRunner unifiedapi --ignore-missing-from=without-tests
+python -m CoverageTestRunner qvarn --ignore-missing-from=without-tests
 
 # coverage.py leaves .coverage around even after a successful run.
 # It's useless, though, so delete it.
@@ -25,7 +25,7 @@ rm -f .coverage
 # PEP8 specification. See https://www.python.org/dev/peps/pep-0008/ for
 # details.
 
-pep8 unifiedapi/*.py src/*
+pep8 qvarn/*.py src/*
 
 
 # Use pylint to find errors and more style issues. Note that pylint
@@ -66,7 +66,7 @@ pep8 unifiedapi/*.py src/*
 #       cyclic-import                   we use "from .foo import Foo" in
 #                                       __init__.py to manage name space,
 #                                       and to hide the implementation
-#                                       structure of the unifiedapi module;
+#                                       structure of the qvarn module;
 #                                       the imports work, even if they look
 #                                       like a cyclic one
 #
@@ -93,4 +93,4 @@ pylint --rcfile /dev/null \
        --disable fixme \
        --disable too-many-branches \
        \
-       unifiedapi src/*
+       qvarn src/*

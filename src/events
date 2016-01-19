@@ -6,7 +6,7 @@
 # All rights reserved.
 
 
-import unifiedapi
+import qvarn
 
 
 resource_type = u'event'
@@ -44,12 +44,12 @@ event_sync_prototype = {
 }
 
 
-class TypelessEvent(unifiedapi.ValidationError):
+class TypelessEvent(qvarn.ValidationError):
 
     msg = u'Event {id} does not have a type'
 
 
-class TimelessEvent(unifiedapi.ValidationError):
+class TimelessEvent(qvarn.ValidationError):
 
     msg = u'Event {id} does not have a timestamp'
 
@@ -62,7 +62,7 @@ def validate_event(obj):
 
 
 def setup():
-    vs = unifiedapi.VersionedStorage()
+    vs = qvarn.VersionedStorage()
     vs.set_resource_type(resource_type)
 
     vs.start_version(u'v0', None)
@@ -71,18 +71,18 @@ def setup():
     vs.start_version(u'v1', None)
     vs.add_prototype(event_prototype_v1)
     vs.add_prototype(event_sync_prototype, subpath=u'sync')
-    vs.add_prototype(unifiedapi.listener_prototype, auxtable=u'listener')
+    vs.add_prototype(qvarn.listener_prototype, auxtable=u'listener')
     vs.add_prototype(
-        unifiedapi.notification_prototype, auxtable=u'notification')
+        qvarn.notification_prototype, auxtable=u'notification')
 
-    app = unifiedapi.BackendApplication()
+    app = qvarn.BackendApplication()
     app.set_versioned_storage(vs)
 
-    listener_resource = unifiedapi.ListenerResource()
+    listener_resource = qvarn.ListenerResource()
     listener_resource.set_top_resource_path(resource_type, u'/events')
     app.add_resource(listener_resource)
 
-    resource = unifiedapi.ListResource()
+    resource = qvarn.ListResource()
     resource.set_path(u'/events')
     resource.set_item_type(resource_type)
     resource.set_item_prototype(event_prototype_current)

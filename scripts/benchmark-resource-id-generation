@@ -4,11 +4,11 @@
 # generation.
 
 import time
-import unifiedapi
+import qvarn
 
 
 N = 1000000
-rig = unifiedapi.ResourceIdGenerator()
+rig = qvarn.ResourceIdGenerator()
 resource_type = u'org'
 ids = []
 

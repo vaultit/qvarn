@@ -6,7 +6,7 @@
 # All rights reserved.
 
 
-import unifiedapi
+import qvarn
 
 
 def version():
@@ -22,13 +22,13 @@ def version():
 
 
 def setup():
-    app = unifiedapi.BackendApplication()
+    app = qvarn.BackendApplication()
 
-    vs = unifiedapi.VersionedStorage()
+    vs = qvarn.VersionedStorage()
     vs.set_resource_type(u'version')
     app.set_versioned_storage(vs)
 
-    resource = unifiedapi.SimpleResource()
+    resource = qvarn.SimpleResource()
     resource.set_path(u'/version', version)
     app.add_resource(resource)
 

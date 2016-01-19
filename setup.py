@@ -15,5 +15,5 @@ setup(
     description='Unified API backend',
     author='Suomen Tilaajavastuu Oy',
     author_email='tilaajavastuu.hifi@tilaajavastuu.fi',
-    packages=['unifiedapi'],
+    packages=['qvarn'],
 )

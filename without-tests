@@ -8,39 +8,39 @@ setup.py
 
 # The module namespace file. It makes no sense to have unit tests for
 # this.
-unifiedapi/__init__.py
+qvarn/__init__.py
 
 # The database abstraction layer. This is meant to be simple and obvious
 # enough that unit tests are not needed.
-unifiedapi/sql.py
+qvarn/sql.py
 
 # The backend application main program. This does things like parsing
 # the command line or starting the HTTP server. These are things that
 # do not benefit much from unit tests, and are better tested by system
 # level tests, to avoid having to mock the universe.
-unifiedapi/backend_app.py
+qvarn/backend_app.py
 
 # Classes for different resources.
 # These don't do enough things that make sense to unit test. These get
 # tested properly by system level tests, especially the API test suite.
-unifiedapi/list_resource.py
-unifiedapi/simple_resource.py
-unifiedapi/listener_resource.py
-unifiedapi/file_resource.py
+qvarn/list_resource.py
+qvarn/simple_resource.py
+qvarn/listener_resource.py
+qvarn/file_resource.py
 
 # This only logs an HTTP request. That's something that it doesn't make a lot
 # sense to unit test (it'd just require mocking and verifying that the right
 # log function gets called, and that's not worth the effort).
-unifiedapi/logging_plugin.py
+qvarn/logging_plugin.py
 
 # TODO
-unifiedapi/basic_validation_plugin.py
-unifiedapi/error_transform_plugin.py
+qvarn/basic_validation_plugin.py
+qvarn/error_transform_plugin.py
 
 # Does not contain much logic, logic is mostly separated to AuthValidator and
 # util.py
-unifiedapi/authorization_plugin.py
+qvarn/authorization_plugin.py
 
 # Contains only subclasses of BackendException that don't add any additional
 # functionality.
-unifiedapi/http_statuses.py
+qvarn/http_statuses.py

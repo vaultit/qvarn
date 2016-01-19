@@ -6,7 +6,7 @@
 # All rights reserved.
 
 
-import unifiedapi
+import qvarn
 
 
 resource_type = u'org'
@@ -93,12 +93,12 @@ org_sync_prototype = {
 }
 
 
-class NamelessOrg(unifiedapi.ValidationError):
+class NamelessOrg(qvarn.ValidationError):
 
     msg = u'Organisation {id} does not have any names'
 
 
-class InvalidContactRole(unifiedapi.ValidationError):
+class InvalidContactRole(qvarn.ValidationError):
 
     msg = u'Organisation {id} contact role is invalid'
 
@@ -116,9 +116,9 @@ def validate_org(obj):
 
 
 def setup():
-    app = unifiedapi.BackendApplication()
+    app = qvarn.BackendApplication()
 
-    vs = unifiedapi.VersionedStorage()
+    vs = qvarn.VersionedStorage()
     vs.set_resource_type(resource_type)
 
     vs.start_version(u'v0', None)
@@ -127,24 +127,22 @@ def setup():
     vs.start_version(u'v1', None)
     vs.add_prototype(org_prototype_v1)
     vs.add_prototype(org_sync_prototype, subpath=u'sync')
-    vs.add_prototype(unifiedapi.listener_prototype, auxtable=u'listener')
-    vs.add_prototype(
-        unifiedapi.notification_prototype, auxtable=u'notification')
+    vs.add_prototype(qvarn.listener_prototype, auxtable=u'listener')
+    vs.add_prototype(qvarn.notification_prototype, auxtable=u'notification')
 
     vs.start_version(u'v2', None)
     vs.add_prototype(org_prototype_v2)
     vs.add_prototype(org_sync_prototype, subpath=u'sync')
-    vs.add_prototype(unifiedapi.listener_prototype, auxtable=u'listener')
-    vs.add_prototype(
-        unifiedapi.notification_prototype, auxtable=u'notification')
+    vs.add_prototype(qvarn.listener_prototype, auxtable=u'listener')
+    vs.add_prototype(qvarn.notification_prototype, auxtable=u'notification')
 
     app.set_versioned_storage(vs)
 
-    listener_resource = unifiedapi.ListenerResource()
+    listener_resource = qvarn.ListenerResource()
     listener_resource.set_top_resource_path(resource_type, u'/orgs')
     app.add_resource(listener_resource)
 
-    resource = unifiedapi.ListResource()
+    resource = qvarn.ListResource()
     resource.set_path(u'/orgs')
     resource.set_item_type(resource_type)
     resource.set_item_prototype(org_prototype_current)

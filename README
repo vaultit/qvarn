@@ -93,8 +93,8 @@ Unit tests are run using `CoverageTestRunner` module, written by Lars
 Wirzenius. It can be found at <http://liw.fi/coverage-test-runner/>.
 This test runner uses [coverage.py][] to measure test coverage, and
 measures a code module's coverage only when its own test module is
-run. Coverage for `unifieadpi/foo.py` is only measured when
-`unifiedapi/foo_tests.py` is run. Also, the test runner fails the test
+run. Coverage for `qvarn/foo.py` is only measured when
+`qvarn/foo_tests.py` is run. Also, the test runner fails the test
 suite unless all statements are either covered by tests, or explicitly
 marked as excluded from coverage, using a comment such as the
 following:
@@ -163,7 +163,7 @@ one per top level resource in the API: `/version`, `/persons`,
 `/orgs`, etc. Each backend application is a separate web service.
 
 The various applications share as much code as possible, via the
-`unifiedapi` Python library. The library provides the following major
+`qvarn` Python library. The library provides the following major
 classes:
 
 * `BackendApplication` --- the main program of the application:
@@ -230,7 +230,7 @@ layer.
 Source code layout
 ------------------
 
-Most of the code is in the `unifiedapi` library. This library is unit
+Most of the code is in the `qvarn` library. This library is unit
 tested. The backend applications are in the `src` directory. The
 application files are kept as small as possible, putting as much code
 into the library as possible so that as much code as possible has unit
@@ -280,8 +280,8 @@ A deployed system
 The deployed system, as installed from the Debian package, looks like
 this:
 
-* The Python library `unifiedapi` is installed in the usual location
-  for such, in Debian: `/usr/lib/python2.7/dist-packages/unifiedapi`.
+* The Python library `qvarn` is installed in the usual location
+  for such, in Debian: `/usr/lib/python2.7/dist-packages/qvarn`.
 
 * The backend applications are installed in
   `/usr/lib/unified-api-backend`.

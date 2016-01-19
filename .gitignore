@@ -2,9 +2,9 @@
 .coverage
 build
 debian/files
-debian/unified-api-backend.debhelper.log
-debian/unified-api-backend.postinst.debhelper
-debian/unified-api-backend.prerm.debhelper
-debian/unified-api-backend.substvars
-debian/unified-api-backend/
+debian/*.debhelper.log
+debian/*.postinst.debhelper
+debian/*.debhelper
+debian/*.substvars
+debian/*/
 *.log

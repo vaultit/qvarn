@@ -6,7 +6,7 @@
 # All rights reserved.
 
 
-import unifiedapi
+import qvarn
 
 
 resource_type = u'card'
@@ -111,7 +111,7 @@ card_sync_prototype = {
 }
 
 
-class TypelessCard(unifiedapi.ValidationError):
+class TypelessCard(qvarn.ValidationError):
 
     msg = u'Card {id} does not have a type'
 
@@ -122,7 +122,7 @@ def validate_card(obj):
 
 
 def setup():
-    vs = unifiedapi.VersionedStorage()
+    vs = qvarn.VersionedStorage()
     vs.set_resource_type(resource_type)
 
     vs.start_version(u'v0', None)
@@ -133,18 +133,18 @@ def setup():
     vs.add_prototype(card_holder_photo_prototype, subpath=u'holder_photo')
     vs.add_prototype(card_issuer_logo_prototype, subpath=u'issuer_logo')
     vs.add_prototype(card_sync_prototype, subpath=u'sync')
-    vs.add_prototype(unifiedapi.listener_prototype, auxtable=u'listener')
+    vs.add_prototype(qvarn.listener_prototype, auxtable=u'listener')
     vs.add_prototype(
-        unifiedapi.notification_prototype, auxtable=u'notification')
+        qvarn.notification_prototype, auxtable=u'notification')
 
-    app = unifiedapi.BackendApplication()
+    app = qvarn.BackendApplication()
     app.set_versioned_storage(vs)
 
-    listener_resource = unifiedapi.ListenerResource()
+    listener_resource = qvarn.ListenerResource()
     listener_resource.set_top_resource_path(resource_type, u'/cards')
     app.add_resource(listener_resource)
 
-    resource = unifiedapi.ListResource()
+    resource = qvarn.ListResource()
     resource.set_path(u'/cards')
     resource.set_item_type(resource_type)
     resource.set_item_prototype(card_prototype_current)
@@ -153,7 +153,7 @@ def setup():
     resource.set_listener(listener_resource)
     app.add_resource(resource)
 
-    holder_photo_resource = unifiedapi.FileResource()
+    holder_photo_resource = qvarn.FileResource()
     holder_photo_resource.set_item_prototype(card_prototype_current)
     holder_photo_resource.set_top_resource_path(u'/cards')
     holder_photo_resource.set_item_type(resource_type)
@@ -161,7 +161,7 @@ def setup():
     holder_photo_resource.set_listener(listener_resource)
     app.add_resource(holder_photo_resource)
 
-    issuer_logo_resource = unifiedapi.FileResource()
+    issuer_logo_resource = qvarn.FileResource()
     issuer_logo_resource.set_item_prototype(card_prototype_current)
     issuer_logo_resource.set_top_resource_path(u'/cards')
     issuer_logo_resource.set_item_type(resource_type)

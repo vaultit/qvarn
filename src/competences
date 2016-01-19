@@ -6,7 +6,7 @@
 # All rights reserved.
 
 
-import unifiedapi
+import qvarn
 
 
 resource_type = u'competence'
@@ -76,7 +76,7 @@ def validate_competence(obj):
 
 
 def setup():
-    vs = unifiedapi.VersionedStorage()
+    vs = qvarn.VersionedStorage()
     vs.set_resource_type(resource_type)
 
     vs.start_version(u'v0', None)
@@ -85,25 +85,25 @@ def setup():
     vs.start_version(u'v1', None)
     vs.add_prototype(competence_prototype_v1)
     vs.add_prototype(competence_sync_prototype, subpath=u'sync')
-    vs.add_prototype(unifiedapi.listener_prototype, auxtable=u'listener')
+    vs.add_prototype(qvarn.listener_prototype, auxtable=u'listener')
     vs.add_prototype(
-        unifiedapi.notification_prototype, auxtable=u'notification')
+        qvarn.notification_prototype, auxtable=u'notification')
 
     vs.start_version(u'v2', None)
     vs.add_prototype(competence_prototype_v2)
     vs.add_prototype(competence_sync_prototype, subpath=u'sync')
-    vs.add_prototype(unifiedapi.listener_prototype, auxtable=u'listener')
+    vs.add_prototype(qvarn.listener_prototype, auxtable=u'listener')
     vs.add_prototype(
-        unifiedapi.notification_prototype, auxtable=u'notification')
+        qvarn.notification_prototype, auxtable=u'notification')
 
-    app = unifiedapi.BackendApplication()
+    app = qvarn.BackendApplication()
     app.set_versioned_storage(vs)
 
-    listener_resource = unifiedapi.ListenerResource()
+    listener_resource = qvarn.ListenerResource()
     listener_resource.set_top_resource_path(resource_type, u'/competences')
     app.add_resource(listener_resource)
 
-    resource = unifiedapi.ListResource()
+    resource = qvarn.ListResource()
     resource.set_path(u'/competences')
     resource.set_item_type(resource_type)
     resource.set_item_prototype(competence_prototype_current)
