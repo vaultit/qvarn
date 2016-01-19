@@ -28,13 +28,12 @@ create_dir_if_needed()
 }
 
 
-# Create the location where start-backend-app tells backend apps to
-# put their log files.
+# Create the location where backend apps are customarily configured to
+# put logs.
 
 create_backend_app_log_dir()
 {
-    create_dir_if_needed 0755 www-data www-data \
-                         /var/log/unified-api-backend
+    create_dir_if_needed 0755 www-data www-data /var/log/qvarn
 }
 
 

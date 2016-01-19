@@ -294,10 +294,6 @@ this:
 
     - `/var/log/haproxy.log`
     - `/var/log/lighttpd/error.log`
-    - `/var/log/unified-api-backend/foo.log` for backend application
-      `foo`
-    - `/var/log/unified-api-backend/foo.start.log` for **starting** of
-      backend application `foo`, that is, errors from startup, before
-      the application gets as far as logging things itself
+    - `/var/log/qvarn/foo.log` for backend application `foo`
 
 * All services run as the `www-data` user and `www-data` group.
