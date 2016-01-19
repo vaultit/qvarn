@@ -1,17 +1,17 @@
-# haproxy.cfg.snippet - unifed-api-backend specific haproxy config
+# haproxy.cfg.snippet - qvarn specific haproxy config
 #
 # This configuration snippet gets appended to the
 # /etc/haproxy/haproxy.cfg that Debian provides. We benefit from the
 # settings Debian has chosen, for security and other reasons, and we
 # want to continue to benefit from any updates to those settings.
 # That's why we keep our own stuff in a separate file, and the
-# unified-api-backend.postinst script catenates the two files and
-# configures haproxy to use that file.
+# postinst script catenates the two files and configures haproxy to
+# use that file.
 
 
 frontend http-in
     # Bind to port 80 on every interface.
-    bind *:443 ssl crt /etc/ssl/uapi.pem
+    bind *:443 ssl crt /etc/ssl/qvarn.pem
 
     # Add named acl's. haproxy config syntax seems to insist
     # this is done (read: the condition can't be used directly).
