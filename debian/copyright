@@ -1,9 +1,9 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: unified-api-backend
+Upstream-Name: qvarn
 Upstream-Contact: Tilaajavastuu <tilaajavastuu.hifi@tilaajavastuu.fi>
-Source: ssh://build-1.tilaajavastuu.fi/srv/repositories/git/unified-api-backend.git
+Source: ssh://git@git.tilaajavastuu.io/unified-api-backend.git
 
 Files: *
 Copyright: 2015, Suomen Tilaajvastuu Oy
 License: other
- This is propritary software.
+ This is proprietary software.
