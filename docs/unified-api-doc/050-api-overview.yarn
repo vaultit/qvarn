@@ -422,6 +422,8 @@ All types of contact have the following fields:
   other source (free form text)
 * `contact_timestamp` --- timestamp for when the contact was
   added/updated last
+* `is_billing_address` --- a boolean value to indicate if this contact
+  information can be used as a billing address
 
 For phone numbers, the number is encoded in the following field:
 
