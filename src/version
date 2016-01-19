@@ -16,7 +16,7 @@ def version():
         },
         'implementation': {
             'version': 'see git',
-            'name': 'unified-api-backend',
+            'name': 'Qvarn',
         },
     }
 
