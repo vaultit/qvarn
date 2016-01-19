@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Test the unified API.
+# Test the Qvarn API.
 # Argument: URL of the API
 
 set -eu
