@@ -1,5 +1,5 @@
 ---
-title: Unified Resource API Backend Architecture
+title: Qvarn Backend Architecture
 author: Suomen Tilaajavastuu Oy
 date: UNRELEASED GIT VERSION
 ...
@@ -9,7 +9,7 @@ Introduction
 ============
 
 This document describes the **implementation architecture** of the
-**Unified Resource API**. The API is described in its own document.
+**Qvarn API**. The API is described in its own document.
 This document covers the API implementation ("the backend") only, and
 the reader is expected to understand the API already.
 

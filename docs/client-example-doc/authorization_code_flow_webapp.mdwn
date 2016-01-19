@@ -1,16 +1,15 @@
 ---
-title: API client example
+title: Qvarn API client example
 author: Suomen Tilaajavastuu Oy
 date: 2015-09-14
 ...
 
 # Introduction
 
-This document explains how to develop a client program for the Suomen
-Tilaajavastuu Unified Resource API. We will develop a small web
-application in Python 2.7, using some libraries, on the Debian 8 (code
-name jessie) operating system. The following Debian packages are
-needed:
+This document explains how to develop a client program for the Qvarn
+API. We will develop a small web application in Python 2.7, using some
+libraries, on the Debian 8 (code name jessie) operating system. The
+following Debian packages are needed:
 
 * `python` --- Python itself.
 * `python-requests` --- make HTTP requests.
