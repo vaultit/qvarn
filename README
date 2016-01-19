@@ -1,9 +1,6 @@
 README for Qvarn
 ================
 
-NOTE: The software is now called Qvarn, even if everything in this
-source tree still refers to unified-api-backend. This will be fixed.
-
 NOTE: The software will be released as open source, but hasn't
 happened yet.
 
@@ -286,22 +283,13 @@ this:
 * The backend applications are installed in
   `/usr/lib/unified-api-backend`.
 
-* The backend applications are started by the `lighttpd`
-  configuration. The configuration is in the
-  `/etc/lighttpd/conf-available/50-unified-api-backend.conf` file.
-  Each application is available on the localhost interface, on its own
-  port.
+* The backend applications are started by the `uwsgi`, which is
+  configured via `/etc/uwsgi`. It should start each backend
+  application on a different port.
 
 * The `haproxy` load balancer is used to direct HTTP requests from the
   external network interface to the right localhost port. The
-  `haproxy` config is put in
-  `/var/lib/unified-api-backend/haproxy.cfg` at package install time,
-  generated from `/etc/haproxy/haproxy.cfg` and
-  `/usr/share/unified-api-backend/haproxy.cfg.snippet` (the latter
-  provided by the package itself).
-
-* The SQLite database used by the backend applications are stored in
-  `/var/lib/unified-api-backend/storage`, one file per applications.
+  `haproxy` config is configured using external means (e.g., Ansible).
 
 * There are several log files involved:
 
