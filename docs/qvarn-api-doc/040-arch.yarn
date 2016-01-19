@@ -26,7 +26,7 @@ The main components are:
       backend of interesting changes to data, and produce reports or
       otherwise refine the data to be more useful.
 
-* A data storage backend providing a unified resource API. This
+* A data storage backend providing a resource API. This
   backend only stores data, and notifies applications of changes to
   the systems. Any processing of the data happens elsewhere.
 
@@ -34,7 +34,7 @@ The main components are:
   right users and applications get access and only have access to the
   right data and operations.
 
-This document describes the unified resource API for data storage. It
+This document describes the resource API for data storage. It
 does not describe the applications using the API; those are described
 in the documentation for each application, as needed. It also doesn't
 describe the implementation of the backend, as that is irrelevant to
@@ -44,7 +44,7 @@ the API clients.
 Storage backend and its database
 --------------------------------
 
-The storage backend receives data via its unified resource API, and
+The storage backend receives data via its resource API, and
 stores it some form of persistent storage. The backend does not itself
 process the data, but notifies interested parties whenever data
 changes.
