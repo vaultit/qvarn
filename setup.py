@@ -10,7 +10,7 @@ from distutils.core import setup
 
 
 setup(
-    name='unified-api-backend',
+    name='qvarn',
     version='0.1',
     description='backend service for JSON and binary data storage',
     author='Suomen Tilaajavastuu Oy',
