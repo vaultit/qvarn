@@ -414,6 +414,12 @@ The type of contact information is encoded in its own field:
     - `address` --- a physical or postal address
     - `email` --- an electronic mail address
 
+In addition, the contact may also have certain roles that are stored
+in a list:
+
+* `contact_roles` --- roles of contact, if any; valid field values are
+    - `billing` --- a contact for billing
+
 All types of contact have the following fields:
 
 * `contact_source` --- source of the contact information; this should
@@ -422,8 +428,6 @@ All types of contact have the following fields:
   other source (free form text)
 * `contact_timestamp` --- timestamp for when the contact was
   added/updated last
-* `is_billing_address` --- a boolean value to indicate if this contact
-  information can be used as a billing address
 
 For phone numbers, the number is encoded in the following field:
 

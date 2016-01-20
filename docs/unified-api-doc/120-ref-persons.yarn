@@ -74,6 +74,7 @@ Example of a person's private information:
         "contacts": [
             {
                 "contact_type": "phone",
+		"contact_roles": [],
                 "contact_source": "self",
                 "contact_timestamp": "2038-02-28T01:02:03+0400",
                 "phone_number": "+358 4321"

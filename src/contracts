@@ -19,7 +19,7 @@ contract_prototype_v0 = {
 }
 
 
-contract_prototype_current = contract_prototype_v1 = {
+contract_prototype_v1 = {
     u'type': u'',
     u'id': u'',
     u'revision': u'',
@@ -36,6 +36,63 @@ contract_prototype_current = contract_prototype_v1 = {
             u'contacts': [
                 {
                     u'contact_type': u'',
+                    u'contact_source': u'',
+                    u'contact_timestamp': u'',
+                    u'phone_number': u'',
+                    u'email_address': u'',
+                    u'full_address': u'',
+                    u'country': u'',
+                    u'address_lines': [u''],
+                    u'post_code': u'',
+                    u'post_area': u'',
+                },
+            ],
+            u'username': u'',
+            u'user_role': u'',
+        },
+    ],
+    u'right_to_work_based_on': u'',
+    u'id06_issuer_requires_bankid': False,
+    u'id06_contact_name': u'',
+    u'id06_contact_email': u'',
+    u'contract_state': u'',
+    u'preferred_language': u'',
+    u'contract_state_history': [
+        {
+            u'state': u'',
+            u'modified_by': u'',
+            u'modification_timestamp': u'',
+        },
+    ],
+    u'signers': [
+        {
+            u'signer': u'',
+            u'signing_request_timestamp': u'',
+            u'signing_request_message': u'',
+            u'signing_timestamp': u'',
+        },
+    ],
+}
+
+
+contract_prototype_current = contract_prototype_v2 = {
+    u'type': u'',
+    u'id': u'',
+    u'revision': u'',
+    u'contract_type': u'',
+    u'start_date': u'',
+    u'end_date': u'',
+    u'date_created': u'',
+    u'date_updated': u'',
+    u'contract_parties': [
+        {
+            u'type': u'',
+            u'resource_id': u'',
+            u'role': u'',
+            u'contacts': [
+                {
+                    u'contact_type': u'',
+                    u'contact_roles': u'',
                     u'contact_source': u'',
                     u'contact_timestamp': u'',
                     u'phone_number': u'',
@@ -161,6 +218,14 @@ def setup():
 
     vs.start_version(u'v1', None)
     vs.add_prototype(contract_prototype_v1)
+    vs.add_prototype(contract_document_prototype, subpath=u'document')
+    vs.add_prototype(contract_sync_prototype, subpath=u'sync')
+    vs.add_prototype(unifiedapi.listener_prototype, auxtable=u'listener')
+    vs.add_prototype(
+        unifiedapi.notification_prototype, auxtable=u'notification')
+
+    vs.start_version(u'v2', None)
+    vs.add_prototype(contract_prototype_v2)
     vs.add_prototype(contract_document_prototype, subpath=u'document')
     vs.add_prototype(contract_sync_prototype, subpath=u'sync')
     vs.add_prototype(unifiedapi.listener_prototype, auxtable=u'listener')

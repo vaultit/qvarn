@@ -77,6 +77,43 @@ person_private_prototype = {
 }
 
 
+person_private_prototype_current = person_private_prototype_v2 = {
+    u'date_of_birth': u'',
+    u'gov_ids': [
+        {
+            u'country': u'',
+            u'id_type': u'',
+            u'gov_id': u'',
+        },
+    ],
+    u'contacts': [
+        {
+            u'contact_type': u'',
+            u'contact_roles': [u''],
+            u'contact_source': u'',
+            u'contact_timestamp': u'',
+            u'phone_number': u'',
+            u'email_address': u'',
+            u'full_address': u'',
+            u'country': u'',
+            u'address_lines': [u''],
+            u'post_code': u'',
+            u'post_area': u'',
+            u'verification_code': u'',
+            u'verification_code_expiration_date': u'',
+            u'email_verification_timestamp': u'',
+        },
+    ],
+    u'nationalities': [u''],
+    u'residences': [
+        {
+            u'country': u'',
+            u'location': u'',
+        },
+    ],
+}
+
+
 person_sync_prototype = {
     u'sync_sources': [
         {
@@ -122,6 +159,15 @@ def setup():
     vs.add_prototype(
         unifiedapi.notification_prototype, auxtable=u'notification')
 
+    vs.start_version(u'v2', None)
+    vs.add_prototype(person_prototype_v1)
+    vs.add_prototype(person_photo_prototype, subpath=u'photo')
+    vs.add_prototype(person_private_prototype_v2, subpath=u'private')
+    vs.add_prototype(person_sync_prototype, subpath=u'sync')
+    vs.add_prototype(unifiedapi.listener_prototype, auxtable=u'listener')
+    vs.add_prototype(
+        unifiedapi.notification_prototype, auxtable=u'notification')
+
     app = unifiedapi.BackendApplication()
     app.set_versioned_storage(vs)
 
@@ -134,7 +180,8 @@ def setup():
     resource.set_item_type(resource_type)
     resource.set_item_prototype(person_prototype_current)
     resource.set_item_validator(validate_person)
-    resource.set_subitem_prototype(u'private', person_private_prototype)
+    resource.set_subitem_prototype(
+        u'private', person_private_prototype_current)
     resource.set_subitem_prototype(u'sync', person_sync_prototype)
     resource.set_listener(listener_resource)
     app.add_resource(resource)
