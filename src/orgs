@@ -109,9 +109,10 @@ def validate_org(obj):
     allowed_contact_roles = [
         u'billing'
     ]
-    for contact_role in obj[u'contact_roles']:
-        if contact_role not in allowed_contact_roles:
-            raise InvalidContactRole(id=obj[u'id'])
+    if u'contact_roles' in obj:
+        for contact_role in obj[u'contact_roles']:
+            if contact_role not in allowed_contact_roles:
+                raise InvalidContactRole(id=obj[u'id'])
 
 
 def setup():
