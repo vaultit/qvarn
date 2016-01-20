@@ -1,4 +1,4 @@
-Source: unified-api-backend
+Source: qvarn
 Maintainer: Tilaajavastuu <tilaajavastuu.hifi@tilaajavastuu.fi>
 Uploaders: Lars Wirzenius <lars.wirzenius@tilaajavastuu.fi>
 Section: web
@@ -8,7 +8,10 @@ Build-Depends: debhelper (>= 9), python-all (>= 2.6.6-3~),
   python-coverage-test-runner, pep8, pylint, python-psycopg2
 X-Python-Version: >= 2.6
 
-Package: unified-api-backend-postgresql
+Package: qvarn
+Provides: unified-api-backend-postgresql
+Conflicts: unified-api-backend-postgresql
+Replaces: unified-api-backend-postgresql
 Architecture: all
 Depends: ${python:Depends}, ${misc:Depends},
  python (>= 2.6),
