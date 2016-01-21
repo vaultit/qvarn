@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# unified-api-backend.postinst - script to run after package install/upgrade
+# qvarn.postinst - script to run after package install/upgrade
 #
 # This script gets run by dpkg (the Debian package manager) after a
 # package has been installed or upgraded. This script takes care of
