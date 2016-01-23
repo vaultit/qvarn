@@ -814,6 +814,12 @@ Perform search with a simple parameter inside a sub-record.
     THEN HTTP status code is 200
     AND result has key "resources", a list containing {"id": "$ID1"}
 
+Perform a search with two conditions.
+
+    WHEN client GETs 
+    ... /persons/search/exact/given_names/James/exact/date_of_birth/1920-11-11
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
 
 We create a new organisation and do a search for that organisation.
 

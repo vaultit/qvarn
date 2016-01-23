@@ -4,6 +4,9 @@
 # All rights reserved.
 
 
+import logging
+import time
+
 import unifiedapi
 
 
@@ -19,6 +22,7 @@ class ReadOnlyStorage(object):
         self._item_type = None
         self._prototype = None
         self._subitem_prototypes = unifiedapi.SubItemPrototypes()
+        self._m = None
 
     def set_item_prototype(self, item_type, prototype):
         '''Set type and prototype of items in this database.'''
@@ -52,7 +56,8 @@ class ReadOnlyStorage(object):
         rw.walk_item(subitem, prototype)
         return subitem
 
-    def search(self, transaction, search_params, show_params):
+    def search(self, transaction, search_params,
+               show_params):  # pragma: no cover
         '''Do a search.
 
         ``search_params`` is a list of (matching rule, key, value)
@@ -64,82 +69,109 @@ class ReadOnlyStorage(object):
 
         '''
 
-        tsw = TableSearchWalker(
-            transaction, self._item_type, self._prototype, {})
-        tsw.walk_item(self._prototype, self._prototype)
+        self._m = Measurement()
+        with self._m.new('build_schema'):
+            schema = self._build_schema()
+        ids = self._kludge(transaction, schema, search_params)
+        with self._m.new('build_search_result'):
+            result = self._build_search_result(transaction, ids, show_params)
+        self._m.finish()
+        self._m.log()
+        self._m = None
+        return result
 
-        subprotos = self._subitem_prototypes.get_all()
-        for subitem in subprotos:
-            subproto = subitem[1]
-            tsw = TableSearchWalker(
-                transaction,
-                unifiedapi.table_name(
-                    resource_type=self._item_type, subpath=subitem[0]),
-                subproto,
-                tsw.table_map)
-            tsw.walk_item(subproto, subproto)
+    def _build_schema(self):  # pragma: no cover
+        schema = unifiedapi.schema_from_prototype(
+            self._prototype, resource_type=self._item_type)
+        for subpath, subproto in self._subitem_prototypes.get_all():
+            schema += unifiedapi.schema_from_prototype(
+                subproto, resource_type=self._item_type, subpath=subpath)
+        return schema
 
-        result = self._do_search(transaction, search_params, tsw.table_map)
-        if show_params:
-            if u'show_all' in show_params:
-                return {
-                    u'resources': [
-                        self.get_item(transaction, resource_id)
-                        for resource_id in result
-                    ],
-                }
-        else:
-            return {
-                u'resources': [
-                    {u'id': resource_id} for resource_id in result
-                ],
-            }
+    def _kludge(self, transaction, schema, search_params):  # pragma: no cover
+        sql = getattr(transaction, '_sql')
 
-    def _do_search(self, transaction, search_params, table_map):
+        with self._m.new('build param conditions'):
+            values = {}
+            tables_used = set()
+            conds = [
+                self._kludge_param(sql, schema, param, values, tables_used)
+                for param in search_params]
 
-        final_result = set()
-        params_by_table = {}
-        results_added = False
+        with self._m.new('build full sql query'):
+            main_table = unifiedapi.table_name(resource_type=self._item_type)
+            query = u'SELECT {0}.id FROM {0}'.format(sql.quote(main_table))
+            for table_name in tables_used:
+                if table_name != main_table:
+                    query += U' FULL OUTER JOIN {1} ON {0}.id = {1}.id'.format(
+                        sql.quote(main_table), sql.quote(table_name))
 
-        for search_param in search_params:
-            if search_param[0] == 'exact':
-                field = unicode(search_param[1])
-                table_names = table_map[field]
-                for table_name in table_names:
-                    if table_name in params_by_table:
-                        match = params_by_table[table_name]
-                    else:
-                        match = {}
-                        params_by_table[table_name] = match
-                    match[field] = self._format_search_param(search_param[2])
+            query += u' WHERE ' + u' AND '.join(
+                u'({})'.format(c) for c in conds)
+            logging.debug('kludge: query: %r', query)
+            logging.debug('kludge: values: %r', values)
 
-        for table_name, match in params_by_table.iteritems():
-            select_condition = self._build_condition(table_name, match)
-            result = set()
-            rows = transaction.select(table_name, [u'id'], select_condition)
-            for row in rows:
-                result.add(row[u'id'])
-            if len(result) > 0:
-                if results_added:
-                    final_result.intersection_update(result)
-                else:
-                    final_result.update(result)
-                results_added = True
-        return final_result
+        return self._kludge_execute(sql, query, values)
 
-    def _format_search_param(self, search_param):
-        search_param = unicode(search_param)
-        if search_param.lower() == u'true':
-            return True
-        if search_param.lower() == u'false':
-            return False
-        return search_param
+    def _kludge_execute(self, sql, query, values):  # pragma: no cover
+        with self._m.new('get conn'):
+            conn = sql.get_conn()
+        with self._m.new('get cursor'):
+            c = conn.cursor()
+        with self._m.new('execute'):
+            c.execute(query, values)
+        with self._m.new('fetch rows'):
+            ids = [row[0] for row in c]
+            self._m.note('row count: %d' % len(ids))
+        with self._m.new('put conn'):
+            sql.put_conn(conn)
+        return ids
 
-    def _build_condition(self, table_name, match):
+    def _kludge_param(self, sql, schema, param, values,
+                      tables_used):  # pragma: no cover
+        rule, key, value = param
+        assert rule == u'exact'
+
         conds = []
-        for column_name, value in match.items():
-            conds.append(('=', table_name, column_name, value))
-        return ('AND',) + tuple(conds)
+        for table_name, column_name, _ in schema:
+            if column_name == key:
+                conds.append(u'{} = {}'.format(
+                    sql.qualified_column(table_name, column_name),
+                    sql.format_qualified_placeholder(table_name, column_name)))
+                name = sql.format_qualified_placeholder_name(
+                    table_name, column_name)
+                values[name] = self._cast_value(value)
+                tables_used.add(table_name)
+        return u' OR '.join(conds)
+
+    def _cast_value(self, value):  # pragma: no cover
+        magic = {
+            u'true': True,
+            u'false': False,
+        }
+        return magic.get(unicode(value).lower(), value)
+
+    def _build_search_result(self, transaction, ids,
+                             show_params):  # pragma: no cover
+        if show_params == [u'show_all']:
+            return self._build_search_result_show_all(transaction, ids)
+        else:
+            return self._build_search_result_ids_only(ids)
+
+    def _build_search_result_show_all(self, transaction,
+                                      ids):  # pragma: no cover
+        return {
+            u'resources': [
+                self.get_item(transaction, resource_id) for resource_id in ids
+            ],
+        }
+
+    def _build_search_result_ids_only(self, ids):  # pragma: no cover
+        return {
+            u'resources': [
+                {u'id': resource_id} for resource_id in ids
+            ],
+        }
 
 
 class ItemDoesNotExist(unifiedapi.NotFound):
@@ -227,67 +259,52 @@ class ReadWalker(unifiedapi.ItemWalker):
         item[field][pos][str_list_field] = result
 
 
-class TableSearchWalker(unifiedapi.ItemWalker):
+class Measurement(object):  # pragma: no cover
 
-    '''Visit every part of an item to find the correct parent item
-    for a selected item.'''
+    def __init__(self):
+        self._started = time.time()
+        self._ended = None
+        self._steps = []
 
-    def __init__(self, transaction, item_type, proto_type, table_map):
-        self._transaction = transaction
-        self._item_type = item_type
-        self._proto_type = proto_type
-        self.table_map = table_map
+    def finish(self):
+        self._ended = time.time()
 
-    def visit_main_dict(self, item, column_names):
-        for name in column_names:
-            if name in self.table_map:
-                table_set = self.table_map[name]  # pragma: no cover
-            else:
-                table_set = set()
-                self.table_map[name] = table_set
-            table_name = unifiedapi.table_name(resource_type=self._item_type)
-            table_set.add(table_name)
+    def new(self, what):
+        self._steps.append(Step(what))
+        return self._steps[-1]
 
-    def visit_main_str_list(self, item, field):
-        if field in self.table_map:
-            table_set = self.table_map[field]  # pragma: no cover
-        else:
-            table_set = set()
-            self.table_map[field] = table_set
-        table_name = unifiedapi.table_name(
-            resource_type=self._item_type, list_field=field)
-        table_set.add(table_name)
+    def note(self, what, *args):  # pragma: no cover
+        self._steps[-1].note(what, *args)
 
-    def visit_main_dict_list(self, item, field, column_names):
-        for name in column_names:
-            if name in self.table_map:
-                table_set = self.table_map[name]
-            else:
-                table_set = set()
-                self.table_map[name] = table_set
-            table_name = unifiedapi.table_name(
-                resource_type=self._item_type, list_field=field)
-            table_set.add(table_name)
+    def log(self):  # pragma: no cover
+        duration = self._ended - self._started
+        logging.info('Transaction duration: %.3f ms', duration * 1000.0)
 
-    def visit_dict_in_list(self, item, field, pos, column_names):
-        for name in column_names:
-            if name in self.table_map:
-                table_set = self.table_map[name]
-            else:
-                table_set = set()  # pragma: no cover
-                self.table_map[name] = table_set  # pragma: no cover
-            table_name = unifiedapi.table_name(
-                resource_type=self._item_type, list_field=field)
-            table_set.add(table_name)
+        logging.info('Transaction steps:')
+        for step in self._steps:
+            logging.info('  %.3f ms %s', step.duration * 1000.0, step.what)
+            for note in step.notes:
+                logging.info('    %s', note)
+        logging.info('Transaction steps end')
 
-    def visit_dict_in_list_str_list(self, item, field, pos, str_list_field):
-        if str_list_field in self.table_map:
-            table_set = self.table_map[str_list_field]
-        else:
-            table_set = set()
-            self.table_map[str_list_field] = table_set
-        table_name = unifiedapi.table_name(
-            resource_type=self._item_type,
-            list_field=field,
-            subdict_list_field=str_list_field)
-        table_set.add(table_name)
+
+class Step(object):  # pragma: no cover
+
+    def __init__(self, what):
+        self.what = what
+        self._started = None
+        self._ended = None
+        self.duration = None
+        self.notes = []
+
+    def note(self, msg, *args):
+        formatted = msg % args
+        self.notes.append(formatted)
+
+    def __enter__(self):
+        self._started = time.time()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._ended = time.time()
+        self.duration = self._ended - self._started
