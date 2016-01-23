@@ -33,7 +33,7 @@ class ReadOnlyStorage(object):
         '''Get list of ids of all items.'''
         return [
             row['id']
-            for row in transaction.select(self._item_type, [u'id'], {})]
+            for row in transaction.select(self._item_type, [u'id'], None)]
 
     def get_item(self, transaction, item_id):
         '''Get a specific item.'''
@@ -114,8 +114,10 @@ class ReadOnlyStorage(object):
                     match[field] = self._format_search_param(search_param[2])
 
         for table_name, match in params_by_table.iteritems():
+            select_condition = self._build_condition(table_name, match)
             result = set()
-            for row in transaction.select(table_name, [u'id'], match):
+            rows = transaction.select(table_name, [u'id'], select_condition)
+            for row in rows:
                 result.add(row[u'id'])
             if len(result) > 0:
                 if results_added:
@@ -132,6 +134,12 @@ class ReadOnlyStorage(object):
         if search_param.lower() == u'false':
             return False
         return search_param
+
+    def _build_condition(self, table_name, match):
+        conds = []
+        for column_name, value in match.items():
+            conds.append(('=', table_name, column_name, value))
+        return ('AND',) + tuple(conds)
 
 
 class ItemDoesNotExist(unifiedapi.NotFound):
@@ -160,9 +168,7 @@ class ReadWalker(unifiedapi.ItemWalker):
         # id column instead.
         lookup_names = column_names or [u'id']
 
-        match = {
-            u'id': item_id
-        }
+        match = ('=', table_name, u'id', item_id)
         rows = self._transaction.select(table_name, lookup_names, match)
         for row in rows:
             # If we don't have any columns, return an empty dict.
@@ -179,9 +185,7 @@ class ReadWalker(unifiedapi.ItemWalker):
         return [row[column_name] for row in rows]
 
     def _get_list(self, table_name, item_id, column_names):
-        match = {
-            u'id': item_id
-        }
+        match = ('=', table_name, u'id', item_id)
         rows = self._transaction.select(
             table_name, [u'list_pos'] + column_names, match)
         in_order = self._sort_rows(rows)
@@ -210,10 +214,11 @@ class ReadWalker(unifiedapi.ItemWalker):
             list_field=field,
             subdict_list_field=str_list_field)
 
-        match = {
-            u'id': self._item_id,
-            u'dict_list_pos': unicode(pos),
-        }
+        match = (
+            'AND',
+            ('=', table_name, u'id', self._item_id),
+            ('=', table_name, u'dict_list_pos', unicode(pos))
+        )
         rows = self._transaction.select(
             table_name, [u'list_pos', str_list_field], match)
 

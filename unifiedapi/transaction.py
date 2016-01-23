@@ -65,10 +65,10 @@ class Transaction(object):
         query = self._sql.format_drop_table(table_name)
         self._execute(query, {})
 
-    def select(self, table_name, column_names, select_conditions):
-        query = self._sql.format_select(
-            table_name, column_names, select_conditions)
-        cursor = self._execute(query, select_conditions)
+    def select(self, table_name, column_names, select_condition):
+        query, values = self._sql.format_select(
+            table_name, column_names, select_condition)
+        cursor = self._execute(query, values)
         with self._measurement.new('fetch-rows') as m:
             rows = self._construct_row_dicts(column_names, cursor)
             m.note('Result is %d rows', len(rows))
@@ -94,8 +94,8 @@ class Transaction(object):
         self._execute(query, column_name_values)
 
     def delete(self, table_name, select_conditions):
-        query = self._sql.format_delete(table_name, select_conditions)
-        self._execute(query, select_conditions)
+        query, values = self._sql.format_delete(table_name, select_conditions)
+        self._execute(query, values)
 
 
 class Measurement(object):

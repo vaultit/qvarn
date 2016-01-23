@@ -93,7 +93,7 @@ class WriteOnlyStorage(object):
     def _get_current_revision(self, transaction, item_id):
         table_name = unifiedapi.table_name(resource_type=self._item_type)
         column_names = [u'revision']
-        match_columns = {u'id': item_id}
+        match_columns = ('=', table_name, u'id', item_id)
         rows = transaction.select(table_name, column_names, match_columns)
         for row in rows:
             return row[u'revision']
@@ -227,7 +227,7 @@ class DeleteWalker(unifiedapi.ItemWalker):
         self._delete_rows(self._item_type, self._item_id)
 
     def _delete_rows(self, table_name, item_id):
-        self._transaction.delete(table_name, {u'id': item_id})
+        self._transaction.delete(table_name, ('=', table_name, u'id', item_id))
 
     def visit_main_str_list(self, item, field):
         table_name = unifiedapi.table_name(

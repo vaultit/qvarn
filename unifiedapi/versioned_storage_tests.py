@@ -109,7 +109,7 @@ class VersionedStorageTests(unittest.TestCase):
             vs.prepare_storage(t)
             self.assertEqual(called, [callback_v1, callback_v2, callback_v3])
 
-            rows = t.select(table_name, [u'bar', u'foobar', u'id'], {})
+            rows = t.select(table_name, [u'bar', u'foobar', u'id'], None)
             self.assertEqual(
                 rows,
                 [{u'id': u'foo.id', u'bar': None, u'foobar': None}])

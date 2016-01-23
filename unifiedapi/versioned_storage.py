@@ -63,7 +63,8 @@ class VersionedStorage(object):
             self._versions_table_name, {u'version': unicode})
 
     def _get_known_versions(self, transaction):
-        rows = transaction.select(self._versions_table_name, [u'version'], {})
+        rows = transaction.select(
+            self._versions_table_name, [u'version'], None)
         return [row['version'] for row in rows]
 
     def _remember_version(self, transaction, version):
@@ -183,7 +184,7 @@ class VersionedStorage(object):
 
     def _copy_shared_columns(self,
                              transaction, old_table, new_table, column_names):
-        for row in transaction.select(old_table, list(column_names), {}):
+        for row in transaction.select(old_table, list(column_names), None):
             values = dict(
                 (x, row[x])
                 for x in column_names if row[x] is not None)

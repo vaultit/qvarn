@@ -38,14 +38,23 @@ class TransactionTests(unittest.TestCase):
     def test_selects(self):
         with self.trans:
             self.trans.create_table(u'foo', {u'bar': int})
-            self.trans.select(u'foo', [u'bar'], {u'bar': 0})
+            self.trans.select(u'foo', [u'bar'], ('=', u'foo', u'bar', 0))
+        self.assertEqual(self.sql.selected_tables, [u'foo'])
+
+    def test_selects_complex_condition(self):
+        with self.trans:
+            self.trans.create_table(u'foo', {u'bar': int})
+            self.trans.create_table(u'foo2', {u'bar2': int})
+            self.trans.select(
+                u'foo', [u'bar'],
+                ('OR', ('=', u'foo', u'bar', 0), ('=', u'foo2', u'bar2', 0)))
         self.assertEqual(self.sql.selected_tables, [u'foo'])
 
     def test_inserts(self):
         with self.trans:
             self.trans.create_table(u'foo', {u'bar': int})
             self.trans.insert(u'foo', {u'bar': 42})
-            rows = self.trans.select(u'foo', [u'bar'], {})
+            rows = self.trans.select(u'foo', [u'bar'], None)
         self.assertEqual(self.sql.inserted_tables, [u'foo'])
         self.assertEqual(rows, [{u'bar': 42}])
 
@@ -54,7 +63,7 @@ class TransactionTests(unittest.TestCase):
             self.trans.create_table(u'foo', {u'bar': int})
             self.trans.insert(u'foo', {u'bar': 42})
             self.trans.update(u'foo', {}, {u'bar': 007})
-            rows = self.trans.select(u'foo', [u'bar'], {})
+            rows = self.trans.select(u'foo', [u'bar'], None)
         self.assertEqual(self.sql.updated_tables, [u'foo'])
         self.assertEqual(rows, [{u'bar': 7}])
 
@@ -62,8 +71,8 @@ class TransactionTests(unittest.TestCase):
         with self.trans:
             self.trans.create_table(u'foo', {u'bar': int})
             self.trans.insert(u'foo', {u'bar': 42})
-            self.trans.delete(u'foo', {u'bar': 42})
-            rows = self.trans.select(u'foo', [u'bar'], {})
+            self.trans.delete(u'foo', ('=', u'foo', u'bar', 42))
+            rows = self.trans.select(u'foo', [u'bar'], None)
         self.assertEqual(self.sql.deleted_tables, [u'foo'])
         self.assertEqual(rows, [])
 

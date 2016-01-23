@@ -36,14 +36,25 @@ class SqlAdapter(object):
     its value value. They're used to list values to be inserted or
     updated.
 
-    A "select_conditions" argument is identical in structure, and used
-    to represent conditions for selecting rows, where a row is
-    selected if its column matches the given value.
-
-    A "column_name_types" argument is again similar, but instead of a
-    value, it indicates type type of a column, when it is created.
-    Types are basic Python types, and must be one of types in the
+    A "column_name_types" argument is similar, but instead of a value,
+    it indicates type type of a column, when it is created. Types are
+    basic Python types, and must be one of types in the
     "unifiedapi.column_types" constant.
+
+    A "select_condition" argument is a tree structure describing an
+    arbitrarily complex boolean expression. The tree nodes may be of
+    the following shapes:
+
+        ('=', table_name, column_name, value)
+        ('AND', cond...)
+        ('OR', cond...)
+
+    where "cond..." zero or more conditions of the same structure as
+    the tree. A '=' node specifies a condition of where table row
+    matches if its column has an exact value. The 'AND' and 'OR' nodes
+    combine other conditions to a more complicated one.
+
+    A select_condition may be None to indicate that all rows match.
 
     In addition, the get_conn/put_conn method pair returns a
     "connection" object for communicating with the database. It
@@ -82,6 +93,9 @@ class SqlAdapter(object):
         assert name.strip(ok) == '', 'must have only allowed chars: %r' % name
         return u'_'.join(name.split('-'))
 
+    def qualified_column(self, table_name, column_name):
+        return u'{}.{}'.format(self.quote(table_name), self.quote(column_name))
+
     def format_create_table(self, table_name, column_name_types):
         assert type(column_name_types) is dict
 
@@ -104,21 +118,85 @@ class SqlAdapter(object):
     def format_drop_table(self, table_name):
         return u'DROP TABLE %s ' % self.quote(table_name)
 
-    def format_select(self, table_name, column_names, select_conditions):
-        quoted_column_names = [self.quote(x) for x in column_names]
+    def format_select(self, table_name, column_names, select_condition):
+        '''Format an SQL SELECT statement.
+
+        Return the statement, and a list of values to use for the
+        placeholders, suitable to give to a database connection
+        execution.
+
+        '''
+
+        table_names = set(
+            [table_name] + self._get_table_names(select_condition))
+
         sql = u'SELECT {} FROM {}'.format(
-            u', '.join(quoted_column_names),
-            self.quote(table_name))
+            u', '.join(
+                self.qualified_column(table_name, x)
+                for x in column_names),
+            u', '.join(self.quote(x) for x in table_names))
+        if select_condition:
+            sql += u' WHERE ' + self._format_condition(select_condition)
 
-        if select_conditions:
-            conditions = [
-                u'{} = {}'.format(
-                    self.quote(col_name), self.format_placeholder(col_name))
-                for col_name in select_conditions
-            ]
-            sql += u' WHERE {}'.format(u' AND '.join(conditions))
+        values = self._construct_values({}, select_condition)
 
-        return sql
+        return sql, values
+
+    def _get_table_names(self, condition):
+        if condition is None:
+            return []
+        assert condition[0] in ('=', 'AND', 'OR')
+
+        if condition[0] == '=':
+            return [condition[1]]
+        else:
+            result = []
+            for cond in condition[1:]:
+                result += self._get_table_names(cond)
+            return result
+
+    def _construct_values(self, values, condition):
+        if condition is None:
+            return values
+
+        op = condition[0]
+        assert op in ('=', 'AND', 'OR')
+
+        if op == '=':
+            _, table_name, column_name, value = condition
+            x = self.format_qualified_placeholder_name(table_name, column_name)
+            values[x] = value
+        else:
+            for cond in condition[1:]:
+                self._construct_values(values, cond)
+
+        return values
+
+    def _format_condition(self, condition):
+        funcs = {
+            '=': self._format_equal,
+            'AND': self._format_and,
+            'OR': self._format_or,
+        }
+        func = funcs[condition[0]]
+        return func(*condition[1:])
+
+    def _format_equal(self, table_name, column_name, value):
+        return u'{}.{} = {}'.format(
+            self.quote(table_name),
+            self.quote(column_name),
+            self.format_qualified_placeholder(table_name, column_name))
+
+    def _format_and(self, *conds):
+        return self._format_andor(u'AND', *conds)
+
+    def _format_or(self, *conds):
+        return self._format_andor(u'OR', *conds)
+
+    def _format_andor(self, op, *conds):
+        op = u' {} '.format(op)
+        return op.join(
+            u'({})'.format(self._format_condition(c)) for c in conds)
 
     def format_insert(self, table_name, column_name_values):
         quoted_column_names = [self.quote(x) for x in column_name_values]
@@ -129,7 +207,7 @@ class SqlAdapter(object):
             u', '.join(quoted_column_names),
             u', '.join(placeholders))
 
-    def format_update(self, table_name, select_conditions, column_name_values):
+    def format_update(self, table_name, select_condition, column_name_values):
         assignments = [
             u'{} = {}'.format(self.quote(x), self.format_placeholder(x))
             for x in column_name_values
@@ -137,25 +215,34 @@ class SqlAdapter(object):
         sql = u'UPDATE {} SET {}'.format(
             self.quote(table_name),
             u', '.join(assignments))
-        if select_conditions:
-            conditions = [
-                u'{} IS {}'.format(
-                    self.quote(x), self.format_placeholder(x))
-                for x in select_conditions
-            ]
-            sql += u' WHERE {}'.format(u', '.join(conditions))
+        if select_condition:
+            sql += u' WHERE ' + self._format_condition(select_condition)
         return sql
 
-    def format_delete(self, table_name, select_conditions):
-        conditions = [
-            u'{} = {}'.format(self.quote(x), self.format_placeholder(x))
-            for x in select_conditions
-        ]
-        return u'DELETE FROM {} WHERE {}'.format(
+    def format_delete(self, table_name, select_condition):
+        '''Format an SQL DELETE statement.
+
+        Return the statement, and a list of values to use for the
+        placeholders, suitable to give to a database connection
+        execution.
+
+        '''
+
+        sql = u'DELETE FROM {} WHERE {}'.format(
             self.quote(table_name),
-            u' AND '.join(conditions))
+            self._format_condition(select_condition))
+
+        values = self._construct_values({}, select_condition)
+
+        return sql, values
 
     def format_placeholder(self, column_name):
+        raise NotImplementedError()
+
+    def format_qualified_placeholder(self, table_name, column_name):
+        raise NotImplementedError()
+
+    def format_qualified_placeholder_name(self, table_name, column_name):
         raise NotImplementedError()
 
     def get_conn(self):
@@ -182,6 +269,14 @@ class SqliteAdapter(SqlAdapter):
 
     def format_placeholder(self, column_name):
         return ':{}'.format(self.quote(column_name))
+
+    def format_qualified_placeholder(self, table_name, column_name):
+        q = self.format_qualified_placeholder_name(table_name, column_name)
+        return ':{}'.format(q)
+
+    def format_qualified_placeholder_name(self, table_name, column_name):
+        q = self.qualified_column(table_name, column_name)
+        return q.encode('hex')
 
     def get_conn(self):
         return self._conn
@@ -241,6 +336,13 @@ class PostgresAdapter(SqlAdapter):
 
     def format_placeholder(self, column_name):
         return u'%({})s'.format(self.quote(column_name))
+
+    def format_qualified_placeholder(self, table_name, column_name):
+        q = self.format_qualified_placeholder_name(table_name, column_name)
+        return u'%({})s'.format(q)
+
+    def format_qualified_placeholder_name(self, table_name, column_name):
+        return self.qualified_column(table_name, column_name)
 
     def get_conn(self):
         return self._pool.getconn()
