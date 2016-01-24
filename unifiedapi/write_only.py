@@ -57,8 +57,6 @@ class WriteOnlyStorage(object):
 
     def _insert_item_into_database(self, transaction, item):
         ww = WriteWalker(transaction, self._item_type, item[u'id'])
-        self._delete_item_in_transaction(
-            transaction, item[u'id'], delete_subitems=False)
         ww.walk_item(item, self._prototype)
 
     def _insert_subitem_into_database(self, transaction, item_id,
@@ -67,7 +65,6 @@ class WriteOnlyStorage(object):
         table_name = unifiedapi.table_name(
             resource_type=self._item_type, subpath=subitem_name)
         ww = WriteWalker(transaction, table_name, item_id)
-        self._delete_subitem_in_transaction(transaction, item_id, subitem_name)
         ww.walk_item(subitem, prototype)
 
     def update_item(self, transaction, item):
@@ -87,6 +84,10 @@ class WriteOnlyStorage(object):
         updated = item.copy()
         updated[u'revision'] = self._id_generator.new_id(
             self._revision_id_type)
+
+        self._delete_item_in_transaction(
+            transaction, item[u'id'], delete_subitems=False)
+
         self._insert_item_into_database(transaction, updated)
         return updated
 
@@ -110,7 +111,13 @@ class WriteOnlyStorage(object):
         updated = item.copy()
         updated[u'revision'] = self._id_generator.new_id(
             self._revision_id_type)
+
+        self._delete_item_in_transaction(
+            transaction, item[u'id'], delete_subitems=False)
         self._insert_item_into_database(transaction, updated)
+
+        self._delete_subitem_in_transaction(
+            transaction, item_id, subitem_name)
         self._insert_subitem_into_database(
             transaction, item_id, subitem_name, subitem)
         return updated[u'revision']
