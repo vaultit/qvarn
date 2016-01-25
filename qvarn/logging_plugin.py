@@ -43,8 +43,8 @@ class LoggingPlugin(object):
     def _log_request(self):
         '''Log an HTTP request, with arguments and body.'''
         r = bottle.request
-        logging.info(
-            u'Request: %s %s (args: %r)', r.method, r.path, r.url_args)
+        logging.info(u'Request: %s %s (args: %r)',
+                     r.method, r.path.decode('utf-8'), r.url_args)
         # Form the header dict with list comprehension and .get() to get over
         # KeyError. The exact problem is still unknown.
         # (lighttpd + flup + bottle header dict + Content-Length -problem).
