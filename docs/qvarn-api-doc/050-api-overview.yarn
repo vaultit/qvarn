@@ -819,7 +819,7 @@ Create a test person with sufficient amount of diverse data.
     WHEN client POSTs /persons with
     ... {"names": [{"full_name": "James Bond",
     ...             "sort_key": "Bond, James",
-    ...             "titles": [],
+    ...             "titles": ["Päällikkö", "Seppä"],
     ...             "given_names": ["James"],
     ...             "surnames": ["Bond"]}]}
     THEN result has key "id" containing a string, saved as $ID1
@@ -841,6 +841,10 @@ Create a test person with sufficient amount of diverse data.
     ...         {
     ...             "country": "GB",
     ...             "location": "London"
+    ...         },
+    ...         {
+    ...             "country": "FI",
+    ...             "location": "Ypäjä"
     ...         }
     ...     ],
     ...     "contacts": [
@@ -892,6 +896,18 @@ Perform a search with two conditions.
 
     WHEN client GETs
     ... /persons/search/exact/given_names/James/exact/date_of_birth/1920-11-11
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+
+Perform searches with non-ascii characters.
+
+    WHEN client GETs
+    ... /persons/search/exact/location/Ypäjä
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+
+    WHEN client GETs
+    ... /persons/search/exact/titles/Päällikkö/exact/location/Ypäjä
     THEN HTTP status code is 200
     AND result has key "resources", a list containing {"id": "$ID1"}
 
