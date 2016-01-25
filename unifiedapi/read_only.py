@@ -116,16 +116,22 @@ class ReadOnlyStorage(object):
     def _kludge_execute(self, sql, query, values):  # pragma: no cover
         with self._m.new('get conn'):
             conn = sql.get_conn()
-        with self._m.new('get cursor'):
-            c = conn.cursor()
-        with self._m.new('execute'):
-            c.execute(query, values)
-        with self._m.new('fetch rows'):
-            ids = [row[0] for row in c]
-            self._m.note('row count: %d' % len(ids))
-        with self._m.new('put conn'):
-            sql.put_conn(conn)
-        return ids
+        try:
+            with self._m.new('get cursor'):
+                c = conn.cursor()
+            with self._m.new('execute'):
+                c.execute(query, values)
+            with self._m.new('fetch rows'):
+                ids = [row[0] for row in c]
+                self._m.note('row count: %d' % len(ids))
+        except BaseException:
+            with self._m.new('put conn'):
+                sql.put_conn(conn)
+            raise
+        else:
+            with self._m.new('put conn'):
+                sql.put_conn(conn)
+            return ids
 
     def _kludge_param(self, sql, schema, param, values,
                       tables_used):  # pragma: no cover
