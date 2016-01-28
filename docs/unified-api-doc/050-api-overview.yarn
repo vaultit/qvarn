@@ -284,6 +284,62 @@ following conventions are followed.
 
 ### Tests
 
+Character set is defined as UTF-8, we try to add data with unicode characters.
+
+    SCENARIO unicode support
+
+Client has needed access rights for persons resource.
+
+    GIVEN client has access to scopes
+    ... "uapi_persons_post uapi_persons_id_put uapi_orgs_post"
+
+    WHEN client POSTs /persons with
+    ... {"names": [
+    ...   {"full_name": "James Bond"},
+    ...   {"full_name": "James Pöntinen"},
+    ...   {"full_name": "詹姆斯·邦德"},
+    ...   {"full_name": "ஜேம்ஸ் பாண்ட்"},
+    ...   {"full_name": "Джеймс Бонд"},
+    ...   {"full_name": "Ջեյմս Բոնդ"}
+    ... ]}
+    THEN HTTP status code is 201
+    AND result matches
+    ... {"names": [
+    ...   {"full_name": "James Bond"},
+    ...   {"full_name": "James Pöntinen"},
+    ...   {"full_name": "詹姆斯·邦德"},
+    ...   {"full_name": "ஜேம்ஸ் பாண்ட்"},
+    ...   {"full_name": "Джеймс Бонд"},
+    ...   {"full_name": "Ջեյմս Բոնդ"}
+    ... ]}
+    AND result has key "id" containing a string, saved as $ID1
+    AND result has key "revision" containing a string, saved as $REV1
+
+    WHEN client PUTs /persons/$ID1 with
+    ... {"names": [
+    ...   {"full_name": "James Bond"},
+    ...   {"full_name": "James Pöntinen"},
+    ...   {"full_name": "詹姆斯·邦德"},
+    ...   {"full_name": "ஜேம்ஸ் பாண்ட்"},
+    ...   {"full_name": "Ջեյմս Բոնդ"}
+    ... ],
+    ... "revision": "$REV1"}
+    THEN HTTP status code is 200
+    AND result matches
+    ... {"names": [
+    ...   {"full_name": "James Bond"},
+    ...   {"full_name": "James Pöntinen"},
+    ...   {"full_name": "詹姆斯·邦德"},
+    ...   {"full_name": "ஜேம்ஸ் பாண்ட்"},
+    ...   {"full_name": "Ջեյմս Բոնդ"}
+    ... ]}
+
+    WHEN client POSTs /orgs with
+    ... {
+    ...     "names": ["Nokia", "ノキア"]
+    ... }
+    THEN HTTP status code is 201
+
 We try to create a person with id and/or revision fields set.
 
     SCENARIO correctly manage a person
@@ -816,7 +872,7 @@ Perform search with a simple parameter inside a sub-record.
 
 Perform a search with two conditions.
 
-    WHEN client GETs 
+    WHEN client GETs
     ... /persons/search/exact/given_names/James/exact/date_of_birth/1920-11-11
     THEN HTTP status code is 200
     AND result has key "resources", a list containing {"id": "$ID1"}
