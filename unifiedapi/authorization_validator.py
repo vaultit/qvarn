@@ -79,6 +79,6 @@ class InvalidAuthorizationHeaderFormat(unifiedapi.Forbidden):
     msg = u'Authorization header is in invalid format'
 
 
-class InvalidAccessTokenError(unifiedapi.Forbidden):
+class InvalidAccessTokenError(unifiedapi.Unauthorized):
 
     msg = u'Access token is invalid'

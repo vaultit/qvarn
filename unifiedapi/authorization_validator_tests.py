@@ -109,7 +109,7 @@ class AuthorizationValidatorTests(unittest.TestCase):
     def test_token_validation_with_invalid_issuer(self):
         token = get_valid_token()
         encoded_token = jwt.encode(token, private_test_key, algorithm='RS512')
-        with self.assertRaises(unifiedapi.Forbidden):
+        with self.assertRaises(unifiedapi.Unauthorized):
             self.authorization_validator.validate_token(
                 encoded_token,
                 public_test_key,
@@ -119,7 +119,7 @@ class AuthorizationValidatorTests(unittest.TestCase):
         token = get_valid_token()
         del token[u'sub']
         encoded_token = jwt.encode(token, private_test_key, algorithm='RS512')
-        with self.assertRaises(unifiedapi.Forbidden):
+        with self.assertRaises(unifiedapi.Unauthorized):
             self.authorization_validator.validate_token(
                 encoded_token,
                 public_test_key,
