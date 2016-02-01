@@ -7,6 +7,7 @@
 
 import jwt
 import datetime
+import bottle
 
 import unifiedapi
 
@@ -58,6 +59,8 @@ class AuthorizationValidator(object):
                 leeway=datetime.timedelta(seconds=60))
             # Additionally always require sub field (subject)
             if u'sub' not in payload:
+                bottle.response.headers['WWW-Authenticate'] = \
+                    'Bearer error="invalid_token"'
                 raise InvalidAccessTokenError(
                     token_error=u'Invalid subject (sub)')
             return {
@@ -66,6 +69,8 @@ class AuthorizationValidator(object):
                 u'client_id': payload[u'aud']
             }
         except jwt.InvalidTokenError, e:
+            bottle.response.headers['WWW-Authenticate'] = \
+                'Bearer error="invalid_token"'
             raise InvalidAccessTokenError(token_error=unicode(e))
 
 
