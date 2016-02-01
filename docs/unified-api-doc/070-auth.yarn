@@ -293,6 +293,11 @@ replaced with underscores.
 For search scopes the whole search condition part is replaced with
 `id`. Otherwise the naming rules are the same.
 
+If a client makes a request with a token that has insufficient access scopes,
+the API returns `WWW-Authenticate` header with value
+`Bearer error="insufficient_scope"` as specified in
+[RFC 6750](https://tools.ietf.org/html/rfc6750).
+
 ### Examples
 
 To add a new organisation, POST to /orgs, requires the scope
@@ -326,6 +331,9 @@ Headers
 
 * `Authorization` --- **Required.** Value is `Bearer ` + the access token.
 
+If an expired or otherwise invalid token is provided, the response contains
+`WWW-Authenticate` header with value `Bearer error="invalid_token"`.
+
 ### Tests
 
 We use persons and orgs resources with limited access.
@@ -351,3 +359,18 @@ The client can not access other resources.
 
     WHEN client GETs /orgs
     THEN HTTP status code is 403
+    AND HTTP header WWW-Authenticate is Bearer error="insufficient_scope"
+
+A request with an expired token.
+
+    GIVEN an expired access token
+    WHEN client GETs /persons
+    THEN HTTP status code is 401
+    AND HTTP header WWW-Authenticate is Bearer error="invalid_token"
+
+A request with an invalid token.
+
+    GIVEN an invalid access token
+    WHEN client GETs /persons
+    THEN HTTP status code is 401
+    AND HTTP header WWW-Authenticate is Bearer error="invalid_token"
