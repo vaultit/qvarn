@@ -361,13 +361,6 @@ The client can not access other resources.
     THEN HTTP status code is 403
     AND HTTP header WWW-Authenticate is Bearer error="insufficient_scope"
 
-A request with an expired token.
-
-    GIVEN an expired access token
-    WHEN client GETs /persons
-    THEN HTTP status code is 401
-    AND HTTP header WWW-Authenticate is Bearer error="invalid_token"
-
 A request with an invalid token.
 
     GIVEN an invalid access token

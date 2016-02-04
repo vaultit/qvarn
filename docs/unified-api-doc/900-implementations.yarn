@@ -33,11 +33,6 @@ Access token is requested with given scopes and saved to a token file.
     IMPLEMENTS GIVEN client has access to scopes? "(.+)"
     echo "$MATCH_1" | "$SRCDIR/createtoken" "$API_URL" > "$DATADIR/token"
 
-Saves an old token to a token file.
-
-    IMPLEMENTS GIVEN an expired access token
-    echo "eyJ0eXAiOiJKV1MiLCJhbGciOiJSUzUxMiIsImtpZCI6IjMwMDFhOWQzLWZmZDUtNDAwOS05MTIxLTIxNTI2Yzc0YzBlYyJ9.eyJpc3MiOiJodHRwczovL2Rldi1nbHV1LnRpbGFhamF2YXN0dXUuaW8iLCJhdWQiOiJAIUQwQjMuNDJGRi4zQTc3LjY4MUQhMDAwMSEwMTA1LjAzRjYhMDAwOCE1QjA1LkREQUIiLCJleHAiOjE0NTQzNDUyMTAsImlhdCI6MTQ1NDM0MTYxMCwic3ViIjoiQCFEMEIzLjQyRkYuM0E3Ny42ODFEITAwMDEhMDEwNS4wM0Y2ITAwMDghNUIwNS5EREFCIiwib3hWYWxpZGF0aW9uVVJJIjoiaHR0cHM6Ly9kZXYtZ2x1dS50aWxhYWphdmFzdHV1LmlvL294YXV0aC9vcGlmcmFtZSIsIm94T3BlbklEQ29ubmVjdFZlcnNpb24iOiJvcGVuaWRjb25uZWN0LTEuMCIsInNjb3BlIjoidWFwaV9wZXJzb25zX2dldCJ9.AWgtNDV0sSsKJLlXoTfFv2MOf4dFHM76EoZrAJKfIRs4gdzZKKgYPCe4fgw4JXgxBd9NzvIAMfuq1XEVNJI51YRRxgaxVXZa_B9EjYON-3zW1_hI7XxxX762W-QN3SpflJjwL8NyUQjEd-JfVq7fnizlmEyggb9_5VvCvGJdxSyCtLL6KCWaaI9EDUulBSR8_pQ-mrCv_NXc52BqSzOxC_id1dyTexh2Ndr-GfxEMfjuHaHok2c8ou3lNMPpIggVugJnb8RkiX8_CTlH47LjVsldabrwCwuAb7A9HMsn92ydQkNBSAprOubfu9vTTgM7-nN3TtyohfFYjwFqJYffgA" > "$DATADIR/token"
-
 Saves a string to a token file.
 
     IMPLEMENTS GIVEN an invalid access token
