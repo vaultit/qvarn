@@ -25,13 +25,18 @@ Saved values can also be compared explicitly.
     IMPLEMENTS THEN values "\$([^"]+)" and "\$([^"]+)" are identical
     test "$(expand_values "\$$MATCH_1")" = "$(expand_values "\$$MATCH_2")"
 
-Authorization scopes
+Access tokens
 --------------------
 
-Scopes are saved to a temp file that the mock authentication server reads.
+Access token is requested with given scopes and saved to a token file.
 
     IMPLEMENTS GIVEN client has access to scopes? "(.+)"
     echo "$MATCH_1" | "$SRCDIR/createtoken" "$API_URL" > "$DATADIR/token"
+
+Saves a string to a token file.
+
+    IMPLEMENTS GIVEN an invalid access token
+    echo "OHNO" > "$DATADIR/token"
 
 Files
 -----
@@ -133,8 +138,8 @@ Check for a specific HTTP status code.
 
 Check for a specific header and its value.
 
-    IMPLEMENTS THEN HTTP header (\S+) is (\S+)
-    value="$(cat "$DATADIR/curl.headers" | grep "$MATCH_1" | cut -d' ' -f2 | tr -d '\r\n')"
+    IMPLEMENTS THEN HTTP header (\S+) is (.*)
+    value="$(cat "$DATADIR/curl.headers" | grep -i "$MATCH_1" | cut -d' ' -f2- | tr -d '\r\n')"
     if [ "$value" != "$MATCH_2" ]
     then
         echo "Expected header $MATCH_1 to be $MATCH_2, but got $value" 1>&2

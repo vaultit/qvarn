@@ -109,7 +109,7 @@ class AuthorizationValidatorTests(unittest.TestCase):
     def test_token_validation_with_invalid_issuer(self):
         token = get_valid_token()
         encoded_token = jwt.encode(token, private_test_key, algorithm='RS512')
-        with self.assertRaises(unifiedapi.Forbidden):
+        with self.assertRaises(unifiedapi.Unauthorized):
             self.authorization_validator.validate_token(
                 encoded_token,
                 public_test_key,
@@ -119,8 +119,28 @@ class AuthorizationValidatorTests(unittest.TestCase):
         token = get_valid_token()
         del token[u'sub']
         encoded_token = jwt.encode(token, private_test_key, algorithm='RS512')
-        with self.assertRaises(unifiedapi.Forbidden):
+        with self.assertRaises(unifiedapi.Unauthorized):
             self.authorization_validator.validate_token(
                 encoded_token,
                 public_test_key,
                 token[u'iss'])
+
+    def test_token_validation_with_expired_token(self):
+        token = get_valid_token()
+        now = time.time()
+        token['exp'] = now - 100
+        token['auth_time'] = now - 3760
+        token['iat'] = now - 3820
+        encoded_token = jwt.encode(token, private_test_key, algorithm='RS512')
+        with self.assertRaises(unifiedapi.Unauthorized):
+            self.authorization_validator.validate_token(
+                encoded_token,
+                public_test_key,
+                token[u'iss'])
+
+    def test_token_validation_with_malformed_token(self):
+        with self.assertRaises(unifiedapi.Unauthorized):
+            self.authorization_validator.validate_token(
+                u'blahblah',
+                public_test_key,
+                u'issuer')

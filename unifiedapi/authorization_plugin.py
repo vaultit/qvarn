@@ -34,9 +34,9 @@ class AuthorizationPlugin(object):
     def _check_scope(self):
         scopes = bottle.request.environ['scopes']
         route_scope = self._get_current_scope()
-        if not scopes:
-            raise NoAccessToRouteScope(route_scope=route_scope)
-        if route_scope not in scopes:
+        if not scopes or route_scope not in scopes:
+            bottle.response.headers['WWW-Authenticate'] = \
+                'Bearer error="insufficient_scope"'
             raise NoAccessToRouteScope(route_scope=route_scope)
 
     def _get_current_scope(self):
