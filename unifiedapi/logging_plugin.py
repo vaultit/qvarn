@@ -60,5 +60,3 @@ class LoggingPlugin(object):
         logging.info(
             u'Response: %s', r.status)
         logging.info(u'Response headers: %r', dict(r.headers))
-        if type(data) is dict:
-            logging.info(u'Response body (JSON): %r', data)
