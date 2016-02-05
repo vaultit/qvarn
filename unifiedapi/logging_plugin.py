@@ -48,13 +48,6 @@ class LoggingPlugin(object):
             # (internal error), which is fine.
             logging.warning(u'Request body is malformed JSON (ignored)')
 
-        logging.info(u'Request authorization client scopes: %r',
-                     bottle.request.environ.get(u'scopes'))
-        logging.info(u'Request authorization client id: %r',
-                     bottle.request.environ.get(u'client_id'))
-        logging.info(u'Request authorization user id: %r',
-                     bottle.request.environ.get(u'user_id'))
-
     def _log_response(self, data):
         r = bottle.response
         logging.info(
