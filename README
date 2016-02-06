@@ -1,9 +1,6 @@
 README for Qvarn
 ================
 
-NOTE: The software will be released as open source, but hasn't
-happened yet.
-
 This source tree contains an implementation of the Qvarn RESTful
 HTTPS+JSON backend for the services provided by Suomen Tilaajavastuu
 Oy. For details of the API, see the "Tilaajavastuu Qvarn
