@@ -81,10 +81,10 @@ class ReadOnlyStorage(object):
         return result
 
     def _build_schema(self):  # pragma: no cover
-        schema = unifiedapi.schema_from_prototype(
+        schema = qvarn.schema_from_prototype(
             self._prototype, resource_type=self._item_type)
         for subpath, subproto in self._subitem_prototypes.get_all():
-            schema += unifiedapi.schema_from_prototype(
+            schema += qvarn.schema_from_prototype(
                 subproto, resource_type=self._item_type, subpath=subpath)
         return schema
 
@@ -99,7 +99,7 @@ class ReadOnlyStorage(object):
                 for param in search_params]
 
         with self._m.new('build full sql query'):
-            main_table = unifiedapi.table_name(resource_type=self._item_type)
+            main_table = qvarn.table_name(resource_type=self._item_type)
             query = u'SELECT {0}.id FROM {0}'.format(sql.quote(main_table))
             for table_name in tables_used:
                 if table_name != main_table:

@@ -139,7 +139,7 @@ class AuthorizationValidatorTests(unittest.TestCase):
                 token[u'iss'])
 
     def test_token_validation_with_malformed_token(self):
-        with self.assertRaises(unifiedapi.Unauthorized):
+        with self.assertRaises(qvarn.Unauthorized):
             self.authorization_validator.validate_token(
                 u'blahblah',
                 public_test_key,

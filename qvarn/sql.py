@@ -40,7 +40,7 @@ class SqlAdapter(object):
     A "column_name_types" argument is similar, but instead of a value,
     it indicates type type of a column, when it is created. Types are
     basic Python types, and must be one of types in the
-    "unifiedapi.column_types" constant.
+    "qvarn.column_types" constant.
 
     A "select_condition" argument is a tree structure describing an
     arbitrarily complex boolean expression. The tree nodes may be of
