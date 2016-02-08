@@ -820,7 +820,7 @@ Create a test person with sufficient amount of diverse data.
     ... {"names": [{"full_name": "James Bond",
     ...             "sort_key": "Bond, James",
     ...             "titles": ["Päällikkö", "Seppä"],
-    ...             "given_names": ["James"],
+    ...             "given_names": ["James", "詹姆斯"],
     ...             "surnames": ["Bond"]}]}
     THEN result has key "id" containing a string, saved as $ID1
     THEN result has key "revision" containing a string, saved as $REV1
@@ -899,15 +899,23 @@ Perform a search with two conditions.
     THEN HTTP status code is 200
     AND result has key "resources", a list containing {"id": "$ID1"}
 
-Perform searches with non-ascii characters.
+Perform searches with non-ascii characters. First with location Ypäjä.
 
     WHEN client GETs
-    ... /persons/search/exact/location/Ypäjä
+    ... /persons/search/exact/location/Yp%C3%A4j%C3%A4
     THEN HTTP status code is 200
     AND result has key "resources", a list containing {"id": "$ID1"}
 
+With given_names 詹姆斯.
+
+    WHEN client GETs /persons/search/exact/given_names/%E8%A9%B9%E5%A7%86%E6%96%AF
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+
+With title Päällikkö and location Ypäjä.
+
     WHEN client GETs
-    ... /persons/search/exact/titles/Päällikkö/exact/location/Ypäjä
+    ... /persons/search/exact/titles/P%C3%A4%C3%A4llikk%C3%B6/exact/location/Yp%C3%A4j%C3%A4
     THEN HTTP status code is 200
     AND result has key "resources", a list containing {"id": "$ID1"}
 
