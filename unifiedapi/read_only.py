@@ -146,7 +146,10 @@ class ReadOnlyStorage(object):
                     sql.format_qualified_placeholder(table_name, column_name)))
                 name = sql.format_qualified_placeholder_name(
                     table_name, column_name)
-                values[name] = self._cast_value(value)
+                if name in values:
+                    values[name].append(self._cast_value(value))
+                else:
+                    values[name] = [self._cast_value(value)]
                 tables_used.add(table_name)
         return u' OR '.join(conds)
 

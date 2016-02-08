@@ -856,6 +856,88 @@ Perform search with a boolean value.
     THEN HTTP status code is 200
     AND result has key "resources", a list containing {"id": "$ID2"}
 
+We create different resource instances and search for them using multiple
+search conditions.
+
+    SCENARIO search with multiple conditions
+
+    GIVEN client has access to scopes
+    ... "uapi_persons_post uapi_persons_id_private_put
+    ...  uapi_persons_search_id_get
+    ...  uapi_orgs_post uapi_orgs_search_id_get
+    ...  uapi_contracts_post uapi_contracts_search_id_get"
+
+Create an organisation, a person and an employment contract between them.
+
+    WHEN client POSTs /orgs with
+    ... {"names": ["Test Company, Inc.", "Test Company"],
+    ... "country": "FI",
+    ... "gov_org_ids": [{"country": "FI",
+    ...                  "org_id_type": "registration_number",
+    ...                  "gov_org_id": "1234567-8"}],
+    ... "contacts": [{"contact_type": "address",
+    ...               "country": "FI",
+    ...               "full_address": "Katu 1\n00000 Helsinki"},
+    ...              {"contact_type": "email",
+    ...               "email_address": "info@testcompany.fi"}]
+    ... }
+    THEN HTTP status code is 201
+    THEN result has key "id" containing a string, saved as $ORG_ID1
+
+    WHEN client POSTs /persons with
+    ... {
+    ...     "names": [
+    ...         {
+    ...             "full_name": "Test Person",
+    ...             "sort_key": "Person, Test",
+    ...             "given_names": ["Test"],
+    ...             "surnames": ["Person"]
+    ...         }
+    ...     ]
+    ... }
+    THEN HTTP status code is 201
+    THEN result has key "id" containing a string, saved as $PERSON_ID1
+
+    WHEN client POSTs /contracts with
+    ... {"contract_type": "employment",
+    ... "start_date": "2016-01-01",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": $ORG_ID,
+    ...         "role": "employer"
+    ...     },
+    ...     {
+    ...         "type": "person",
+    ...         "resource_id": $PERSON_ID1,
+    ...         "role": "employee"
+    ...     },
+    ... ],
+    ... "right_to_work_based_on": "eea_citizen",
+    ... "contract_state": "active"
+    ... }
+    THEN HTTP status code is 201
+    AND result has key "id" containing a string, saved as $CONTRACT_ID1
+
+Perform searches with multiple conditions on resource's main level.
+
+    WHEN client GETs /contracts/search/exact/start_date/2016-01-01/exact/contract_state/active
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$CONTRACT_ID1"}
+
+    WHEN client GETs /contracts/search/exact/start_date/2016-01-01/exact/contract_state/inactive
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "resources": []
+    ... }
+
+Perform searches targeting several levels of nested elements.
+
+    WHEN client GETs /orgs/search/exact/names/Test%20Company/exact/country/FI
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ORG_ID1"}
+
 File resources
 --------------
 
