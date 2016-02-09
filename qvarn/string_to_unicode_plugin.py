@@ -30,12 +30,12 @@ class StringToUnicodePlugin(object):
 
     def _format_args(self, args):
         return (
-            unicode(arg) if isinstance(arg, str) else arg
+            unicode(arg, 'utf-8') if isinstance(arg, str) else arg
             for arg in args
         )
 
     def _format_kwargs(self, kwargs):
         return {
-            key: unicode(arg) if isinstance(arg, str) else arg
+            key: unicode(arg, 'utf-8') if isinstance(arg, str) else arg
             for key, arg in kwargs.iteritems()
         }
