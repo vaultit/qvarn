@@ -1036,6 +1036,27 @@ Perform searches targeting several levels of nested elements.
     THEN HTTP status code is 200
     AND result has key "resources", a list containing {"id": "$ORG_ID1"}
 
+    WHEN client GETs /orgs/search/exact/names/Test%20Company/exact/country/SE
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "resources": []
+    ... }
+
+Perform searches matching different instances of the same nested element.
+
+    WHEN client GETs /contracts/search/exact/resource_id/$ORG_ID1/exact/resource_id/$PERSON_ID1
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$CONTRACT_ID1"}
+
+    WHEN client GETs /contracts/search/exact/resource_id/$ORG_ID1/exact/resource_id/wrong_id
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "resources": []
+    ... }
+
+
 File resources
 --------------
 
