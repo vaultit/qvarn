@@ -968,16 +968,27 @@ search conditions.
 Create an organisation, a person and an employment contract between them.
 
     WHEN client POSTs /orgs with
-    ... {"names": ["Test Company, Inc.", "Test Company"],
-    ... "country": "FI",
-    ... "gov_org_ids": [{"country": "FI",
-    ...                  "org_id_type": "registration_number",
-    ...                  "gov_org_id": "1234567-8"}],
-    ... "contacts": [{"contact_type": "address",
-    ...               "country": "FI",
-    ...               "full_address": "Katu 1\n00000 Helsinki"},
-    ...              {"contact_type": "email",
-    ...               "email_address": "info@testcompany.fi"}]
+    ... {
+    ...     "names": ["Test Company, Inc.", "Test Company"],
+    ...     "country": "FI",
+    ...     "gov_org_ids": [
+    ...         {
+    ...             "country": "FI",
+    ...             "org_id_type": "registration_number",
+    ...             "gov_org_id": "1234567-8"
+    ...         }
+    ...     ],
+    ...     "contacts": [
+    ...         {
+    ...             "contact_type": "address",
+    ...             "country": "FI",
+    ...             "full_address": "Katu 1\n00000 Helsinki"
+    ...         },
+    ...         {
+    ...             "contact_type": "email",
+    ...             "email_address": "info@testcompany.fi"
+    ...         }
+    ...     ]
     ... }
     THEN HTTP status code is 201
     THEN result has key "id" containing a string, saved as $ORG_ID1
