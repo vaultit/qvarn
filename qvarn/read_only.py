@@ -100,23 +100,27 @@ class ReadOnlyStorage(object):
                 subproto, resource_type=self._item_type, subpath=subpath)
         return schema
 
-    def _kludge(self, transaction, schema, search_params):  # pragma: no cover
+    def _kludge(self, transaction, schema, search_params):
         sql = getattr(transaction, '_sql')
+        main_table = qvarn.table_name(resource_type=self._item_type)
 
         with self._m.new('build param conditions'):
             values = {}
-            tables_used = set()
+            tables_used = [main_table]
             conds = [
-                self._kludge_param(sql, schema, param, values, tables_used)
+                self._kludge_param(
+                    sql, schema, param, values, main_table, tables_used)
                 for param in search_params]
 
         with self._m.new('build full sql query'):
-            main_table = qvarn.table_name(resource_type=self._item_type)
-            query = u'SELECT {0}.id FROM {0}'.format(sql.quote(main_table))
-            for table_name in tables_used:
+            query = u'SELECT DISTINCT {1}.id FROM {0} AS {1}'.format(
+                sql.quote(main_table), u't0')
+            for idx, table_name in enumerate(tables_used):
                 if table_name != main_table:
-                    query += U' FULL OUTER JOIN {1} ON {0}.id = {1}.id'.format(
-                        sql.quote(main_table), sql.quote(table_name))
+                    table_alias = u't' + str(idx)
+                    query += (u' LEFT JOIN {1} AS {2} ON {0}.id = {2}.id'
+                              .format(u't0', sql.quote(table_name),
+                                      sql.quote(table_alias)))
 
             query += u' WHERE ' + u' AND '.join(
                 u'({})'.format(c) for c in conds)
@@ -146,23 +150,24 @@ class ReadOnlyStorage(object):
             return ids
 
     def _kludge_param(self, sql, schema, param, values,
-                      tables_used):  # pragma: no cover
+                      main_table, tables_used):
         rule, key, value = param
         assert rule == u'exact'
 
         conds = []
         for table_name, column_name, _ in schema:
             if column_name == key:
+                if table_name == main_table:
+                    table_alias = u't0'
+                else:
+                    table_alias = u't' + str(len(tables_used))
+                    tables_used.append(table_name)
                 conds.append(u'{} = {}'.format(
-                    sql.qualified_column(table_name, column_name),
+                    sql.qualified_column(table_alias, column_name),
                     sql.format_qualified_placeholder(table_name, column_name)))
                 name = sql.format_qualified_placeholder_name(
                     table_name, column_name)
-                if name in values:
-                    values[name].append(self._cast_value(value))
-                else:
-                    values[name] = [self._cast_value(value)]
-                tables_used.add(table_name)
+                values[name] = self._cast_value(value)
         return u' OR '.join(conds)
 
     def _cast_value(self, value):  # pragma: no cover
