@@ -87,7 +87,7 @@ GET something. No body.
     # GET results in an error (404), or pre-modified data. To avoid
     # that, we artificially wait. This is not a good solution, but
     # until we fix this properly, the kludge will have to do.
-    sleep 1
+    sleep 3
     curl -k -D "$DATADIR/curl.headers" \
         -H "Authorization: Bearer $(cat "$DATADIR/token")" \
         "$API_URL$(expand_values "$MATCH_1")" \
