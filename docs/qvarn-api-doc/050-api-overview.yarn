@@ -982,7 +982,7 @@ Create an organisation, a person and an employment contract between them.
     ...         {
     ...             "contact_type": "address",
     ...             "country": "FI",
-    ...             "full_address": "Katu 1\n00000 Helsinki"
+    ...             "full_address": "Katu 1\\n00000 Helsinki"
     ...         },
     ...         {
     ...             "contact_type": "email",
@@ -1013,14 +1013,14 @@ Create an organisation, a person and an employment contract between them.
     ... "contract_parties": [
     ...     {
     ...         "type": "org",
-    ...         "resource_id": $ORG_ID,
+    ...         "resource_id": "$ORG_ID",
     ...         "role": "employer"
     ...     },
     ...     {
     ...         "type": "person",
-    ...         "resource_id": $PERSON_ID1,
+    ...         "resource_id": "$PERSON_ID1",
     ...         "role": "employee"
-    ...     },
+    ...     }
     ... ],
     ... "right_to_work_based_on": "eea_citizen",
     ... "contract_state": "active"
