@@ -712,7 +712,11 @@ be included in the result:
   sub-string matching (`VALUE` may occur anywhere in the resource's
   value). Other types of fields are matched exactly.
 
-FIXME: Only the `exact` clause is currently implemented
+* `/gt/KEY/VALUE` --- the resource matches if it has a field `KEY`
+  at any level, whose value is greater than (>) `VALUE`, or if the field value
+  is a list, the list contains a value that is greater than `value`.
+
+FIXME: Only the `exact` and `gt` clauses are currently implemented
 
 For details on matching, see below.
 
@@ -918,6 +922,61 @@ With title Päällikkö and location Ypäjä.
     ... /persons/search/exact/titles/P%C3%A4%C3%A4llikk%C3%B6/exact/location/Yp%C3%A4j%C3%A4
     THEN HTTP status code is 200
     AND result has key "resources", a list containing {"id": "$ID1"}
+
+We create multiple contracts and search with comparison and other operators.
+
+    SCENARIO more search operators
+
+Client has needed access rights for contracts resource.
+
+    GIVEN client has access to scopes
+    ... "uapi_contracts_post uapi_contracts_search_id_get"
+
+Create new contracts.
+
+    WHEN client POSTs /contracts with
+    ... {
+    ... "contract_type": "employment",
+    ... "start_date": "2013-03-13"
+    ... }
+    THEN HTTP status code is 201
+    THEN result has key "id" containing a string, saved as $ID1
+
+One for the following day.
+
+    WHEN client POSTs /contracts with
+    ... {
+    ... "contract_type": "employment",
+    ... "start_date": "2013-03-14"
+    ... }
+    THEN HTTP status code is 201
+    THEN result has key "id" containing a string, saved as $ID2
+
+One for the following year.
+
+    WHEN client POSTs /contracts with
+    ... {
+    ... "contract_type": "employment",
+    ... "start_date": "2014-03-13"
+    ... }
+    THEN HTTP status code is 201
+    THEN result has key "id" containing a string, saved as $ID3
+
+Use different comparison operators to find correct contracts by `start_date`.
+
+    WHEN client GETs
+    ... /contracts/search/gt/start_date/2013-03-13
+    THEN HTTP status code is 200
+    AND result has key "resources", a list that does not contain {"id": "$ID1"}
+    AND result has key "resources", a list containing {"id": "$ID2"}
+    AND result has key "resources", a list containing {"id": "$ID3"}
+
+    WHEN client GETs
+    ... /contracts/search/gt/start_date/2014-03-12
+    THEN HTTP status code is 200
+    AND result has key "resources", a list that does not contain {"id": "$ID1"}
+    AND result has key "resources", a list that does not contain {"id": "$ID2"}
+    AND result has key "resources", a list containing {"id": "$ID3"}
 
 We create a new organisation and do a search for that organisation.
 
