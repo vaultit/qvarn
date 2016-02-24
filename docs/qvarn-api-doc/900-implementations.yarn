@@ -96,6 +96,7 @@ GET something. No body.
 POST or PUT with a JSON body.
 
     IMPLEMENTS WHEN client (POST|PUT)s (\S+) with (.*)
+    expand_values "$MATCH_3" > "$DATADIR/curl.request.body"
     curl -k -D "$DATADIR/curl.headers" \
         -X "$MATCH_1" \
         -H "Authorization: Bearer $(cat "$DATADIR/token")" \
