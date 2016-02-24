@@ -163,16 +163,18 @@ class ReadOnlyStorage(object):
         assert rule in rule_queries.keys()
 
         conds = []
-        for table_name, column_name, _ in schema:
+        for table_name, column_name, column_type in schema:
             if column_name == key:
                 if table_name == main_table:
                     table_alias = u't0'
                 else:
                     table_alias = u't' + str(len(tables_used))
                     tables_used.append(table_name)
-
+                qualified_name = sql.qualified_column(table_alias, column_name)
+                if column_type == unicode:
+                    qualified_name = u'lower(' + qualified_name + u')'
                 conds.append(rule_queries[rule].format(
-                    sql.qualified_column(table_alias, column_name),
+                    qualified_name,
                     sql.format_qualified_placeholder(table_name, column_name)))
                 name = sql.format_qualified_placeholder_name(
                     table_name, column_name)
@@ -184,7 +186,7 @@ class ReadOnlyStorage(object):
             u'true': True,
             u'false': False,
         }
-        return magic.get(unicode(value).lower(), value)
+        return magic.get(unicode(value).lower(), value.lower())
 
     def _build_search_result(self, transaction, ids,
                              show_params):  # pragma: no cover
