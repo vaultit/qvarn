@@ -186,7 +186,8 @@ class ReadOnlyStorage(object):
             u'true': True,
             u'false': False,
         }
-        return magic.get(unicode(value).lower(), value.lower())
+        lower = unicode(value).lower()
+        return magic.get(lower, lower)
 
     def _build_search_result(self, transaction, ids,
                              show_params):  # pragma: no cover
