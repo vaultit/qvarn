@@ -266,3 +266,7 @@ a system in production.
     IMPLEMENTS THEN result has key "([^"]*)", a list containing (.*)
     "$SRCDIR/jsonmatch" list-item "$(expand_values "$MATCH_2")" \
         "$MATCH_1" < "$DATADIR/curl.out"
+
+    IMPLEMENTS THEN result has key "([^"]*)", a list that does not contain (.*)
+    ! "$SRCDIR/jsonmatch" list-item "$(expand_values "$MATCH_2")" \
+        "$MATCH_1" < "$DATADIR/curl.out"

@@ -705,6 +705,8 @@ be included in the result:
   a list, the list contains a value that is exactly `VALUE`. Strings
   are compared without case-sensitivity.
 
+* `/ne/KEY/VALUE` --- the inverse of exact, value must not be `VALUE`.
+
 * `/startswith/KEY/VALUE` --- like `exact`, but the value must be a
   string that starts with the value.
 
@@ -712,7 +714,19 @@ be included in the result:
   sub-string matching (`VALUE` may occur anywhere in the resource's
   value). Other types of fields are matched exactly.
 
-FIXME: Only the `exact` clause is currently implemented
+* `/gt/KEY/VALUE` --- the resource matches if it has a field `KEY`
+  at any level, whose value is greater than (>) `VALUE`, or if the field value
+  is a list, the list contains a value that is greater than `value`.
+
+* `/ge/KEY/VALUE` --- like `gt`, but the value must be greater than or
+  equal (>=) to `VALUE`.
+
+* `/lt/KEY/VALUE` --- like `gt`, but the value must be less than (<) `VALUE`.
+
+* `/le/KEY/VALUE` --- like `gt`, but the value must be less than or
+  equal(<=) to `VALUE`.
+
+FIXME: `startswith` and `contains` clauses are currently not implemented.
 
 For details on matching, see below.
 
@@ -918,6 +932,127 @@ With title Päällikkö and location Ypäjä.
     ... /persons/search/exact/titles/P%C3%A4%C3%A4llikk%C3%B6/exact/location/Yp%C3%A4j%C3%A4
     THEN HTTP status code is 200
     AND result has key "resources", a list containing {"id": "$ID1"}
+
+We create multiple contracts and search with comparison and other operators.
+
+    SCENARIO more search operators
+
+Client has needed access rights for contracts resource.
+
+    GIVEN client has access to scopes
+    ... "uapi_contracts_post uapi_contracts_search_id_get"
+
+Create new contracts.
+
+    WHEN client POSTs /contracts with
+    ... {
+    ... "contract_type": "employment",
+    ... "start_date": "2013-03-13"
+    ... }
+    THEN HTTP status code is 201
+    THEN result has key "id" containing a string, saved as $ID1
+
+One for the following day.
+
+    WHEN client POSTs /contracts with
+    ... {
+    ... "contract_type": "employment",
+    ... "start_date": "2013-03-14"
+    ... }
+    THEN HTTP status code is 201
+    THEN result has key "id" containing a string, saved as $ID2
+
+One for the following year.
+
+    WHEN client POSTs /contracts with
+    ... {
+    ... "contract_type": "employment",
+    ... "start_date": "2014-03-13"
+    ... }
+    THEN HTTP status code is 201
+    THEN result has key "id" containing a string, saved as $ID3
+
+Use different comparison operators to find correct contracts by `start_date`.
+
+Greater than.
+
+    WHEN client GETs
+    ... /contracts/search/gt/start_date/2013-03-13
+    THEN HTTP status code is 200
+    AND result has key "resources", a list that does not contain {"id": "$ID1"}
+    AND result has key "resources", a list containing {"id": "$ID2"}
+    AND result has key "resources", a list containing {"id": "$ID3"}
+
+    WHEN client GETs
+    ... /contracts/search/gt/start_date/2014-03-12
+    THEN HTTP status code is 200
+    AND result has key "resources", a list that does not contain {"id": "$ID1"}
+    AND result has key "resources", a list that does not contain {"id": "$ID2"}
+    AND result has key "resources", a list containing {"id": "$ID3"}
+
+Greater than or equal.
+
+    WHEN client GETs
+    ... /contracts/search/ge/start_date/2013-03-14
+    THEN HTTP status code is 200
+    AND result has key "resources", a list that does not contain {"id": "$ID1"}
+    AND result has key "resources", a list containing {"id": "$ID2"}
+    AND result has key "resources", a list containing {"id": "$ID3"}
+
+    WHEN client GETs
+    ... /contracts/search/ge/start_date/2014-03-13
+    THEN HTTP status code is 200
+    AND result has key "resources", a list that does not contain {"id": "$ID1"}
+    AND result has key "resources", a list that does not contain {"id": "$ID2"}
+    AND result has key "resources", a list containing {"id": "$ID3"}
+
+Less than.
+
+    WHEN client GETs
+    ... /contracts/search/lt/start_date/2013-03-14
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+    AND result has key "resources", a list that does not contain {"id": "$ID2"}
+    AND result has key "resources", a list that does not contain {"id": "$ID3"}
+
+    WHEN client GETs
+    ... /contracts/search/lt/start_date/2014-03-12
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+    AND result has key "resources", a list containing {"id": "$ID2"}
+    AND result has key "resources", a list that does not contain {"id": "$ID3"}
+
+Less than or equal.
+
+    WHEN client GETs
+    ... /contracts/search/le/start_date/2013-03-13
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+    AND result has key "resources", a list that does not contain {"id": "$ID2"}
+    AND result has key "resources", a list that does not contain {"id": "$ID3"}
+
+    WHEN client GETs
+    ... /contracts/search/le/start_date/2014-03-12
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+    AND result has key "resources", a list containing {"id": "$ID2"}
+    AND result has key "resources", a list that does not contain {"id": "$ID3"}
+
+Not equal.
+
+    WHEN client GETs
+    ... /contracts/search/ne/start_date/2013-03-13
+    THEN HTTP status code is 200
+    AND result has key "resources", a list that does not contain {"id": "$ID1"}
+    AND result has key "resources", a list containing {"id": "$ID2"}
+    AND result has key "resources", a list containing {"id": "$ID3"}
+
+    WHEN client GETs
+    ... /contracts/search/ne/start_date/2013-03-14
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+    AND result has key "resources", a list that does not contain {"id": "$ID2"}
+    AND result has key "resources", a list containing {"id": "$ID3"}
 
 We create a new organisation and do a search for that organisation.
 
