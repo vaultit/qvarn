@@ -168,7 +168,7 @@ class ListResource(object):
 
         for i in range(len(criteria)):
             if i % 3 == 0:
-                if criteria[i] in [u'exact']:
+                if criteria[i] in [u'exact', u'gt']:
                     matching_rule = criteria[i]
                 elif criteria[i] == u'show_all':
                     show_params.append(criteria[i])

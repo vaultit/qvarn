@@ -152,7 +152,7 @@ class ReadOnlyStorage(object):
     def _kludge_param(self, sql, schema, param, values,
                       main_table, tables_used):
         rule, key, value = param
-        assert rule == u'exact'
+        assert rule in [u'exact', u'gt']
 
         conds = []
         for table_name, column_name, _ in schema:
@@ -162,7 +162,13 @@ class ReadOnlyStorage(object):
                 else:
                     table_alias = u't' + str(len(tables_used))
                     tables_used.append(table_name)
-                conds.append(u'{} = {}'.format(
+
+
+                if rule == u'exact':
+                    query = u'{} = {}'
+                elif rule == u'gt':
+                    query = u'{} > {}'
+                conds.append(query.format(
                     sql.qualified_column(table_alias, column_name),
                     sql.format_qualified_placeholder(table_name, column_name)))
                 name = sql.format_qualified_placeholder_name(
