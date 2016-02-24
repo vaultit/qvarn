@@ -59,7 +59,7 @@ class ReadOnlyStorageTests(unittest.TestCase):
                 u'baz': u'blang',
                 u'foobars': [],
                 u'foo': [],
-                u'bar': u'bang',
+                u'bar': u'Bang',
             },
         ],
         u'bool': True
@@ -195,18 +195,17 @@ class ReadOnlyStorageTests(unittest.TestCase):
 
     def test_search_with_boolean(self):
         with self._dbconn.transaction() as t:
-            added = self.wo.add_item(t, self.item)
-            new_id = added[u'id']
-            search_result = self.ro.search(
-                t, [(u'exact', u'bool', True)], [u'show_all'])
-        match_list = search_result[u'resources']
-        self.assertIn(new_id, match_list[0][u'id'])
-        self.assertIn(u'barbaz', match_list[0][u'bar'])
-
-    def test_search_with_boolean_string(self):
-        with self._dbconn.transaction() as t:
             self.wo.add_item(t, self.item)
             search_result = self.ro.search(
                 t, [(u'exact', u'bool', 'false')], [u'show_all'])
         match_list = search_result[u'resources']
         self.assertEqual(match_list, [])
+
+    def test_case_insensitive_search(self):
+        with self._dbconn.transaction() as t:
+            added = self.wo.add_item(t, self.item)
+            new_id = added[u'id']
+            search_result = self.ro.search(
+                t, [(u'exact', u'bar', u'BANG')], [u'show_all'])
+        match_list = search_result[u'resources']
+        self.assertIn(new_id, match_list[0][u'id'])

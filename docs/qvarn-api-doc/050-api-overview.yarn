@@ -880,6 +880,12 @@ Perform search with a simple parameter inside a list.
     THEN HTTP status code is 200
     AND result has key "resources", a list containing {"id": "$ID1"}
 
+Perform a case insensitive search.
+
+    WHEN client GETs /persons/search/exact/country/gb
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+
 Perform search with a list parameter inside a list.
 
     WHEN client GETs /persons/search/exact/given_names/James
