@@ -166,9 +166,10 @@ class ListResource(object):
         search_params = []
         show_params = []
 
+        opers = [u'exact', u'gt', u'ge', u'lt', u'le', u'ne']
         for i in range(len(criteria)):
             if i % 3 == 0:
-                if criteria[i] in [u'exact', u'gt', u'ge', u'lt', u'le', u'ne']:
+                if criteria[i] in opers:
                     matching_rule = criteria[i]
                 elif criteria[i] == u'show_all':
                     show_params.append(criteria[i])
