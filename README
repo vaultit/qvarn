@@ -148,6 +148,10 @@ and tested in the development environment first, running things
 manually. This keeps the inner loop of development short, and does not
 require gaining access to the pipeline's test machines.
 
+The current pipeline instance is at
+<http://qvarncd-master.tilaajavastuu.io/>, and is only accessible from
+the Tilaajavastuu office.
+
 
 Implementation architecture
 ---------------------------
