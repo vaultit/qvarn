@@ -52,7 +52,7 @@ class Transaction(object):
         if exc_type is None:  # pragma: no cover
             logging.info('Transaction OK')
         else:  # pragma: no cover
-            logging.warning('Transaction failed')
+            logging.warning('Transaction failed', exc_info=exc_tb)
         self._conn = None
         self._measurement = None
 
