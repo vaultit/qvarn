@@ -859,6 +859,14 @@ Create a test person with sufficient amount of diverse data.
     ...         {
     ...             "country": "FI",
     ...             "location": "Ypäjä"
+    ...         },
+    ...         {
+    ...             "country": "NO",
+    ...             "location": "un/known"
+    ...         },
+    ...         {
+    ...             "country": "SE",
+    ...             "location": "search"
     ...         }
     ...     ],
     ...     "contacts": [
@@ -936,6 +944,23 @@ With title Päällikkö and location Ypäjä.
 
     WHEN client GETs
     ... /persons/search/exact/titles/P%C3%A4%C3%A4llikk%C3%B6/exact/location/Yp%C3%A4j%C3%A4
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+
+Perform searches with a slash in the condition.
+
+    WHEN client GETs
+    ... /persons/search/exact/location/un%2fknown
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+
+    WHEN client GETs
+    ... /persons/search/exact/location/un%2fknown/exact/date_of_birth/1920-11-11
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+
+    WHEN client GETs
+    ... /persons/search/exact/location/search/show_all
     THEN HTTP status code is 200
     AND result has key "resources", a list containing {"id": "$ID1"}
 

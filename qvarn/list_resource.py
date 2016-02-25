@@ -162,7 +162,18 @@ class ListResource(object):
     def get_matching_items(self, search_criteria):
         '''Serve GET /foos/search to list items matching search criteria.'''
 
-        criteria = search_criteria.split('/')
+        # We need criteria to be encoded so that when we split by slash (/),
+        # we split the criteria correctly and keep the slashes in the
+        # condition values.
+        # We use REQUEST_URI provided by uWSGI instead of bottle's default
+        # that uses decoded PATH_INFO.
+        request_uri = bottle.request.environ['REQUEST_URI']
+        # Split at the first "/search/" and take the part after it
+        search_criteria = request_uri.split('/search/', 1)[1]
+
+        criteria = [urllib.unquote(c).decode('utf8')
+                    for c in search_criteria.split('/')]
+
         search_params = []
         show_params = []
 
@@ -179,7 +190,7 @@ class ListResource(object):
             elif i % 3 == 1:
                 search_field = criteria[i]
             elif i % 3 == 2:
-                search_value = urllib.unquote(criteria[i])
+                search_value = criteria[i]
                 search_param = (matching_rule, search_field, search_value)
                 search_params.append(search_param)
 
