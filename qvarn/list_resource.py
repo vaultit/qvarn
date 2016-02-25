@@ -178,21 +178,23 @@ class ListResource(object):
         show_params = []
 
         opers = [u'exact', u'gt', u'ge', u'lt', u'le', u'ne']
-        for i in range(len(criteria)):
-            if i % 3 == 0:
-                if criteria[i] in opers:
-                    matching_rule = criteria[i]
-                elif criteria[i] == u'show_all':
-                    show_params.append(criteria[i])
-                    break
-                else:
-                    raise qvarn.BadRequest()
-            elif i % 3 == 1:
-                search_field = criteria[i]
-            elif i % 3 == 2:
-                search_value = criteria[i]
+        i = 0
+        while i < len(criteria):
+            part = criteria[i]
+            if part in opers:
+                if i + 2 >= len(criteria):
+                    raise BadSearchCondition()
+                matching_rule = part
+                search_field = criteria[i + 1]
+                search_value = criteria[i + 2]
                 search_param = (matching_rule, search_field, search_value)
                 search_params.append(search_param)
+                i += 3
+            elif part == u'show_all':
+                show_params.append(part)
+                i += 1
+            else:
+                raise BadSearchCondition()
 
         ro = self._create_ro_storage()
         with self._dbconn.transaction() as t:
@@ -318,3 +320,8 @@ class ListResource(object):
         wo = qvarn.WriteOnlyStorage()
         wo.set_item_prototype(resource_name, prototype)
         return wo
+
+
+class BadSearchCondition(qvarn.BadRequest):
+
+    msg = u'Could not parse search condition'
