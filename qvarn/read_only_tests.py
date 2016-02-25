@@ -209,3 +209,9 @@ class ReadOnlyStorageTests(unittest.TestCase):
                 t, [(u'exact', u'bar', u'BANG')], [u'show_all'])
         match_list = search_result[u'resources']
         self.assertIn(new_id, match_list[0][u'id'])
+
+    def test_case_search_bad_key(self):
+        with self.assertRaises(qvarn.FieldNotInResource):
+            with self._dbconn.transaction() as t:
+                self.wo.add_item(t, self.item)
+                self.ro.search(t, [(u'exact', u'KEY', u'BANG')], [u'show_all'])

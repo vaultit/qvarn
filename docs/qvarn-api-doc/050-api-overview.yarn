@@ -908,6 +908,12 @@ Perform a case insensitive search.
     THEN HTTP status code is 200
     AND result has key "resources", a list containing {"id": "$ID1"}
 
+Perform a search with show_all in the beginning of the condition.
+
+    WHEN client GETs /persons/search/show_all/exact/given_names/James/exact/date_of_birth/1920-11-11
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+
 Perform search with a list parameter inside a list.
 
     WHEN client GETs /persons/search/exact/given_names/James
@@ -947,6 +953,13 @@ With title Päällikkö and location Ypäjä.
     THEN HTTP status code is 200
     AND result has key "resources", a list containing {"id": "$ID1"}
 
+Search for a search.
+
+    WHEN client GETs
+    ... /persons/search/exact/location/search/show_all
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+
 Perform searches with a slash in the condition.
 
     WHEN client GETs
@@ -959,10 +972,43 @@ Perform searches with a slash in the condition.
     THEN HTTP status code is 200
     AND result has key "resources", a list containing {"id": "$ID1"}
 
+Perform searches with invalid conditions.
+
+    WHEN client GETs /persons/search/exact/INVALID_KEY/James
+    THEN HTTP status code is 400
+    AND result matches
+    ... {
+    ...   "field": "INVALID_KEY",
+    ...   "message": "Resource does not contain given field",
+    ...   "error_code": "FieldNotInResource"
+    ... }
+
     WHEN client GETs
-    ... /persons/search/exact/location/search/show_all
-    THEN HTTP status code is 200
-    AND result has key "resources", a list containing {"id": "$ID1"}
+    ... /persons/search/exact/location/exact/given_names/James
+    THEN HTTP status code is 400
+    AND result matches
+    ... {
+    ...   "message": "Could not parse search condition",
+    ...   "error_code": "BadSearchCondition"
+    ... }
+
+    WHEN client GETs
+    ... /persons/search/show_all/location/exact/given_names/James
+    THEN HTTP status code is 400
+    AND result matches
+    ... {
+    ...   "message": "Could not parse search condition",
+    ...   "error_code": "BadSearchCondition"
+    ... }
+
+    WHEN client GETs
+    ... /persons/search/exact/given_names
+    THEN HTTP status code is 400
+    AND result matches
+    ... {
+    ...   "message": "Could not parse search condition",
+    ...   "error_code": "BadSearchCondition"
+    ... }
 
 We create multiple contracts and search with comparison and other operators.
 

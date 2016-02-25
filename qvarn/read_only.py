@@ -179,6 +179,9 @@ class ReadOnlyStorage(object):
                 name = sql.format_qualified_placeholder_name(
                     table_name, column_name)
                 values[name] = self._cast_value(value)
+        if not conds:
+            # key did not match column name in any table
+            raise FieldNotInResource(field=key)
         return u' OR '.join(conds)
 
     def _cast_value(self, value):  # pragma: no cover
@@ -210,6 +213,11 @@ class ReadOnlyStorage(object):
                 {u'id': resource_id} for resource_id in ids
             ],
         }
+
+
+class FieldNotInResource(qvarn.BadRequest):
+
+    msg = u'Resource does not contain given field'
 
 
 class ItemDoesNotExist(qvarn.NotFound):

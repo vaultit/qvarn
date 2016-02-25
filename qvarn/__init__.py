@@ -31,7 +31,7 @@ from .subitem_protos import SubItemPrototypes
 from .write_only import (
     WriteOnlyStorage, CannotAddWithId, CannotAddWithRevision,
     WrongRevision)
-from .read_only import ReadOnlyStorage, ItemDoesNotExist
+from .read_only import ReadOnlyStorage, ItemDoesNotExist, FieldNotInResource
 from .backend_app import BackendApplication
 from .filler import add_missing_item_fields
 from .util import (
