@@ -141,7 +141,7 @@ class ReadOnlyStorage(object):
                 ids = [row[0] for row in c]
                 self._m.note('row count: %d' % len(ids))
         except BaseException:
-            with self._m.new('put conn'):
+            with self._m.new('put conn (except)'):
                 sql.put_conn(conn)
             raise
         else:
