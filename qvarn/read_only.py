@@ -100,32 +100,15 @@ class ReadOnlyStorage(object):
                 subproto, resource_type=self._item_type, subpath=subpath)
         return schema
 
-    def _kludge(self, transaction, schema, search_params):
+    def _kludge(self, transaction, schema, search_params):  # pragma: no cover
         sql = getattr(transaction, '_sql')
-        main_table = qvarn.table_name(resource_type=self._item_type)
 
-        with self._m.new('build param conditions'):
+        with self._m.new('build queries based on conditions'):
             values = {}
-            tables_used = [main_table]
-            conds = [
-                self._kludge_param(
-                    sql, schema, param, values, main_table, tables_used)
+            queries = [
+                self._kludge_query(sql, schema, param, values)
                 for param in search_params]
-
-        with self._m.new('build full sql query'):
-            query = u'SELECT DISTINCT {1}.id FROM {0} AS {1}'.format(
-                sql.quote(main_table), u't0')
-            for idx, table_name in enumerate(tables_used):
-                if table_name != main_table:
-                    table_alias = u't' + str(idx)
-                    query += (u' LEFT JOIN {1} AS {2} ON {0}.id = {2}.id'
-                              .format(u't0', sql.quote(table_name),
-                                      sql.quote(table_alias)))
-
-            query += u' WHERE ' + u' AND '.join(
-                u'({})'.format(c) for c in conds)
-            logging.debug('kludge: query: %r', query)
-            logging.debug('kludge: values: %r', values)
+        query = u' INTERSECT '.join(queries)
 
         return self._kludge_execute(sql, query, values)
 
@@ -149,8 +132,7 @@ class ReadOnlyStorage(object):
                 sql.put_conn(conn)
             return ids
 
-    def _kludge_param(self, sql, schema, param, values,
-                      main_table, tables_used):
+    def _kludge_query(self, sql, schema, param, values):  # pragma: no cover
         rule_queries = {
             u'exact': u'{} = {}',
             u'gt': u'{} > {}',
@@ -162,27 +144,25 @@ class ReadOnlyStorage(object):
         rule, key, value = param
         assert rule in rule_queries.keys()
 
-        conds = []
+        queries = []
         for table_name, column_name, column_type in schema:
             if column_name == key:
-                if table_name == main_table:
-                    table_alias = u't0'
-                else:
-                    table_alias = u't' + str(len(tables_used))
-                    tables_used.append(table_name)
-                qualified_name = sql.qualified_column(table_alias, column_name)
+                query = u'SELECT DISTINCT {0}.id FROM {0} WHERE '.format(
+                    sql.quote(table_name))
+                qualified_name = sql.qualified_column(table_name, column_name)
                 if column_type == unicode:
-                    qualified_name = u'lower(' + qualified_name + u')'
-                conds.append(rule_queries[rule].format(
+                    qualified_name = u'LOWER(' + qualified_name + u')'
+                query += rule_queries[rule].format(
                     qualified_name,
-                    sql.format_qualified_placeholder(table_name, column_name)))
+                    sql.format_qualified_placeholder(table_name, column_name))
                 name = sql.format_qualified_placeholder_name(
                     table_name, column_name)
                 values[name] = self._cast_value(value)
-        if not conds:
+                queries.append(query)
+        if not queries:
             # key did not match column name in any table
             raise FieldNotInResource(field=key)
-        return u' OR '.join(conds)
+        return u'(' + u' UNION '.join(queries) + u')'
 
     def _cast_value(self, value):  # pragma: no cover
         magic = {
