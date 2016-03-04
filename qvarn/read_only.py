@@ -18,6 +18,7 @@
 
 import logging
 import time
+import uuid
 
 import qvarn
 
@@ -109,7 +110,6 @@ class ReadOnlyStorage(object):
                 self._kludge_query(sql, schema, param, values)
                 for param in search_params]
         query = u' INTERSECT '.join(queries)
-
         return self._kludge_execute(sql, query, values)
 
     def _kludge_execute(self, sql, query, values):  # pragma: no cover
@@ -146,6 +146,7 @@ class ReadOnlyStorage(object):
 
         queries = []
         for table_name, column_name, column_type in schema:
+            rand_name = unicode(uuid.uuid4())
             if column_name == key:
                 query = u'SELECT DISTINCT {0}.id FROM {0} WHERE '.format(
                     sql.quote(table_name))
@@ -154,9 +155,10 @@ class ReadOnlyStorage(object):
                     qualified_name = u'LOWER(' + qualified_name + u')'
                 query += rule_queries[rule].format(
                     qualified_name,
-                    sql.format_qualified_placeholder(table_name, column_name))
+                    sql.format_qualified_placeholder(
+                        table_name, rand_name))
                 name = sql.format_qualified_placeholder_name(
-                    table_name, column_name)
+                    table_name, rand_name)
                 values[name] = self._cast_value(value)
                 queries.append(query)
         if not queries:
