@@ -1225,7 +1225,7 @@ Create an organisation, a person and an employment contract between them.
     ... "contract_parties": [
     ...     {
     ...         "type": "org",
-    ...         "resource_id": "$ORG_ID",
+    ...         "resource_id": "$ORG_ID1",
     ...         "role": "employer"
     ...     },
     ...     {
