@@ -31,6 +31,24 @@ Synopsis:
 * `PUT /competence_types/<id>` --- update the information about a specific
   competence type.
 * `DELETE /competence_types/<id>` --- remove a competence certification.
+* `GET /competence_types/<id>/card_front` --- get the photo of the example
+  competence card front
+* `PUT /competence_types/<id>/card_front` --- set the photo of the example
+  competence card front
+* `GET /competence_types/<id>/card_back` --- get the logo of the example
+  competence card back
+* `PUT /competence_types/<id>/card_back` --- set the logo of the example
+  competence card back
+* `GET /competence_types/<id>/registry_logo` --- get the logo of the competence
+  registry organisation
+* `PUT /competence_types/<id>/registry_logo` --- set the logo of the competence
+  registry organisation
+
+There are three sub-resource of competence_types:
+
+* `card_front` is an example photo of the competence card front.
+* `card_back` is an example photo of the competence card back.
+* `registry_logo` is the logotype of the competence registry organisation.
 
 Errors:
 
@@ -42,7 +60,7 @@ Example result for a competence type:
     {
         "type": "competence_type",
         "id": "123",
-	"competence_type_id": "NAP",
+        "competence_type_id": "NAP",
         "names": [
             {
                 "locale": "fi_FI",
@@ -92,7 +110,13 @@ Client has needed access rights for competence type resource.
     GIVEN client has access to scopes
     ... "uapi_competence_types_post uapi_competence_types_get
     ...  uapi_competence_types_id_get uapi_competence_types_id_put
-    ...  uapi_competence_types_id_delete"
+    ...  uapi_competence_types_id_delete
+    ...  uapi_competence_types_id_card_front_get
+    ...  uapi_competence_types_id_card_front_put
+    ...  uapi_competence_types_id_card_back_get
+    ...  uapi_competence_types_id_card_back_put
+    ...  uapi_competence_types_id_registry_logo_get
+    ...  uapi_competence_types_id_registry_logo_put"
 
 Try to create a new competence type. Test with an invalid field.
 
@@ -232,6 +256,99 @@ Update the record.
     AND result has key "id" containing a string, saved as $ID3
     AND values "$ID1" and "$ID3" are identical
     AND result has key "revision" containing a string, saved as $REV3
+
+Cannot get an unsent competence card front image.
+
+    WHEN client GETs /competence_types/$ID1/card_front
+    THEN HTTP status code is 404
+
+Send competence card front image.
+
+    GIVEN file test.png containing "This pretends to be a png"
+
+    WHEN client PUTs file test.png with content type image/png
+    ...  and revision $REV3 to /competence_types/$ID1/card_front
+    THEN HTTP status code is 200
+
+    WHEN client GETs /competence_types/$ID1/card_front
+    THEN HTTP status code is 200
+    AND HTTP header Content-Type is image/png
+    AND HTTP header Revision exists
+    AND result body matches file test.png
+
+    WHEN client GETs /competence_types/$ID1
+    THEN HTTP status code is 200
+    AND result has key "revision" containing a string, saved as $REV4
+
+Cannot send a photo with no Content-Length header set.
+Without request body (no Content-Length header) server responds with status
+Length Required 411.
+
+    WHEN client PUTs no file with content type image/png
+    ...  and revision $REV4 to /competence_types/$ID1/card_front
+    THEN HTTP status code is 411
+
+Cannot get an unsent competence card back image.
+
+    WHEN client GETs /competence_types/$ID1/card_back
+    THEN HTTP status code is 404
+
+Send competence card front image.
+
+    GIVEN file test.png containing "This pretends to be a png"
+
+    WHEN client PUTs file test.png with content type image/png
+    ...  and revision $REV4 to /competence_types/$ID1/card_back
+    THEN HTTP status code is 200
+
+    WHEN client GETs /competence_types/$ID1/card_back
+    THEN HTTP status code is 200
+    AND HTTP header Content-Type is image/png
+    AND HTTP header Revision exists
+    AND result body matches file test.png
+
+    WHEN client GETs /competence_types/$ID1
+    THEN HTTP status code is 200
+    AND result has key "revision" containing a string, saved as $REV5
+
+Cannot send a photo with no Content-Length header set.
+Without request body (no Content-Length header) server responds with status
+Length Required 411.
+
+    WHEN client PUTs no file with content type image/png
+    ...  and revision $REV5 to /competence_types/$ID1/card_back
+    THEN HTTP status code is 411
+
+Cannot get an unsent competence registry logo.
+
+    WHEN client GETs /competence_types/$ID1/registry_logo
+    THEN HTTP status code is 404
+
+Send competence card front image.
+
+    GIVEN file test.png containing "This pretends to be a png"
+
+    WHEN client PUTs file test.png with content type image/png
+    ...  and revision $REV5 to /competence_types/$ID1/registry_logo
+    THEN HTTP status code is 200
+
+    WHEN client GETs /competence_types/$ID1/registry_logo
+    THEN HTTP status code is 200
+    AND HTTP header Content-Type is image/png
+    AND HTTP header Revision exists
+    AND result body matches file test.png
+
+    WHEN client GETs /competence_types/$ID1
+    THEN HTTP status code is 200
+    AND result has key "revision" containing a string, saved as $REV6
+
+Cannot send a photo with no Content-Length header set.
+Without request body (no Content-Length header) server responds with status
+Length Required 411.
+
+    WHEN client PUTs no file with content type image/png
+    ...  and revision $REV6 to /competence_types/$ID1/registry_logo
+    THEN HTTP status code is 411
 
 Delete the record.
 
