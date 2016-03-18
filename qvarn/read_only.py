@@ -110,6 +110,8 @@ class ReadOnlyStorage(object):
                 self._kludge_query(sql, schema, param, values)
                 for param in search_params]
         query = u' INTERSECT '.join(queries)
+        logging.debug('kludge: query: %r', query)
+        logging.debug('kludge: values: %r', values)
         return self._kludge_execute(sql, query, values)
 
     def _kludge_execute(self, sql, query, values):  # pragma: no cover
