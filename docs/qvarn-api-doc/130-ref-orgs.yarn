@@ -59,8 +59,7 @@ Example result for an organisation:
                 "country": "FI",
                 "full_address": "Street 1\n00000 Nowhere"
             }
-        ],
-        "is_luotettava_kumppani_member": false
+        ]
     }
 
 Fields in the result:
@@ -71,10 +70,6 @@ Fields in the result:
 * `gov_org_ids` --- all known government-issued identifiers; see below
 * `contacts` --- known contact information; see
   [Handling contact information](#contacts)
-* `is_luotettava_kumppani_member` --- has the organisation joined the
-  [Luotettava Kumppani][] programme?
-
-[Luotettava Kumppani]: https://www.tilaajavastuu.fi/luotettavakumppani/
 
 Government-issued identifiers (`gov_org_ids`) have the following
 fields:
@@ -119,8 +114,13 @@ Create a new organisation.
     ... 	     {"contact_type": "phone",
     ...               "contact_source": "self",
     ...		      "contact_timestamp": "2015-03-04T16:47:12+0200",
-    ...		      "phone_number": "+15551234567890"}],
-    ... "is_luotettava_kumppani_member": true
+    ...		      "phone_number": "+15551234567890"},
+    ... 	     {"contact_type": "einvoice",
+    ...               "contact_roles": ["billing"],
+    ...               "contact_source": "self",
+    ...		      "contact_timestamp": "2015-03-04T16:47:12+0200",
+    ...		      "einvoice_operator": "FOOBANK",
+    ...		      "einvoice_address": "003712345671"}]
     ... }
     THEN HTTP status code is 201
     AND result matches
@@ -138,8 +138,13 @@ Create a new organisation.
     ... 	     {"contact_type": "phone",
     ...               "contact_source": "self",
     ...		      "contact_timestamp": "2015-03-04T16:47:12+0200",
-    ...		      "phone_number": "+15551234567890"}],
-    ... "is_luotettava_kumppani_member": true
+    ...		      "phone_number": "+15551234567890"},
+    ... 	     {"contact_type": "einvoice",
+    ...               "contact_roles": ["billing"],
+    ...               "contact_source": "self",
+    ...		      "contact_timestamp": "2015-03-04T16:47:12+0200",
+    ...		      "einvoice_operator": "FOOBANK",
+    ...		      "einvoice_address": "003712345671"}]
     ... }
     AND result has key "id" containing a string, saved as $ID1
     AND HTTP Location header is API_URL/orgs/$ID1
@@ -164,7 +169,13 @@ Check that the record is there.
     ... 	     {"contact_type": "phone",
     ...               "contact_source": "self",
     ...		      "contact_timestamp": "2015-03-04T16:47:12+0200",
-    ...		      "phone_number": "+15551234567890"}]
+    ...		      "phone_number": "+15551234567890"},
+    ... 	     {"contact_type": "einvoice",
+    ...               "contact_roles": ["billing"],
+    ...               "contact_source": "self",
+    ...		      "contact_timestamp": "2015-03-04T16:47:12+0200",
+    ...		      "einvoice_operator": "FOOBANK",
+    ...		      "einvoice_address": "003712345671"}]
     ... }
     AND result has key "id" containing a string, saved as $ID2
     AND values "$ID1" and "$ID2" are identical
@@ -176,14 +187,12 @@ Update the record.
     WHEN client PUTs /orgs/$ID1 with
     ... {
     ...     "revision": "$REV1",
-    ...     "names": ["Tilaajavastuu"],
-    ...     "is_luotettava_kumppani_member": false
+    ...     "names": ["Tilaajavastuu"]
     ... }
     THEN HTTP status code is 200
     AND result matches
     ... {
-    ...     "names": ["Tilaajavastuu"],
-    ...     "is_luotettava_kumppani_member": false
+    ...     "names": ["Tilaajavastuu"]
     ... }
     AND result has key "id" containing a string, saved as $ID3
     AND values "$ID1" and "$ID3" are identical
