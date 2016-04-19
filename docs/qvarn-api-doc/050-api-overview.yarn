@@ -487,6 +487,7 @@ The type of contact information is encoded in its own field:
     - `phone` --- a phone number
     - `address` --- a physical or postal address
     - `email` --- an electronic mail address
+    - `einvoice` --- an e-invoicing address
 
 In addition, the contact may also have certain roles that are stored
 in a list:
@@ -511,6 +512,11 @@ For phone numbers, the number is encoded in the following field:
 Email addresses have the following field:
 
 * `email_address` --- the actual email address.
+
+E-invoicing addresses have the following fields:
+
+* `einvoice_operator` --- the operator of e-invoicing service
+* `einvoice_address` --- the actual e-invoicing address
 
 Additionally, in the cases where someone is registering on a service
 that uses Qvarn as a backend, the following fields can be used for
@@ -793,11 +799,6 @@ The matching rules are:
   matches the pattern.
 
 ### Examples
-
-* `GET /orgs/search/exact/is_luotettava_kumppani_member/true` would
-  match any organisation whose `is_luotettava_kumppani_member`
-  attribute is `true`. If the organisation has any other value for
-  that attribute it does not match.
 
 * `GET /persons/search/contains/full_name/bond` would match any person
   whose full name contains the substring `bond`.
@@ -1142,29 +1143,17 @@ Client has needed access rights for orgs resource.
 
     WHEN client POSTs /orgs with
     ... {"names": ["Suomen Tilaajavastuu Oy"],
-    ... "country": "FI",
-    ... "is_luotettava_kumppani_member": false
+    ... "country": "FI"
     ... }
     THEN HTTP status code is 201
     THEN result has key "id" containing a string, saved as $ID2
 
     WHEN client POSTs /orgs with
     ... {"names": ["Suomen Tilaajavastuu Oy"],
-    ... "country": "FI",
-    ... "is_luotettava_kumppani_member": true
+    ... "country": "FI"
     ... }
     THEN HTTP status code is 201
     THEN result has key "id" containing a string, saved as $ID3
-
-Perform search with a boolean value.
-
-    WHEN client GETs /orgs/search/exact/is_luotettava_kumppani_member/true
-    THEN HTTP status code is 200
-    AND result has key "resources", a list containing {"id": "$ID3"}
-
-    WHEN client GETs /orgs/search/exact/is_luotettava_kumppani_member/False
-    THEN HTTP status code is 200
-    AND result has key "resources", a list containing {"id": "$ID2"}
 
 We create different resource instances and search for them using multiple
 search conditions.
