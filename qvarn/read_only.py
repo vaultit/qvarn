@@ -112,12 +112,12 @@ class ReadOnlyStorage(object):
         # queries is now a list of (query, count_query) tuples
         # next, execute count queries
         counts = []
-        for idx, query_set in queries:
+        for idx, query_set in enumerate(queries):
             count = self._kludge_execute_count(sql, query_set[1], values)
             counts.append((idx, count))
         ids = []
-        for index, (query_index, count) in sorted(
-                counts, key=lambda tup: tup[1]):
+        for index, (query_index, count) in enumerate(sorted(
+                counts, key=lambda tup: tup[1])):
             if count == 0:
                 return []
             else:
