@@ -170,6 +170,8 @@ class ReadOnlyStorage(object):
             with self._m.new('get cursor'):
                 c = conn.cursor()
             with self._m.new('execute'):
+                print query
+                print values
                 c.execute(query, values)
             with self._m.new('fetch rows'):
                 count = [row[0] for row in c]
