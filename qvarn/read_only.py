@@ -116,16 +116,17 @@ class ReadOnlyStorage(object):
             count = self._kludge_execute_count(sql, query_set[1], values)
             counts.append((idx, count))
         ids = []
-        for query_index, count in sorted(counts, key=lambda tup: tup[1]):
+        for index, (query_index, count) in sorted(
+                counts, key=lambda tup: tup[1]):
             if count == 0:
                 return []
             else:
                 query = queries[query_index]
-                #  should be condition for the 1st query, but does not
-                #  actually work as intersections may empty this list
-                #  anyway, FIXME:
-                if len(ids) == 0:
-                    ids = self._kludge_execute(sql, query, values)
+                if index == 0:
+                    if count < 10000:
+                        ids = self._kludge_execute(sql, query, values)
+                    else:
+                        break
                 else:
                     query = self._kludge_add_ids(sql, query, values, ids)
                     logging.debug('kludge: query: %r', query)
@@ -134,12 +135,12 @@ class ReadOnlyStorage(object):
                         sql, query, values)
                     ids = [filter(lambda x: x in ids, sublist)
                            for sublist in temp_ids]
-        return ids
-        #  FIXME: place for the logic of the fallback execution missing
-        #  query = u' INTERSECT '.join(queries)
-        #  logging.debug('kludge: query: %r', query)
-        #  logging.debug('kludge: values: %r', values)
-        #  return self._kludge_execute(sql, query, values)
+        else:
+            return ids
+        query = u' INTERSECT '.join(queries)
+        logging.debug('kludge: query: %r', query)
+        logging.debug('kludge: values: %r', values)
+        return self._kludge_execute(sql, query, values)
 
     def _kludge_execute(self, sql, query, values):  # pragma: no cover
         with self._m.new('get conn'):
