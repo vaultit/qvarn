@@ -109,10 +109,37 @@ class ReadOnlyStorage(object):
             queries = [
                 self._kludge_query(sql, schema, param, values)
                 for param in search_params]
-        query = u' INTERSECT '.join(queries)
-        logging.debug('kludge: query: %r', query)
-        logging.debug('kludge: values: %r', values)
-        return self._kludge_execute(sql, query, values)
+        # queries is now a list of (query, count_query) tuples
+        # next, execute count queries
+        counts = []
+        for idx, query_set in queries:
+            count = self._kludge_execute_count(sql, query_set[1], values)
+            counts.append((idx, count))
+        ids = []
+        for query_index, count in sorted(counts, key=lambda tup: tup[1]):
+            if count == 0:
+                return []
+            else:
+                query = queries[query_index]
+                #  should be condition for the 1st query, but does not
+                #  actually work as intersections may empty this list
+                #  anyway, FIXME:
+                if len(ids) == 0:
+                    ids = self._kludge_execute(sql, query, values)
+                else:
+                    query = self._kludge_add_ids(sql, query, values, ids)
+                    logging.debug('kludge: query: %r', query)
+                    logging.debug('kludge: values: %r', values)
+                    temp_ids = self._kludge_execute(
+                        sql, query, values)
+                    ids = [filter(lambda x: x in ids, sublist)
+                           for sublist in temp_ids]
+        return ids
+        #  FIXME: place for the logic of the fallback execution missing
+        #  query = u' INTERSECT '.join(queries)
+        #  logging.debug('kludge: query: %r', query)
+        #  logging.debug('kludge: values: %r', values)
+        #  return self._kludge_execute(sql, query, values)
 
     def _kludge_execute(self, sql, query, values):  # pragma: no cover
         with self._m.new('get conn'):
@@ -134,6 +161,26 @@ class ReadOnlyStorage(object):
                 sql.put_conn(conn)
             return ids
 
+    def _kludge_execute_count(self, sql, query, values):  # pragma: no cover
+        count = 0
+        with self._m.new('get conn'):
+            conn = sql.get_conn()
+        try:
+            with self._m.new('get cursor'):
+                c = conn.cursor()
+            with self._m.new('execute'):
+                c.execute(query, values)
+            with self._m.new('fetch rows'):
+                count = [row[0] for row in c]
+        except BaseException:
+            with self._m.new('put conn (except)'):
+                sql.put_conn(conn)
+            raise
+        else:
+            with self._m.new('put conn'):
+                sql.put_conn(conn)
+            return count
+
     def _kludge_query(self, sql, schema, param, values):  # pragma: no cover
         rule_queries = {
             u'exact': u'{} = {}',
@@ -147,18 +194,23 @@ class ReadOnlyStorage(object):
         assert rule in rule_queries.keys()
 
         queries = []
+        count_query = u''
         for table_name, column_name, column_type in schema:
             rand_name = unicode(uuid.uuid4())
             if column_name == key:
                 query = u'SELECT DISTINCT {0}.id FROM {0} WHERE '.format(
                     sql.quote(table_name))
+                count_query += u'SELECT COUNT({0}.id) FROM {0} WHERE '.format(
+                    sql.quote(table_name))
                 qualified_name = sql.qualified_column(table_name, column_name)
                 if column_type == unicode:
                     qualified_name = u'LOWER(' + qualified_name + u')'
-                query += rule_queries[rule].format(
+                conditions = rule_queries[rule].format(
                     qualified_name,
                     sql.format_qualified_placeholder(
                         table_name, rand_name))
+                query += conditions
+                count_query += conditions
                 name = sql.format_qualified_placeholder_name(
                     table_name, rand_name)
                 values[name] = self._cast_value(value)
@@ -166,7 +218,13 @@ class ReadOnlyStorage(object):
         if not queries:
             # key did not match column name in any table
             raise FieldNotInResource(field=key)
-        return u'(' + u' UNION '.join(queries) + u')'
+        return (u'(' + u' UNION '.join(queries) + u')', count_query)
+
+    def _kludge_add_ids(self, sql, query, values, ids):  # pragma: no cover
+        name = unicode(uuid.uuid4())
+        query += u' AND id IN {}'.format(name)
+        values[name] = tuple(ids)
+        return query
 
     def _cast_value(self, value):  # pragma: no cover
         magic = {
