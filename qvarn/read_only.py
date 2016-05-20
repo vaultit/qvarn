@@ -164,14 +164,14 @@ class ReadOnlyStorage(object):
 
     def _kludge_execute_count(self, sql, query, values):  # pragma: no cover
         count = 0
+        logging.debug('kludge: query: %r', query)
+        logging.debug('kludge: values: %r', values)
         with self._m.new('get conn'):
             conn = sql.get_conn()
         try:
             with self._m.new('get cursor'):
                 c = conn.cursor()
             with self._m.new('execute'):
-                print query
-                print values
                 c.execute(query, values)
             with self._m.new('fetch rows'):
                 count = [row[0] for row in c]
@@ -182,7 +182,7 @@ class ReadOnlyStorage(object):
         else:
             with self._m.new('put conn'):
                 sql.put_conn(conn)
-            return count
+        return count
 
     def _kludge_query(self, sql, schema, param, values):  # pragma: no cover
         rule_queries = {
