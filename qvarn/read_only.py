@@ -118,6 +118,7 @@ class ReadOnlyStorage(object):
         ids = []
         for index, (query_index, count) in enumerate(sorted(
                 counts, key=lambda tup: tup[1])):
+            logging.debug('kludge: count: %s', count)
             if count == 0:
                 return []
             else:
@@ -137,7 +138,7 @@ class ReadOnlyStorage(object):
                            for sublist in temp_ids]
         else:
             return ids
-        query = u' INTERSECT '.join(queries)
+        query = u' INTERSECT '.join(queries.values())
         logging.debug('kludge: query: %r', query)
         logging.debug('kludge: values: %r', values)
         return self._kludge_execute(sql, query, values)
