@@ -138,7 +138,8 @@ class ReadOnlyStorage(object):
                            for sublist in temp_ids]
         else:
             return ids
-        query = u' INTERSECT '.join(queries.values())
+        logging.debug('kludge: I AM HERE!!!')
+        query = u' INTERSECT '.join(query[0] for query in queries)
         logging.debug('kludge: query: %r', query)
         logging.debug('kludge: values: %r', values)
         return self._kludge_execute(sql, query, values)
