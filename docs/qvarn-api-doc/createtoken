@@ -26,6 +26,7 @@
 
 import base64
 import ConfigParser
+import logging
 import os
 import sys
 
@@ -35,6 +36,7 @@ import urllib3
 
 # We do not currently care about verify certificates. Maybe later.
 urllib3.disable_warnings()
+logging.captureWarnings(True)
 
 
 def main():
