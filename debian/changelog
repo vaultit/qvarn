@@ -1,6 +1,7 @@
 qvarn (0.66+git-1) UNRELEASED; urgency=medium
 
   * New upstream version.
+  * Add missing build-dependencies.
 
  -- Lars Wirzenius <liw@liw.fi>  Mon, 23 May 2016 16:12:46 +0300
 
