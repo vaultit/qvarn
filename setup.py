@@ -20,10 +20,12 @@
 
 from distutils.core import setup
 
+import qvarn
+
 
 setup(
     name='qvarn',
-    version='0.1',
+    version=qvarn.__version__,
     description='backend service for JSON and binary data storage',
     author='Suomen Tilaajavastuu Oy',
     author_email='tilaajavastuu.hifi@tilaajavastuu.fi',
