@@ -1,7 +1,7 @@
 NEWS for Qvarn
 ==============
 
-Version 0.66+git, not yet released
+Version 0.67, released 2016-05-23
 ----------------------------------
 
 * Missing build dependencies added to Debian packaging.

@@ -1,9 +1,9 @@
-qvarn (0.66+git-1) UNRELEASED; urgency=medium
+qvarn (0.67-1) experimental; urgency=medium
 
   * New upstream version.
   * Add missing build-dependencies.
 
- -- Lars Wirzenius <liw@liw.fi>  Mon, 23 May 2016 16:12:46 +0300
+ -- Lars Wirzenius <liw@liw.fi>  Mon, 23 May 2016 16:18:40 +0300
 
 qvarn (0.66-1) experimental; urgency=medium
 
