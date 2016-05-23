@@ -231,7 +231,10 @@ class SqlAdapter(object):
             u', '.join(assignments))
         if select_condition:
             sql += u' WHERE ' + self._format_condition(select_condition)
-        return sql
+
+        values = self._construct_values(
+            column_name_values.copy(), select_condition)
+        return sql, values
 
     def format_delete(self, table_name, select_condition):
         '''Format an SQL DELETE statement.

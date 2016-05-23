@@ -101,9 +101,9 @@ class Transaction(object):
         self._execute(query, column_name_values)
 
     def update(self, table_name, select_conditions, column_name_values):
-        query = self._sql.format_update(
+        query, values = self._sql.format_update(
             table_name, select_conditions, column_name_values)
-        self._execute(query, column_name_values)
+        self._execute(query, values)
 
     def delete(self, table_name, select_conditions):
         query, values = self._sql.format_delete(table_name, select_conditions)

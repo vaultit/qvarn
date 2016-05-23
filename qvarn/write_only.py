@@ -113,33 +113,32 @@ class WriteOnlyStorage(object):
 
     def update_subitem(self, transaction, item_id, revision, subitem_name,
                        subitem):
-        item = self._get_item(transaction, item_id)
-        if item[u'revision'] != revision:
+        current_revision = self._get_current_revision(transaction, item_id)
+        if current_revision != revision:
             raise qvarn.WrongRevision(
                 item_id=item_id,
-                current=item[u'revision'],
+                current=current_revision,
                 update=revision)
 
-        updated = item.copy()
-        updated[u'revision'] = self._id_generator.new_id(
-            self._revision_id_type)
+        # Update revision of main item.
+        new_revision = self._id_generator.new_id(self._revision_id_type)
+        self._update_revision(transaction, item_id, new_revision)
 
-        self._delete_item_in_transaction(
-            transaction, item[u'id'], delete_subitems=False)
-        self._insert_item_into_database(transaction, updated)
-
+        # Add or replace subitem.
         self._delete_subitem_in_transaction(
             transaction, item_id, subitem_name)
         self._insert_subitem_into_database(
             transaction, item_id, subitem_name, subitem)
-        return updated[u'revision']
 
-    def _get_item(self, transaction, item_id):
-        ro = qvarn.ReadOnlyStorage()
-        ro.set_item_prototype(self._item_type, self._prototype)
-        for subitem_name, prototype in self._subitem_prototypes.get_all():
-            ro.set_subitem_prototype(self._item_type, subitem_name, prototype)
-        return ro.get_item(transaction, item_id)
+        return new_revision
+
+    def _update_revision(self, transaction, item_id, new_revision):
+        table_name = qvarn.table_name(resource_type=self._item_type)
+        match_columns = ('=', table_name, u'id', item_id)
+        values = {
+            u'revision': new_revision,
+        }
+        transaction.update(table_name, match_columns, values)
 
     def delete_item(self, transaction, item_id):
         '''Delete an item given its id.'''
