@@ -118,7 +118,6 @@ class ReadOnlyStorage(object):
         ids = []
         for index, (query_index, count) in enumerate(sorted(
                 counts, key=lambda tup: tup[1])):
-            logging.debug('kludge: count: %s', count)
             if count == 0:
                 return []
             else:
@@ -177,6 +176,8 @@ class ReadOnlyStorage(object):
                 c.execute(query, values)
             with self._m.new('fetch rows'):
                 count = [row[0] for row in c]
+                logging.debug('row: %r', row)
+                logging.debug('count: %r', count)
         except BaseException:
             with self._m.new('put conn (except)'):
                 sql.put_conn(conn)
@@ -199,13 +200,13 @@ class ReadOnlyStorage(object):
         assert rule in rule_queries.keys()
 
         queries = []
-        count_query = u''
+        count_queries = []
         for table_name, column_name, column_type in schema:
             rand_name = unicode(uuid.uuid4())
             if column_name == key:
                 query = u'SELECT DISTINCT {0}.id FROM {0} WHERE '.format(
                     sql.quote(table_name))
-                count_query += u'SELECT COUNT({0}.id) FROM {0} WHERE '.format(
+                count_query = u'SELECT COUNT({0}.id) FROM {0} WHERE '.format(
                     sql.quote(table_name))
                 qualified_name = sql.qualified_column(table_name, column_name)
                 if column_type == unicode:
@@ -220,10 +221,12 @@ class ReadOnlyStorage(object):
                     table_name, rand_name)
                 values[name] = self._cast_value(value)
                 queries.append(query)
+                count_queries.append(count_query)
         if not queries:
             # key did not match column name in any table
             raise FieldNotInResource(field=key)
-        return (u'(' + u' UNION '.join(queries) + u')', count_query)
+        return (u'(' + u' UNION '.join(queries) + u')',
+                u'(' + u' + '.join(count_queries) + u')')
 
     def _kludge_add_ids(self, sql, query, values, ids):  # pragma: no cover
         name = unicode(uuid.uuid4())
