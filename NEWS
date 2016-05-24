@@ -4,6 +4,11 @@ NEWS for Qvarn
 Version 0.68+git, not yet released
 ----------------------------------
 
+* Attempt to improve the speed of search queries, by Ville Niskala.
+  This version attempts to avoid unnecessary queries, and to implement
+  an AND between conditions in a more efficient way. However, this
+  hasn't been benchmarked yet: this release is to enable benchmarks to
+  be run.
 
 Version 0.68, released 2016-05-23
 ----------------------------------
