@@ -142,7 +142,7 @@ class ReadOnlyStorage(object):
         if len(queries) > 1:
             query = u' INTERSECT '.join(query[0] for query in queries)
         else:
-            query = queries[0]
+            query = queries[0][0]
         logging.debug('kludge: query: %r', query)
         logging.debug('kludge: values: %r', values)
         return self._kludge_execute(sql, query, values)
