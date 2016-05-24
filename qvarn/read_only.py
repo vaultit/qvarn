@@ -116,28 +116,28 @@ class ReadOnlyStorage(object):
             for idx, query_set in enumerate(queries):
                 count = self._kludge_execute_count(sql, query_set[1], values)
                 counts.append((idx, count))
-                ids = []
-                for index, (query_index, count) in enumerate(sorted(
-                        counts, key=lambda tup: tup[1])):
-                    if count == 0:
-                        return []
-                    else:
-                        query = queries[query_index]
-                        if index == 0:
-                            if count < 10000:
-                                ids = self._kludge_execute(sql, query, values)
-                            else:
-                                break
-                        else:
-                            query = self._kludge_add_ids(sql, query, values, ids)
-                            logging.debug('kludge: query: %r', query)
-                            logging.debug('kludge: values: %r', values)
-                            temp_ids = self._kludge_execute(
-                                sql, query, values)
-                            ids = [filter(lambda x: x in ids, sublist)
-                                   for sublist in temp_ids]
+            ids = []
+            for index, (query_index, count) in enumerate(sorted(
+                    counts, key=lambda tup: tup[1])):
+                if count == 0:
+                    return []
                 else:
-                    return ids
+                    query = queries[query_index]
+                    if index == 0:
+                        if count < 10000:
+                            ids = self._kludge_execute(sql, query, values)
+                        else:
+                            break
+                    else:
+                        query = self._kludge_add_ids(sql, query, values, ids)
+                        logging.debug('kludge: query: %r', query)
+                        logging.debug('kludge: values: %r', values)
+                        temp_ids = self._kludge_execute(
+                            sql, query, values)
+                        ids = [filter(lambda x: x in ids, sublist)
+                               for sublist in temp_ids]
+            else:
+                return ids
 
         if len(queries) > 1:
             query = u' INTERSECT '.join(query[0] for query in queries)
@@ -179,9 +179,8 @@ class ReadOnlyStorage(object):
             with self._m.new('execute'):
                 c.execute(query, values)
             with self._m.new('fetch rows'):
-                count = [row[0][0] for row in c]
-                logging.debug('row: %r', row)
-                logging.debug('count: %r', count)
+                count = [row[0] for row in c]
+                logging.debug('count: %d', count)
         except BaseException:
             with self._m.new('put conn (except)'):
                 sql.put_conn(conn)
