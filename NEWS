@@ -1,7 +1,7 @@
 NEWS for Qvarn
 ==============
 
-Version 0.68+git, not yet released
+Version 0.69, released 2016-05-24
 ----------------------------------
 
 * Attempt to improve the speed of search queries, by Ville Niskala.
