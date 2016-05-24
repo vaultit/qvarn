@@ -60,3 +60,6 @@ qvarn/authorization_plugin.py
 # Contains only subclasses of BackendException that don't add any additional
 # functionality.
 qvarn/http_statuses.py
+
+# Contains version number.
+qvarn/version.py
