@@ -139,8 +139,10 @@ class ReadOnlyStorage(object):
                 else:
                     return ids
 
-        logging.debug('kludge: I AM HERE!!!')
-        query = u' INTERSECT '.join(query[0] for query in queries)
+        if len(queries) > 1:
+            query = u' INTERSECT '.join(query[0] for query in queries)
+        else:
+            query = queries[0]
         logging.debug('kludge: query: %r', query)
         logging.debug('kludge: values: %r', values)
         return self._kludge_execute(sql, query, values)
@@ -177,7 +179,7 @@ class ReadOnlyStorage(object):
             with self._m.new('execute'):
                 c.execute(query, values)
             with self._m.new('fetch rows'):
-                count = [row[0] for row in c]
+                count = [row[0][0] for row in c]
                 logging.debug('row: %r', row)
                 logging.debug('count: %r', count)
         except BaseException:
