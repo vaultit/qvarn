@@ -225,8 +225,11 @@ class ReadOnlyStorage(object):
         if not queries:
             # key did not match column name in any table
             raise FieldNotInResource(field=key)
-        return (u'(' + u' UNION '.join(queries) + u')',
-                u'(' + u' + '.join(count_queries) + u')')
+        if len(count_queries) > 1:
+            count_query = u'SELECT (' + u' + '.join(count_queries) + u')'
+        else:
+            count_query = count_queries[0]
+        return (u'(' + u' UNION '.join(queries) + u')', count_query)
 
     def _kludge_add_ids(self, sql, query, values, ids):  # pragma: no cover
         name = unicode(uuid.uuid4())
