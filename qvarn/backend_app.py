@@ -201,7 +201,7 @@ class BackendApplication(object):
         else:
             logging.basicConfig(level=logging.DEBUG, format=format_string)
         logging.info('========================================')
-        logging.info('{} starts'.format(sys.argv[0]))
+        logging.info('%s starts', sys.argv[0])
 
     def _install_logging_plugin(self):
         logging_plugin = qvarn.LoggingPlugin()

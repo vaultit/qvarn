@@ -64,4 +64,4 @@ def _default_value(proto, field_name):
 
 
 def _is_list_of_dicts(value):
-    return isinsntance(value, list) and value and isinstance(value[0], dict)
+    return isinstance(value, list) and value and isinstance(value[0], dict)
