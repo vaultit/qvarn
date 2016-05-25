@@ -4,6 +4,9 @@ NEWS for Qvarn
 Version 0.69+git, not yet released
 ----------------------------------
 
+* Improve speed of searches by dropping the previous approach
+  (COUNT(id) turns out to be slow in Postgres) and using INNER JOIN
+  instead. By Ville Niskala.
 
 Version 0.69, released 2016-05-24
 ----------------------------------
