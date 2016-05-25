@@ -177,7 +177,7 @@ class ReadOnlyStorage(object):
                 conds.append(rule_queries[rule].format(
                     qualified_name,
                     sql.format_qualified_placeholder(
-                        table_name, rand_name))
+                        table_name, rand_name)))
                 name = sql.format_qualified_placeholder_name(
                     table_name, rand_name)
                 values[name] = self._cast_value(value)
