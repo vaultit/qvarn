@@ -22,8 +22,9 @@
 import urllib
 import urlparse
 
-import qvarn
 import bottle
+
+import qvarn
 
 
 class ListResource(object):

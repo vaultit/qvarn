@@ -20,8 +20,9 @@
 '''File resources in the HTTP API.'''
 
 
-import qvarn
 import bottle
+
+import qvarn
 
 
 class FileResource(object):
