@@ -1,0 +1,30 @@
+NEWS for Qvarn
+==============
+
+Version 0.69+git, not yet released
+----------------------------------
+
+
+Version 0.69, released 2016-05-24
+----------------------------------
+
+* Attempt to improve the speed of search queries, by Ville Niskala.
+  This version attempts to avoid unnecessary queries, and to implement
+  an AND between conditions in a more efficient way. However, this
+  hasn't been benchmarked yet: this release is to enable benchmarks to
+  be run.
+
+Version 0.68, released 2016-05-23
+----------------------------------
+
+* No-change release, to trigger a new build. Sorry.
+
+Version 0.67, released 2016-05-23
+----------------------------------
+
+* Missing build dependencies added to Debian packaging.
+
+Version 0.66, released 2016-05-23
+----------------------------------
+
+* This is the first release with a NEWS file.

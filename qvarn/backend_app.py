@@ -153,6 +153,7 @@ class BackendApplication(object):
     def _connect_to_storage(self, conf):
         '''Prepare the database for use.'''
 
+        logging.debug('Connecting to storage')
         sql = qvarn.PostgresAdapter(
             host=conf.get('database', 'host'),
             port=conf.get('database', 'port'),
@@ -169,6 +170,7 @@ class BackendApplication(object):
     def _prepare_storage(self, conf):
         '''Prepare the database for use.'''
         if not conf.getboolean('database', 'readonly'):
+            logging.debug('Preparing storage')
             with self._dbconn.transaction() as t:
                 self._vs.prepare_storage(t)
 

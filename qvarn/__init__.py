@@ -16,6 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from .version import __version__, __version_info__
+
 from .exc import BackendException
 from .http_statuses import (
     HTTPError, BadRequest, Unauthorized, Forbidden, NotFound, Conflict,
