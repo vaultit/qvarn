@@ -18,6 +18,12 @@
 
 from .version import __version__, __version_info__
 
+from .slog import (
+    StructuredLog,
+    NullSlogWriter,
+    FileSlogWriter,
+    SyslogSlogWriter,
+)
 from .exc import BackendException
 from .http_statuses import (
     HTTPError, BadRequest, Unauthorized, Forbidden, NotFound, Conflict,

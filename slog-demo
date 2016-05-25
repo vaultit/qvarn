@@ -1,8 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# slog-demo - show off structured logging
 #
-# setup.py - standard Python build-and-package program
-#
-# Copyright 2015, 2016 Suomen Tilaajavastuu Oy
+# Copyright 2016  QvarnLabs Ab
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -18,17 +17,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from distutils.core import setup
-
 import qvarn
 
 
-setup(
-    name='qvarn',
-    version=qvarn.__version__,
-    description='backend service for JSON and binary data storage',
-    author='Suomen Tilaajavastuu Oy',
-    author_email='tilaajavastuu.hifi@tilaajavastuu.fi',
-    packages=['qvarn'],
-    scripts=['slog-pretty', 'slog-errors'],
-)
+writer = qvarn.FileSlogWriter()
+writer.set_filename_prefix('slog-demo')
+
+log = qvarn.StructuredLog()
+log.set_log_writer(writer)
+log.set_context('demo')
+log.log('intro', msg_text='hello, there, this is a structured log file')
+log.log('intro', msg_text='each line is JSON')
+log.close()

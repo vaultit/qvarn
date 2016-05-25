@@ -1,0 +1,54 @@
+#!/usr/bin/env python
+#
+# Read Qvarn structured log files, look for errors, and output all
+# messages related to a failed HTTP request (status code 5xx).
+
+
+import json
+import sys
+
+
+def parse_log_file(filename):
+    with open(filename) as f:
+        for line in f:
+            yield json.loads(line)
+
+
+def find_contexts(msgs):
+    contexts = set()
+    for msg in msgs:
+        contexts.add(msg['_context'])
+    return contexts
+
+
+def filter_msgs(msgs, func):
+    for msg in msgs:
+        if func(msg):
+            yield msg
+
+def has_error_status(msgs):
+    for msg in msgs:
+        if msg['msg_type'] == 'error':
+            return True
+        if msg['msg_type'] == 'http-response':
+            if msg['status'].startswith('500'):
+                return True
+    return False
+
+
+def show_msgs(msgs):
+    sys.stdout.write(json.dumps(msgs))
+    sys.stdout.write('\n')
+
+
+msgs = []
+for filename in sys.argv[1:]:
+    for msg in parse_log_file(filename):
+        msgs.append(msg)
+
+
+contexts = find_contexts(msgs)
+for context in contexts:
+    context_msgs = list(filter_msgs(msgs, lambda m: m['_context'] == context))
+    if has_error_status(context_msgs):
+        show_msgs(context_msgs)
