@@ -25,7 +25,7 @@ def add_missing_item_fields(item_type, prototype, item):
     # validation, so we don't need to react to it here. (Famous last
     # words.)
 
-    if type(item) is not dict:
+    if not isinstance(item, dict):
         return
 
     if u'type' not in item and u'type' in prototype:
@@ -42,7 +42,7 @@ def _fill_in_dict_fields(proto_dict, some_dict):
     for field_name in proto_dict:
         if _is_list_of_dicts(proto_dict[field_name]):
             for field in some_dict[field_name]:
-                if type(field) is dict:
+                if isinstance(field, dict):
                     _fill_in_dict_fields(proto_dict[field_name][0], field)
 
 
@@ -64,4 +64,4 @@ def _default_value(proto, field_name):
 
 
 def _is_list_of_dicts(value):
-    return type(value) is list and value and type(value[0]) is dict
+    return isinsntance(value, list) and value and isinstance(value[0], dict)

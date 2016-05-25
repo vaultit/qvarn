@@ -96,7 +96,7 @@ class BackendApplication(object):
         try:
             self.run_helper()
         except SystemExit as e:
-            sys.exit(e.code if type(e.code) == int else 1)
+            sys.exit(e.code if isinstance(e.code, int) else 1)
         except BaseException as e:
             logging.critical(str(e), exc_info=True)
             sys.exit(1)

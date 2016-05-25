@@ -77,7 +77,7 @@ class ItemValidator(object):
             self._validate_field(prototype, item, field_name)
 
     def _validate_is_dict(self, thing):
-        if type(thing) is not dict:
+        if not isinstance(thing, dict):
             raise ItemMustBeDict(conflicting_type=str(type(thing)))
 
     def _validate_has_type_field(self, thing):
@@ -104,9 +104,9 @@ class ItemValidator(object):
         item_value = item[field_name]
 
         simple_types = (unicode, bool, int)
-        if type(proto_value) in simple_types:
+        if isinstance(proto_value, simple_types):
             self._validate_simple_value(proto_value, item_value)
-        elif type(proto_value) is list:
+        elif isinstance(proto_value, list):
             self._validate_list_value(proto_value, item_value)
         else:
             raise InvalidValueInPrototype(
@@ -115,7 +115,7 @@ class ItemValidator(object):
     def _validate_simple_value(self, proto_value, item_value):
         if item_value is None:
             return
-        if type(proto_value) != type(item_value):
+        if not isinstance(item_value, type(proto_value)):
             raise WrongTypeValue(
                 expected_type=str(type(proto_value)),
                 conflicting_type=str(type(item_value)))
@@ -123,24 +123,24 @@ class ItemValidator(object):
     def _validate_list_value(self, proto_value, item_value):
         if len(proto_value) != 1:
             raise PrototypeListMustHaveOneValue(item=proto_value)
-        if type(proto_value[0]) not in (unicode, dict):
+        if not isinstance(proto_value[0], (unicode, dict)):
             raise PrototypeListMustHaveStringsOrDicts(prototype=proto_value)
-        if type(item_value) is not list:
+        if not isinstance(item_value, list):
             raise ItemMustHaveList(conflicting_type=str(type(item_value)))
-        if type(proto_value[0]) is unicode:
+        if isinstance(proto_value[0], unicode):
             self._validate_list_of_strings(item_value)
-        elif type(proto_value[0]) is dict:
+        elif isinstance(proto_value[0], dict):
             self._validate_list_of_dicts(proto_value, item_value)
 
     def _validate_list_of_strings(self, item_value):
         for i, value in enumerate(item_value):
-            if type(value) is not unicode:
+            if not isinstance(value, unicode):
                 raise ItemListMustContainStrings(
                     position=i, conflicting_value=repr(value))
 
     def _validate_list_of_dicts(self, proto_value, item_value):
         for i, value in enumerate(item_value):
-            if type(value) is not dict:
+            if not isinstance(value, dict):
                 raise ItemListMustContainStrings(pos=i, value=value)
             self._validate_dict(proto_value[0], value)
 
