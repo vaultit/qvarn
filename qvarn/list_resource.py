@@ -15,6 +15,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Pylint doesn't fully understand what bottle does and doesn't know
+# about all the members in all the objects. Disable related warnigs for
+# this module.
+#
+# pylint: disable=no-member
+# pylint: disable=unsubscriptable-object
+
 
 '''Multi-item resources in the HTTP API.'''
 
@@ -22,8 +29,9 @@
 import urllib
 import urlparse
 
-import qvarn
 import bottle
+
+import qvarn
 
 
 class ListResource(object):

@@ -105,5 +105,6 @@ pylint --rcfile /dev/null \
        --disable fixme \
        --disable too-many-branches \
        --disable too-many-locals \
+       --disable locally-disabled \
        \
        qvarn src/*

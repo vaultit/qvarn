@@ -17,8 +17,9 @@
 
 
 import unittest
-import jwt
 import time
+
+import jwt
 
 import qvarn
 

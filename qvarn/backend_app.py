@@ -17,11 +17,12 @@
 
 
 import argparse
-import bottle
 import ConfigParser
 import logging
 import logging.handlers
 import sys
+
+import bottle
 
 import qvarn
 
@@ -96,7 +97,7 @@ class BackendApplication(object):
         try:
             self.run_helper()
         except SystemExit as e:
-            sys.exit(e.code if type(e.code) == int else 1)
+            sys.exit(e.code if isinstance(e.code, int) else 1)
         except BaseException as e:
             logging.critical(str(e), exc_info=True)
             sys.exit(1)
@@ -200,7 +201,7 @@ class BackendApplication(object):
         else:
             logging.basicConfig(level=logging.DEBUG, format=format_string)
         logging.info('========================================')
-        logging.info('{} starts'.format(sys.argv[0]))
+        logging.info('%s starts', sys.argv[0])
 
     def _install_logging_plugin(self):
         logging_plugin = qvarn.LoggingPlugin()

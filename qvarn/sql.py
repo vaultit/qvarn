@@ -111,7 +111,7 @@ class SqlAdapter(object):
         return u'{}.{}'.format(self.quote(table_name), self.quote(column_name))
 
     def format_create_table(self, table_name, column_name_types):
-        assert type(column_name_types) is dict
+        assert isinstance(column_name_types, dict)
 
         column_specs = [
             u'{} {}'.format(self.quote(col_name), self.type_name[col_type])
