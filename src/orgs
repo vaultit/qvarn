@@ -94,7 +94,7 @@ org_prototype_v2 = {
 }
 
 
-org_prototype_current = org_prototype_v3 = {
+org_prototype_v3 = {
     u'type': u'',
     u'id': u'',
     u'revision': u'',
@@ -124,6 +124,40 @@ org_prototype_current = org_prototype_v3 = {
             u'einvoice_address': u'',
         },
     ],
+}
+
+
+org_prototype_current = org_prototype_v4 = {
+    u'type': u'',
+    u'id': u'',
+    u'revision': u'',
+    u'country': u'',
+    u'names': [u''],
+    u'gov_org_ids': [
+        {
+            u'country': u'',
+            u'org_id_type': u'',
+            u'gov_org_id': u'',
+        },
+    ],
+    u'contacts': [
+        {
+            u'contact_type': u'',
+            u'contact_roles': [u''],
+            u'contact_source': u'',
+            u'contact_timestamp': u'',
+            u'phone_number': u'',
+            u'email_address': u'',
+            u'full_address': u'',
+            u'country': u'',
+            u'address_lines': [u''],
+            u'post_code': u'',
+            u'post_area': u'',
+            u'einvoice_operator': u'',
+            u'einvoice_address': u'',
+        },
+    ],
+    u'is_luotettava_kumppani_member': False,
 }
 
 
@@ -183,6 +217,12 @@ def setup():
 
     vs.start_version(u'v3', None)
     vs.add_prototype(org_prototype_v3)
+    vs.add_prototype(org_sync_prototype, subpath=u'sync')
+    vs.add_prototype(qvarn.listener_prototype, auxtable=u'listener')
+    vs.add_prototype(qvarn.notification_prototype, auxtable=u'notification')
+
+    vs.start_version(u'v4', None)
+    vs.add_prototype(org_prototype_v4)
     vs.add_prototype(org_sync_prototype, subpath=u'sync')
     vs.add_prototype(qvarn.listener_prototype, auxtable=u'listener')
     vs.add_prototype(qvarn.notification_prototype, auxtable=u'notification')

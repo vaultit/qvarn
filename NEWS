@@ -7,6 +7,11 @@ Version 0.70+git, not yet released
 * Some source code cleanups have been made to placate the pylint tool.
   This should not be visible to users.
 
+* Put back the `org.is_luotettava_kumppani_member` field, which got
+  dropped earlier. A client application is using it and it's faster to
+  un-break Qvarn by adding the field than to ask them to fix their
+  end. We'll re-remove the field later, at a more opportune moment.
+
 Version 0.70, released 2016-05-25
 ----------------------------------
 
