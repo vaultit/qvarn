@@ -1,7 +1,7 @@
 NEWS for Qvarn
 ==============
 
-Version 0.70+git, not yet released
+Version 0.71, released 2016-05-26
 ----------------------------------
 
 * Some source code cleanups have been made to placate the pylint tool.
