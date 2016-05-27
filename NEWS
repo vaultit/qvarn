@@ -4,6 +4,7 @@ NEWS for Qvarn
 Version 0.71+git, not yet released
 ----------------------------------
 
+* The `/version` now reports the correct version number.
 
 Version 0.71, released 2016-05-26
 ----------------------------------
