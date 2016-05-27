@@ -24,11 +24,11 @@ import qvarn
 def version():
     return {
         'api': {
-            'version': '1.0',
+            'version': qvarn.__version__,
         },
         'implementation': {
-            'version': 'see git',
             'name': 'Qvarn',
+            'version': qvarn.__version__,
         },
     }
 
