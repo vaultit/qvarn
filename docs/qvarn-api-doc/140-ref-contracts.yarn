@@ -688,19 +688,19 @@ Create a new Tilaajavastuu account contract.
     ...         "type": "person",
     ...         "resource_id": "125",
     ...         "role": "user",
-    ...		"username": "sherlockholmes"
+    ...	        "username": "sherlockholmes"
     ...     },
     ...     {
     ...         "type": "org",
     ...         "resource_id": "secret",
     ...         "role": "target",
-    ...		"user_role": "detective",
-    ...		"permissions": [
+    ...	        "user_role": "detective",
+    ...	        "permissions": [
     ...             {
     ...		        "permission_name": "taito_user"
     ...             }
     ...         ],
-    ...		"global_permissions": [
+    ...	        "global_permissions": [
     ...             {
     ...		        "permission_name": "korttivarasto_user"
     ...             }
@@ -719,19 +719,19 @@ Create a new Tilaajavastuu account contract.
     ...         "type": "person",
     ...         "resource_id": "125",
     ...         "role": "user",
-    ...		"username": "sherlockholmes"
+    ...	        "username": "sherlockholmes"
     ...     },
     ...     {
     ...         "type": "org",
     ...         "resource_id": "secret",
     ...         "role": "target",
-    ...		"user_role": "detective",
-    ...		"permissions": [
+    ...	        "user_role": "detective",
+    ...	        "permissions": [
     ...             {
     ...		        "permission_name": "taito_user"
     ...             }
     ...         ],
-    ...		"global_permissions": [
+    ...	        "global_permissions": [
     ...             {
     ...		        "permission_name": "korttivarasto_user"
     ...             }
