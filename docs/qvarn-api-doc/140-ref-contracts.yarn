@@ -697,12 +697,12 @@ Create a new Tilaajavastuu account contract.
     ...	        "user_role": "detective",
     ...	        "permissions": [
     ...             {
-    ...		        "permission_name": "taito_user"
+    ...	                "permission_name": "taito_user"
     ...             }
     ...         ],
     ...	        "global_permissions": [
     ...             {
-    ...		        "permission_name": "korttivarasto_user"
+    ...	                "permission_name": "korttivarasto_user"
     ...             }
     ...         ]
     ...     }
@@ -728,12 +728,12 @@ Create a new Tilaajavastuu account contract.
     ...	        "user_role": "detective",
     ...	        "permissions": [
     ...             {
-    ...		        "permission_name": "taito_user"
+    ...	                "permission_name": "taito_user"
     ...             }
     ...         ],
     ...	        "global_permissions": [
     ...             {
-    ...		        "permission_name": "korttivarasto_user"
+    ...	                "permission_name": "korttivarasto_user"
     ...             }
     ...         ]
     ...     }
@@ -766,12 +766,12 @@ Check that the record is there.
     ...		"user_role": "detective",
     ...		"permissions": [
     ...             {
-    ...		        "permission_name": "taito_user"
+    ...	                "permission_name": "taito_user"
     ...             }
     ...         ],
     ...		"global_permissions": [
     ...             {
-    ...		        "permission_name": "korttivarasto_user"
+    ...	                "permission_name": "korttivarasto_user"
     ...             }
     ...         ]
     ...     }
