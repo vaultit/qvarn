@@ -52,6 +52,13 @@ class BackendApplication(object):
 
     def __init__(self):
         self._app = bottle.app()
+
+        # We'll parse the HTTP request body ourselves, because Bottle
+        # sometimes wants to use simplejson, which returns plain
+        # strings instead of Unicode strings, and that's not
+        # acceptable to us.
+        self._app.config['autojson'] = False
+
         self._dbconn = None
         self._vs = None
         self._resources = []

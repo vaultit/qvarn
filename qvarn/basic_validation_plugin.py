@@ -22,6 +22,8 @@
 # pylint: disable=unsubscriptable-object
 # pylint: disable=unsupported-membership-test
 
+import json
+
 import bottle
 
 import qvarn
@@ -61,27 +63,28 @@ class BasicValidationPlugin(object):
         return callback
 
     def _check_json(self):
+        if bottle.request.content_type != 'application/json':
+            raise ContentIsNotJSON()
         try:
-            if bottle.request.json is None:
-                raise ContentTypeIsNotJSON()
+            obj = json.load(bottle.request.body)
         except ValueError:
-            # When Bottle parses the body as JSON, if it fails, it
-            # raises the ValueError exception. We catch this and
-            # report the API client the content is not JSON.
-            #
-            # Any other errors will result in HTTP status 500
-            # (internal error), which is fine.
             raise ContentIsNotJSON()
 
+        bottle.request.qvarn_json = obj
+        qvarn.log.log(
+            'json-parse',
+            obj_repr=repr(obj),
+            qvarn_json_repr=repr(bottle.request.qvarn_json))
+
     def _check_create_json(self):
-        item = bottle.request.json
+        item = bottle.request.qvarn_json
         if u'id' in item:
             raise NewItemHasIdAlready(item_id=item[u'id'])
         if u'revision' in item:
             raise NewItemHasRevisionAlready(revision=item[u'revision'])
 
     def _check_update_json(self, kwargs):
-        item = bottle.request.json
+        item = bottle.request.qvarn_json
         item_route_id = kwargs[self._id_field_name]
         if u'id' in item and item[u'id'] != item_route_id:
             raise ItemHasConflictingId(

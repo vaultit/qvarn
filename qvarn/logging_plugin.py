@@ -86,13 +86,11 @@ class LoggingPlugin(object):
         )
 
         try:
-            if r.method in ('POST', 'PUT') and r.json:
+            if r.method in ('POST', 'PUT'):
                 body_text = r.body.read()
                 qvarn.log.log(
                     'http-request-body',
-                    body=r.json,
-                    body_text_repr=repr(body_text),
-                    body_json_repr=repr(r.json))
+                    body_text_repr=repr(body_text))
         except ValueError:
             # When Bottle parses the body as JSON, if it fails, it
             # raises the ValueError exception. We catch this and
