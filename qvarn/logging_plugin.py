@@ -69,6 +69,11 @@ class LoggingPlugin(object):
         '''Log an HTTP request, with arguments and body.'''
         r = bottle.request
 
+        # Do not log the values of these headers.
+        hidden_headers = [
+            'Authorization',
+        ]
+
         qvarn.log.log(
             'http-request',
             method=r.method,
@@ -80,7 +85,11 @@ class LoggingPlugin(object):
             # unknown. (lighttpd + flup + bottle header dict +
             # Content-Length -problem).
             headers={
-                key: bottle.request.headers.get(key)
+                key: (
+                    'HIDDEN'
+                    if key in hidden_headers
+                    else bottle.request.headers.get(key)
+                )
                 for key in bottle.request.headers
             }
         )
