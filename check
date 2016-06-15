@@ -88,6 +88,10 @@ pep8 qvarn/*.py src/*
 #       fixme                           allow TODO and FIXME comments, these
 #                                       these are often useful reminder for
 #                                       things to be optimized or changed later
+#
+#       redefined-variable-type         pylint whinges about a variable getting
+#                                       assigned different values that are all
+#                                       objects with the same supertype. Ugh.
 
 pylint --rcfile /dev/null \
        --persistent no \
@@ -106,5 +110,6 @@ pylint --rcfile /dev/null \
        --disable too-many-branches \
        --disable too-many-locals \
        --disable locally-disabled \
+       --disable redefined-variable-type \
        \
        qvarn src/*
