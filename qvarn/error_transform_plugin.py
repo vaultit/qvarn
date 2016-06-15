@@ -35,7 +35,9 @@ class ErrorTransformPlugin(object):
             try:
                 result = callback(*args, **kwargs)
                 return result
-            except qvarn.BackendException, e:
+            except qvarn.BackendException as e:
+                qvarn.log.log(
+                    'backend-exception', msg_text=str(e), exc_info=True)
                 bottle.response.status = e.status_code
                 return e.error
         return wrapper

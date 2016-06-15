@@ -40,7 +40,7 @@ from .write_only import (
     WriteOnlyStorage, CannotAddWithId, CannotAddWithRevision,
     WrongRevision)
 from .read_only import ReadOnlyStorage, ItemDoesNotExist, FieldNotInResource
-from .backend_app import BackendApplication
+from .backend_app import BackendApplication, log
 from .filler import add_missing_item_fields
 from .util import (
     route_to_scope,
