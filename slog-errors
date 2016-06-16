@@ -15,10 +15,15 @@ def parse_log_file(filename):
 
 
 def find_contexts(msgs):
-    contexts = set()
-    for msg in msgs:
-        contexts.add(msg['_context'])
-    return contexts
+    return set(get_context(msg) for msg in msgs)
+
+
+def get_context(msg):
+    return msg['_context'], msg['_process_id'], msg['_thread_id']
+
+
+def is_in_context(msg, context):
+    return get_context(msg) == context
 
 
 def filter_msgs(msgs, func):
@@ -48,6 +53,6 @@ for filename in sys.argv[1:]:
 
 contexts = find_contexts(msgs)
 for context in contexts:
-    context_msgs = list(filter_msgs(msgs, lambda m: m['_context'] == context))
+    context_msgs = list(filter_msgs(msgs, lambda m: is_in_context(m, context)))
     if has_error_status(context_msgs):
         show_msgs(context_msgs)
