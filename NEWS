@@ -6,6 +6,10 @@ Version 0.71+git, not yet released
 
 * The `/version` now reports the correct version number.
 
+* Qvarn now uses structured logs. These are logs where each line is in
+  JSON. See the `slog-pretty` and `slog-errors` utilities for reading
+  such logs. Logs (in JSON) may also be sent to syslog.
+
 Version 0.71, released 2016-05-26
 ----------------------------------
 
