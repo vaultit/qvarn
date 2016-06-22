@@ -99,4 +99,4 @@ class InvalidAuthorizationHeaderFormat(qvarn.Forbidden):
 
 class InvalidAccessTokenError(qvarn.Unauthorized):
 
-    msg = u'Access token is invalid'
+    msg = u'Access token is invalid: {token_error}'
