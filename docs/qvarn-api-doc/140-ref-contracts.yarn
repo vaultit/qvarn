@@ -187,12 +187,14 @@ Create a new contract.
     ...     {
     ...         "type": "org",
     ...         "resource_id": "123",
-    ...         "role": "employer"
+    ...         "role": "employer",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "person",
     ...         "resource_id": "7",
-    ...         "role": "employee"
+    ...         "role": "employee",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "right_to_work_based_on": "eea_citizen",
@@ -215,12 +217,14 @@ Check that the record is there.
     ...     {
     ...         "type": "org",
     ...         "resource_id": "123",
-    ...         "role": "employer"
+    ...         "role": "employer",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "person",
     ...         "resource_id": "7",
-    ...         "role": "employee"
+    ...         "role": "employee",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "right_to_work_based_on": "eea_citizen",
@@ -244,12 +248,14 @@ Update the record.
     ...     {
     ...         "type": "org",
     ...         "resource_id": "123",
-    ...         "role": "employer"
+    ...         "role": "employer",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "person",
     ...         "resource_id": "7",
-    ...         "role": "employee"
+    ...         "role": "employee",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "right_to_work_based_on": "residence_permit"
@@ -265,12 +271,14 @@ Update the record.
     ...     {
     ...         "type": "org",
     ...         "resource_id": "123",
-    ...         "role": "employer"
+    ...         "role": "employer",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "person",
     ...         "resource_id": "7",
-    ...         "role": "employee"
+    ...         "role": "employee",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "right_to_work_based_on": "residence_permit"
@@ -307,12 +315,14 @@ Can not send documentation with no Content-Length header set.
     ...     {
     ...         "type": "org",
     ...         "resource_id": "123",
-    ...         "role": "employer"
+    ...         "role": "employer",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "person",
     ...         "resource_id": "7",
-    ...         "role": "employee"
+    ...         "role": "employee",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "right_to_work_based_on": "eea_citizen"
@@ -340,12 +350,14 @@ Update the main record, this should not affect the subrecord(s).
     ...     {
     ...         "type": "org",
     ...         "resource_id": "123",
-    ...         "role": "employer"
+    ...         "role": "employer",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "person",
     ...         "resource_id": "7",
-    ...         "role": "employee"
+    ...         "role": "employee",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "right_to_work_based_on": "eea_citizen"
@@ -358,12 +370,14 @@ Update the main record, this should not affect the subrecord(s).
     ...     {
     ...         "type": "org",
     ...         "resource_id": "123",
-    ...         "role": "employer"
+    ...         "role": "employer",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "person",
     ...         "resource_id": "7",
-    ...         "role": "employee"
+    ...         "role": "employee",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "right_to_work_based_on": "eea_citizen"
@@ -394,13 +408,15 @@ Create a new service account contract.
     ...         "type": "person",
     ...         "resource_id": "123",
     ...         "role": "user",
-    ...		"username": "mrbond",
-    ...		"user_role": "secret_agent"
+    ...         "username": "mrbond",
+    ...         "user_role": "secret_agent",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "org",
     ...         "resource_id": "MI6",
-    ...         "role": "target"
+    ...         "role": "target",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "preferred_language": "en"
@@ -416,13 +432,15 @@ Create a new service account contract.
     ...         "type": "person",
     ...         "resource_id": "123",
     ...         "role": "user",
-    ...		"username": "mrbond",
-    ...		"user_role": "secret_agent"
+    ...         "username": "mrbond",
+    ...         "user_role": "secret_agent",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "org",
     ...         "resource_id": "MI6",
-    ...         "role": "target"
+    ...         "role": "target",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "preferred_language": "en"
@@ -445,13 +463,15 @@ Check that the record is there.
     ...         "type": "person",
     ...         "resource_id": "123",
     ...         "role": "user",
-    ...		"username": "mrbond",
-    ...		"user_role": "secret_agent"
+    ...         "username": "mrbond",
+    ...         "user_role": "secret_agent",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "org",
     ...         "resource_id": "MI6",
-    ...         "role": "target"
+    ...         "role": "target",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "preferred_language": "en"
@@ -471,12 +491,14 @@ Create a new service application contract.
     ...     {
     ...         "type": "person",
     ...         "resource_id": "123",
-    ...         "role": "applicant"
+    ...         "role": "applicant",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "org",
     ...         "resource_id": "536457",
-    ...         "role": "applicant"
+    ...         "role": "applicant",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "contract_state_history": [
@@ -503,12 +525,14 @@ Create a new service application contract.
     ...     {
     ...         "type": "person",
     ...         "resource_id": "123",
-    ...         "role": "applicant"
+    ...         "role": "applicant",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "org",
     ...         "resource_id": "536457",
-    ...         "role": "applicant"
+    ...         "role": "applicant",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "contract_state_history": [
@@ -542,12 +566,14 @@ Check that the record is there.
     ...     {
     ...         "type": "person",
     ...         "resource_id": "123",
-    ...         "role": "applicant"
+    ...         "role": "applicant",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "org",
     ...         "resource_id": "536457",
-    ...         "role": "applicant"
+    ...         "role": "applicant",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "contract_state_history": [
@@ -581,17 +607,20 @@ Create a new ID06 contract.
     ...     {
     ...         "type": "org",
     ...         "resource_id": "123",
-    ...         "role": "issuer"
+    ...         "role": "issuer",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "org",
     ...         "resource_id": "536457",
-    ...         "role": "supplier"
+    ...         "role": "supplier",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "person",
     ...         "resource_id": "543534",
-    ...         "role": "issuer_contact"
+    ...         "role": "issuer_contact",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "id06_issuer_requires_bankid": false,
@@ -608,17 +637,20 @@ Create a new ID06 contract.
     ...     {
     ...         "type": "org",
     ...         "resource_id": "123",
-    ...         "role": "issuer"
+    ...         "role": "issuer",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "org",
     ...         "resource_id": "536457",
-    ...         "role": "supplier"
+    ...         "role": "supplier",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "person",
     ...         "resource_id": "543534",
-    ...         "role": "issuer_contact"
+    ...         "role": "issuer_contact",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "id06_issuer_requires_bankid": false,
@@ -642,17 +674,20 @@ Check that the record is there.
     ...     {
     ...         "type": "org",
     ...         "resource_id": "123",
-    ...         "role": "issuer"
+    ...         "role": "issuer",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "org",
     ...         "resource_id": "536457",
-    ...         "role": "supplier"
+    ...         "role": "supplier",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "person",
     ...         "resource_id": "543534",
-    ...         "role": "issuer_contact"
+    ...         "role": "issuer_contact",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "id06_issuer_requires_bankid": false,
