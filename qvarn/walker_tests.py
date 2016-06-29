@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import copy
 import unittest
 
 import qvarn
@@ -164,3 +165,26 @@ class ItemWalkerTests(unittest.TestCase):
     def test_defines_all_visitor_methods(self):
         iw = qvarn.ItemWalker()
         self.assertEqual(iw.walk_item(self.item, self.proto), None)
+
+    def test_raises_error_if_too_deeply_nested(self):
+        too_deep = {
+            u'one': [
+                {
+                    u'two': [
+                        {
+                            u'three': [
+                                {
+                                    u'ugh': False,
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        }
+
+        item = copy.deepcopy(too_deep)
+
+        iw = qvarn.ItemWalker()
+        with self.assertRaises(qvarn.TooDeeplyNestedPrototype):
+            iw.walk_item(item, too_deep)

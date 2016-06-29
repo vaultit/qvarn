@@ -115,6 +115,9 @@ class ItemWalker(object):
                 column_names = self._get_simple_columns(
                     proto_dict[inner_field][0])
                 for j in range(len(inner_list)):
+                    inner_dict = proto_dict[inner_field][j]
+                    if self._get_dict_lists(inner_dict):
+                        raise TooDeeplyNestedPrototype(prototype=proto_dict)
                     self.visit_dict_in_inner_list(
                         item, field, i, inner_field, j,
                         column_names)
@@ -153,3 +156,8 @@ class ItemWalker(object):
                                           inner_field, inner_pos,
                                           str_list_field):
         '''Visit str list in each dict in an inner dict list.'''
+
+
+class TooDeeplyNestedPrototype(qvarn.BackendException):
+
+    msg = u'Resource prototype is too deeply nested: {prototype!r}'
