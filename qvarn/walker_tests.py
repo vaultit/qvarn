@@ -46,6 +46,9 @@ class CatchingWalker(qvarn.ItemWalker):
     def visit_dict_in_list_str_list(self, *args):
         self.catch_args(u'dict_in_list_str_list', args)
 
+    def visit_inner_dict_list(self, *args):
+        self.catch_args(u'inner_dict_list', args)
+
 
 class ItemWalkerTests(unittest.TestCase):
 
@@ -60,12 +63,22 @@ class ItemWalkerTests(unittest.TestCase):
                 u'dict_str': u'',
                 u'dict_bool': False,
                 u'dict_str_list': [u'bar1', u'bar2'],
+                u'inner_dict_list': [
+                    {
+                        u'inner_dict_str': u'yoyo1',
+                    },
+                ],
             },
             {
                 u'dict2_int': 0,
                 u'dict2_str': u'',
                 u'dict2_bool': False,
                 u'dict2_str_list': [u'yo1', u'yo2'],
+                u'inner_dict_list2': [
+                    {
+                        u'inner_dict_str': u'yoyo2',
+                    },
+                ],
             },
         ],
     }
@@ -107,6 +120,15 @@ class ItemWalkerTests(unittest.TestCase):
             [
                 (self.proto, u'main_dict_list', 0, u'dict_str_list'),
                 (self.proto, u'main_dict_list', 1, u'dict_str_list'),
+            ])
+
+    def test_visits_inner_dict_list(self):
+        self.maxDiff = None
+        self.assertEqual(
+            self.iw.caught[u'inner_dict_list'],
+            [
+                (self.proto, u'main_dict_list', u'inner_dict_list',
+                 [u'inner_dict_str']),
             ])
 
     def test_defines_all_visitor_methods(self):

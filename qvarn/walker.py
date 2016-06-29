@@ -95,6 +95,14 @@ class ItemWalker(object):
         names = self._get_simple_columns(proto_dict)
         self.visit_main_dict_list(item, field, names)
 
+        # Call visit_inner_dict_list for each inner dict list.
+        # Once per list, not once per item in each list.
+        for inner_dict_list_field in self._get_dict_lists(proto_dict):
+            inner_dict = proto_dict[inner_dict_list_field][0]
+            column_names = self._get_simple_columns(inner_dict)
+            self.visit_inner_dict_list(
+                item, field, inner_dict_list_field, column_names)
+
         for i in range(len(item[field])):
             self.visit_dict_in_list(item, field, i, names)
             for str_list_field in self._get_str_lists(proto_dict):
@@ -119,3 +127,6 @@ class ItemWalker(object):
 
     def visit_dict_in_list_str_list(self, item, field, pos, str_list_field):
         '''Visit a string list in a dict in a list of dicts.'''
+
+    def visit_inner_dict_list(self, item, field, inner_field, column_names):
+        '''Visit a dict list inside a dict list.'''
