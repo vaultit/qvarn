@@ -51,8 +51,8 @@ Example result for a contract:
         "type": "contract",
         "id": "1234",
         "contract_type": "employment",
-	"start_date": "2015-03-01",
-	"end_date": "2015-08-31",
+        "start_date": "2015-03-01",
+        "end_date": "2015-08-31",
         "contract_parties": [
             {
                 "type": "org",
