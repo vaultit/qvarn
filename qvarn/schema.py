@@ -97,3 +97,17 @@ class SchemaWalker(qvarn.ItemWalker):
         for column_name in simple_columns:
             column_type = type(item[field][0][inner_field][0][column_name])
             self._add_column(table_name, column_name, column_type)
+
+    def visit_inner_dict_list_str_list(self, item, outer_field, outer_pos,
+                                       inner_field, inner_pos, str_list_field):
+        table_name = qvarn.table_name(
+            list_field=outer_field,
+            subdict_list_field=inner_field,
+            inner_dict_list_field=str_list_field,
+            **self._table_name_kwargs)
+        self._add_column(table_name, u'id', unicode)
+        self._add_column(table_name, u'dict_list_pos', int)
+        self._add_column(table_name, u'list_pos', int)
+        self._add_column(table_name, u'str_list_pos', int)
+        self._add_column(table_name, str_list_field, unicode)
+
