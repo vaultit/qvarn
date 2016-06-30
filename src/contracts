@@ -217,8 +217,6 @@ contract_prototype_current = contract_prototype_v4 = {
                     u'post_area': u'',
                 },
             ],
-            u'username': u'',
-            u'user_role': u'',
             u'permissions': [
                 {
                     u'permission_name': u'',
@@ -309,8 +307,7 @@ def validate_contract(obj):
             if party[u'role'] not in [u'inductor', u'inductee']:
                 raise InvalidPartyType(id=obj[u'id'])
 
-    if ((obj[u'contract_type'] is u'tilaajavastuu_account')
-        or (obj[u'contract_type'] is u'SBCC_account')):
+    if obj[u'contract_type'] in (u'tilaajavastuu_account', u'SBCC_account'):
         for party in obj[u'contract_parties']:
             if party[u'role'] not in [u'user', u'target']:
                 raise InvalidPartyType(id=obj[u'id'])

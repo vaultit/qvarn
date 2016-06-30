@@ -159,7 +159,7 @@ class ReadOnlyStorage(object):
         }
         rule, key, value = param
         assert rule in rule_queries.keys()
-        
+
         conds = []
         for table_name, column_name, column_type in schema:
             rand_name = unicode(uuid.uuid4())
