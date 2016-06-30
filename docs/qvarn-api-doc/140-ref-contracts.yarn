@@ -249,7 +249,18 @@ Update the record.
     ...         "type": "org",
     ...         "resource_id": "123",
     ...         "role": "employer",
-    ...         "contacts": []
+    ...         "contacts": [
+    ...             "contact_type": "address",
+    ...             "contact_source": "hat",
+    ...             "contact_timestamp": "20160630T141516",
+    ...             "phone_number": "",
+    ...             "email_address": "",
+    ...             "full_address": "10 Downing St, London, UK",
+    ...             "country": "UK",
+    ...             "address_lines": ["10 Downing St", "London", "UK"],
+    ...             "post_code": "1 BP",
+    ...             "post_area": "Buckingham Palace"
+    ...         ]
     ...     },
     ...     {
     ...         "type": "person",
@@ -272,7 +283,18 @@ Update the record.
     ...         "type": "org",
     ...         "resource_id": "123",
     ...         "role": "employer",
-    ...         "contacts": []
+    ...         "contacts": [
+    ...             "contact_type": "address",
+    ...             "contact_source": "hat",
+    ...             "contact_timestamp": "20160630T141516",
+    ...             "phone_number": "",
+    ...             "email_address": "",
+    ...             "full_address": "10 Downing St, London, UK",
+    ...             "country": "UK",
+    ...             "address_lines": ["10 Downing St", "London", "UK"],
+    ...             "post_code": "1 BP",
+    ...             "post_area": "Buckingham Palace"
+    ...         ]
     ...     },
     ...     {
     ...         "type": "person",
