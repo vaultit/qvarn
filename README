@@ -9,6 +9,26 @@ API" document in `docs/qvarn-api-doc`.
 This README contains an introduction to the code, aimed at the people
 who develop and/or deploy the code.
 
+Overview
+--------
+
+Qvarn stores structured data and provides secure, controlled access to
+it. A gross simplification would be that Qvarn is a database, accessed
+over a RESTful HTTP API, with a good authentication and authorization
+system.
+
+Qvarn deals with data in JSON form and is used by applications via an
+HTTP API, with access control using OpenID Connect and OAuth2. Various
+authentication methods, including strong ones, are provided by
+[Gluu][] and these can be added and adapted for local needs.
+
+The resource types Qvarn knows about are configurable, making Qvarn
+suitable to various application domains. Applications may be written
+in any language, using any framework, as long as they can use HTTP
+over TLS.
+
+[Gluu]: https://www.gluu.org/
+
 
 Development environment
 -----------------------
