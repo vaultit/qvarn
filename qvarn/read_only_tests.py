@@ -38,6 +38,11 @@ class ReadOnlyStorageTests(unittest.TestCase):
                 u'foobars': [u''],
                 u'foo': [u''],
                 u'bar': u'',
+                u'inner': [
+                    {
+                        u'inner_foo': u'',
+                    },
+                ],
             },
         ],
         u'bool': False
@@ -54,12 +59,18 @@ class ReadOnlyStorageTests(unittest.TestCase):
                 u'foobars': [],
                 u'foo': [],
                 u'bar': u'bong',
+                u'inner': [
+                    {
+                        u'inner_foo': u'inner_foo',
+                    },
+                ],
             },
             {
                 u'baz': u'blang',
                 u'foobars': [],
                 u'foo': [],
                 u'bar': u'Bang',
+                u'inner': [],
             },
         ],
         u'bool': True
@@ -108,9 +119,11 @@ class ReadOnlyStorageTests(unittest.TestCase):
             self.assertIn(added[u'id'], self.ro.get_item_ids(t))
 
     def test_gets_added_item(self):
+        self.maxDiff = None
         with self._dbconn.transaction() as t:
             added = self.wo.add_item(t, self.item)
-            self.assertEqual(added, self.ro.get_item(t, added[u'id']))
+            item = self.ro.get_item(t, added[u'id'])
+            self.assertEqual(added, item)
 
     def test_gets_empty_subitem_of_added_item(self):
         with self._dbconn.transaction() as t:
