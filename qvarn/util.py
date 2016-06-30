@@ -46,6 +46,8 @@ def table_name(**kwargs):
     * list_field, for additional tables for resource fields that are
       lists (whether lists of strings or dicts)
     * subdict_list_field, for list fields in dicts in lists of dicts
+    * inner_str_list-field, for a string list field in a dict in an
+      inner dict list
     * subpath, for paths for sub-resources
     * auxtable, for auxiliary tables for things not directly visible in
       the resource, such as listeners and notifications
@@ -58,8 +60,12 @@ def table_name(**kwargs):
             "age": 40,
             "aliases": [
                 {
-                    "names": ["Jimbo"],
-                    "active": false
+                    "active": false,
+                    "names": [
+                        {
+                            "alias": ["Jimbo"],
+                        }
+                    ]
                 }
             ]
         }
@@ -68,15 +74,25 @@ def table_name(**kwargs):
 
     * Main table for the resource:
       table_name(resource_type='agent')
+
     * Table for the list of names:
       table_name(resource_type='agent', list_field='names')
+
     * Table for the list of aliases dicts:
       table_name(resource_type='agent', list_field='aliases')
+
     * Table for the list of names for aliases:
       table_name(resource_type='agent', list_field='aliases',
                  subdict_list_field='names')
+
+    * Table for the list of names for alias names:
+      table_name(resource_type='agent', list_field='aliases',
+                 subdict_list_field='names',
+                 inner_dict_list_field='alias')
+
     * Table for listeners for the resource type:
       table_name(resource_type='agent', auxtable='listeners')
+
     * Table for listener listen-on values:
       table_name(resource_type='agent', auxtable='listeners',
                  list_field='listen_on')
@@ -86,6 +102,7 @@ def table_name(**kwargs):
     resource_type = kwargs.get('resource_type', u'')
     list_field = kwargs.get('list_field', u'')
     subdict_list_field = kwargs.get('subdict_list_field', u'')
+    inner_dict_list_field = kwargs.get('inner_dict_list_field', u'')
     subpath = kwargs.get('subpath', u'')
     auxtable = kwargs.get('auxtable', u'')
 
@@ -100,6 +117,8 @@ def table_name(**kwargs):
 
     decisions = [
         (lambda: not resource_type, None),
+        (lambda: inner_dict_list_field and
+         (not subdict_list_field or not list_field), None),
         (lambda: subdict_list_field and not list_field, None),
         (lambda: auxtable and subpath, None),
         (lambda: auxtable and subdict_list_field, None),
@@ -111,6 +130,9 @@ def table_name(**kwargs):
         (lambda: subpath and list_field,
          u'{resource_type}__path_{subpath}_{list_field}'),
         (lambda: subpath, u'{resource_type}__path_{subpath}'),
+        (lambda: list_field and subdict_list_field and inner_dict_list_field,
+         u'{resource_type}_{list_field}_{subdict_list_field}'
+         u'_{inner_dict_list_field}'),
         (lambda: list_field and subdict_list_field,
          u'{resource_type}_{list_field}_{subdict_list_field}'),
         (lambda: list_field, u'{resource_type}_{list_field}'),

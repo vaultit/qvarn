@@ -211,7 +211,7 @@ class ListResource(object):
     def post_item(self):
         '''Serve POST /foos to create a new item.'''
 
-        item = bottle.request.json
+        item = bottle.request.qvarn_json
         qvarn.add_missing_item_fields(
             self._item_type, self._item_prototype, item)
 
@@ -258,7 +258,7 @@ class ListResource(object):
     def put_item(self, item_id):
         '''Serve PUT /foos/123 to update an item.'''
 
-        item = bottle.request.json
+        item = bottle.request.qvarn_json
 
         qvarn.add_missing_item_fields(
             self._item_type, self._item_prototype, item)
@@ -278,7 +278,7 @@ class ListResource(object):
     def put_subitem(self, item_id, subitem_name):
         '''Serve PUT /foos/123/subitem to update a subitem.'''
 
-        subitem = bottle.request.json
+        subitem = bottle.request.qvarn_json
 
         subitem_type = u'%s_%s' % (self._item_type, subitem_name)
         prototype = self._subitem_prototypes.get(self._item_type, subitem_name)

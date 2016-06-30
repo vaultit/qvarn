@@ -1,8 +1,7 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
+# slog-demo - show off structured logging
 #
-# src/version - implement the /version resource
-#
-# Copyright 2015, 2016 Suomen Tilaajavastuu Oy
+# Copyright 2016  QvarnLabs Ab
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -21,30 +20,12 @@
 import qvarn
 
 
-def version():
-    return {
-        'api': {
-            'version': qvarn.__version__,
-        },
-        'implementation': {
-            'name': 'Qvarn',
-            'version': qvarn.__version__,
-        },
-    }
+writer = qvarn.FileSlogWriter()
+writer.set_filename_prefix('slog-demo')
 
-
-def setup():
-    app = qvarn.BackendApplication()
-
-    vs = qvarn.VersionedStorage()
-    vs.set_resource_type(u'version')
-    app.set_versioned_storage(vs)
-
-    resource = qvarn.SimpleResource()
-    resource.set_path(u'/version', version)
-    app.add_resource(resource)
-
-    return app.prepare_for_uwsgi()
-
-
-application = setup()
+log = qvarn.StructuredLog()
+log.set_log_writer(writer)
+log.set_context('demo')
+log.log('intro', msg_text='hello, there, this is a structured log file')
+log.log('intro', msg_text='each line is JSON')
+log.close()

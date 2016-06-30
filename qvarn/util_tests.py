@@ -61,6 +61,12 @@ class TableNameTests(unittest.TestCase):
             resource_type=u'foo', list_field=u'bar', subdict_list_field=u'yo')
         self.assertEqual(name, u'foo_bar_yo')
 
+    def test_returns_name_for_string_list_in_inner_dict_list(self):
+        name = qvarn.table_name(
+            resource_type=u'foo', list_field=u'bar', subdict_list_field=u'yo',
+            inner_dict_list_field='blah')
+        self.assertEqual(name, u'foo_bar_yo_blah')
+
     def test_returns_name_for_subresource(self):
         name = qvarn.table_name(
             resource_type=u'foo', subpath=u'bar')

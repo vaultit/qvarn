@@ -89,6 +89,47 @@ class SchemaFromPrototypeTests(unittest.TestCase):
                 (u'foo_vehicle_owners', u'owners', unicode),
             ]))
 
+    def test_gives_correct_schema_from_prototype_with_inner_dict_list(self):
+        prototype = {
+            u'type': u'',
+            u'id': u'',
+            u'vehicle': [
+                {
+                    u'vehicle_type': u'',
+                    u'owners': [
+                        {
+                            u'owner_names': [u''],
+                            u'owned_from_year': 0,
+                        },
+                    ],
+                },
+            ],
+        }
+        schema = qvarn.schema_from_prototype(
+            prototype, resource_type=u'foo')
+        self.maxDiff = None
+        self.assertEqual(
+            sorted(schema),
+            sorted([
+                (u'foo', u'type', unicode),
+                (u'foo', u'id', unicode),
+
+                (u'foo_vehicle', u'id', unicode),
+                (u'foo_vehicle', u'list_pos', int),
+                (u'foo_vehicle', u'vehicle_type', unicode),
+
+                (u'foo_vehicle_owners', u'id', unicode),
+                (u'foo_vehicle_owners', u'dict_list_pos', int),
+                (u'foo_vehicle_owners', u'list_pos', int),
+                (u'foo_vehicle_owners', u'owned_from_year', int),
+
+                (u'foo_vehicle_owners_owner_names', u'id', unicode),
+                (u'foo_vehicle_owners_owner_names', u'dict_list_pos', int),
+                (u'foo_vehicle_owners_owner_names', u'list_pos', int),
+                (u'foo_vehicle_owners_owner_names', u'str_list_pos', int),
+                (u'foo_vehicle_owners_owner_names', u'owner_names', unicode),
+            ]))
+
     def test_gives_correct_schema_from_prototype_for_subresource(self):
         prototype = {
             u'foo': u'',

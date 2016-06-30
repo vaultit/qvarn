@@ -95,11 +95,36 @@ class ItemWalker(object):
         names = self._get_simple_columns(proto_dict)
         self.visit_main_dict_list(item, field, names)
 
+        # Call visit_inner_dict_list for each inner dict list.
+        # Once per list, not once per item in each list.
+        for inner_dict_list_field in self._get_dict_lists(proto_dict):
+            inner_dict = proto_dict[inner_dict_list_field][0]
+            column_names = self._get_simple_columns(inner_dict)
+            self.visit_inner_dict_list(
+                item, field, inner_dict_list_field, column_names)
+
         for i in range(len(item[field])):
             self.visit_dict_in_list(item, field, i, names)
             for str_list_field in self._get_str_lists(proto_dict):
                 self.visit_dict_in_list_str_list(
                     item, field, i, str_list_field)
+
+            # Visit each dict in an inner dict list.
+            for inner_field in self._get_dict_lists(proto_dict):
+                inner_list = item[field][i].get(inner_field, [])
+                column_names = self._get_simple_columns(
+                    proto_dict[inner_field][0])
+                for j in range(len(inner_list)):
+                    inner_dict = proto_dict[inner_field][j]
+                    if self._get_dict_lists(inner_dict):
+                        raise TooDeeplyNestedPrototype(prototype=proto_dict)
+                    self.visit_dict_in_inner_list(
+                        item, field, i, inner_field, j,
+                        column_names)
+                    str_lists = self._get_str_lists(proto_dict[inner_field][0])
+                    for str_list_field in str_lists:
+                        self.visit_dict_in_inner_list_str_list(
+                            item, field, i, inner_field, j, str_list_field)
 
     def visit_main_dict(self, item, column_names):
         '''Visit the main dict of an item, and its simple columns.
@@ -119,3 +144,20 @@ class ItemWalker(object):
 
     def visit_dict_in_list_str_list(self, item, field, pos, str_list_field):
         '''Visit a string list in a dict in a list of dicts.'''
+
+    def visit_inner_dict_list(self, item, field, inner_field, column_names):
+        '''Visit a dict list inside a dict list.'''
+
+    def visit_dict_in_inner_list(self, item, outer_field, outer_pos,
+                                 inner_field, inner_pos, column_names):
+        '''Visit a dict in a dict list inside a dict list.'''
+
+    def visit_dict_in_inner_list_str_list(self, item, outer_field, outer_pos,
+                                          inner_field, inner_pos,
+                                          str_list_field):
+        '''Visit str list in each dict in an inner dict list.'''
+
+
+class TooDeeplyNestedPrototype(qvarn.BackendException):
+
+    msg = u'Resource prototype is too deeply nested: {prototype!r}'

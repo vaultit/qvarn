@@ -16,7 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import logging
 import random
 
 import qvarn
@@ -51,11 +50,9 @@ class VersionedStorage(object):
         v.add_prototype(prototype, kwargs)
 
     def prepare_storage(self, transaction):
-        logging.info('Preparing storage')
-
         self._prepare_versions_table(transaction)
         versions = self._get_known_versions(transaction)
-        logging.info('Prepared versions: %r', versions)
+        qvarn.log.log('previously-prepared-versions', versions=versions)
 
         if self._versions:
             first = self._versions[0]
@@ -84,8 +81,10 @@ class VersionedStorage(object):
             self._versions_table_name, {u'version': version.version})
 
     def _prepare_first_version(self, transaction, version):
-        logging.info('First version: %r', version.version)
-        logging.info('Creating tables: %r', version.prototype_list)
+        qvarn.log.log(
+            'prepare-first-version',
+            version=version.version,
+            prototype_list=version.prototype_list)
         qvarn.create_tables_for_resource_type(
             transaction, self._resource_type, version.prototype_list)
         if version.func:
@@ -94,9 +93,11 @@ class VersionedStorage(object):
     def _prepare_next_version(self, transaction, old_version, new_version):
         # This method is tricky. Pay attention.
 
-        logging.info(
-            'Upgrading from %r to %r',
-            old_version.version, new_version.version)
+        qvarn.log.log(
+            'upgrade-to-version',
+            old_version=old_version.version,
+            new_version=new_version.version,
+            prototype_list=new_version.prototype_list)
 
         # Create lookup tables (table name to column name list) for
         # each version.
@@ -105,16 +106,12 @@ class VersionedStorage(object):
 
         # Rename all changed tables and create new ones in their place.
         changed_tables = self._find_changed_tables(old_tables, new_tables)
-        for table in changed_tables:
-            logging.info('Changed table: %r', table)
         temp_tables = self._rename_tables(transaction, changed_tables)
         self._create_tables(
             transaction, new_version.prototype_list, changed_tables)
 
         # Create all added tables.
         added_tables = self._find_added_tables(old_tables, new_tables)
-        for table in added_tables:  # pragma: no cover
-            logging.info('Added table: %r', table)
         self._create_tables(
             transaction, new_version.prototype_list, added_tables)
 
@@ -131,19 +128,16 @@ class VersionedStorage(object):
         # This is where the app gets to munge data so nothing
         # important is lost during the schema transition, or to
         # fill in new columns with useful values, etc.
-        logging.info('Calling conversion function %r', new_version.func)
         if new_version.func:
             new_version.func(transaction, temp_tables)
 
         # Drop all old, renamed tables.
         for table in temp_tables.values():
-            logging.info('Dropping table %r', table)
             transaction.drop_table(table)
 
         # Drop all old tables that are no longer needed.
         for table in old_tables:  # pragma: no cover
             if table not in new_tables:
-                logging.info('Dropping table %r', table)
                 transaction.drop_table(table)
 
     def _make_table_dict_from_version(self, version):
@@ -179,7 +173,6 @@ class VersionedStorage(object):
             if any(x[0] in table_names for x in schema):
                 delta_prototype_list.append((prototype, kwargs))
 
-        logging.info('Creating tables: %r', delta_prototype_list)
         qvarn.create_tables_for_resource_type(
             transaction, self._resource_type, delta_prototype_list)
 
@@ -189,7 +182,6 @@ class VersionedStorage(object):
             # This assumes the likelihood of a 64-bit integer clashing
             # is low enough.
             temp_name = '%s_%s' % (old_name, random.randint(1, 2**64-1))
-            logging.info('Renaming %r to %r', old_name, temp_name)
             transaction.rename_table(old_name, temp_name)
             temp_tables[old_name] = temp_name
         return temp_tables

@@ -26,7 +26,6 @@ Qvarn are supported.
 '''
 
 
-import logging
 import sqlite3
 import string
 
@@ -362,10 +361,7 @@ class PostgresAdapter(SqlAdapter):
         return self.qualified_column(table_name, column_name)
 
     def get_conn(self):
-        conn = self._pool.getconn()
-        logging.debug('get_conn: %r', conn)
-        return conn
+        return self._pool.getconn()
 
     def put_conn(self, conn):
-        logging.debug('put_conn: %r', conn)
         self._pool.putconn(conn)

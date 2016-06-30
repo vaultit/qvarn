@@ -190,7 +190,7 @@ class ListenerResource(object):
 
     def post_listener(self):
         '''Serve POST /foos/listeners to create a new listener.'''
-        listener = bottle.request.json
+        listener = bottle.request.qvarn_json
         qvarn.add_missing_item_fields(
             u'listener', listener_prototype, listener)
 
@@ -237,7 +237,7 @@ class ListenerResource(object):
     def put_listener(self, listener_id):
         '''Serve PUT /foos/listeners/123 to update a listener.'''
 
-        listener = bottle.request.json
+        listener = bottle.request.qvarn_json
 
         qvarn.add_missing_item_fields(
             u'listener', listener_prototype, listener)

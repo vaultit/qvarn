@@ -35,6 +35,11 @@ class WriteOnlyStorageTests(unittest.TestCase):
             {
                 u'country': u'',
                 u'lines': [u''],
+                u'inner': [
+                    {
+                        u'inner_str': u'',
+                    },
+                ],
             }
         ],
     }
@@ -47,10 +52,20 @@ class WriteOnlyStorageTests(unittest.TestCase):
             {
                 u'country': u'FI',
                 u'lines': [u'addr1', u'addr2'],
+                u'inner': [
+                    {
+                        u'inner_str': u'inner_foo',
+                    },
+                ],
             },
             {
                 u'country': u'GB',
                 u'lines': [u'flim', u'flam'],
+                u'inner': [
+                    {
+                        u'inner_str': u'inner_bar',
+                    },
+                ],
             },
         ],
     }

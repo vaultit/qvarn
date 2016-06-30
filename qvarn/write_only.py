@@ -231,6 +231,22 @@ class WriteWalker(qvarn.ItemWalker):
         self._insert_str_list(table_name, str_list_field, self._item_id,
                               pos, strings)
 
+    def visit_dict_in_inner_list(self, item, field, outer_pos, inner_field,
+                                 inner_pos, column_names):
+        table_name = qvarn.table_name(
+            resource_type=self._item_type,
+            list_field=field,
+            subdict_list_field=inner_field)
+        columns = {
+            u'id': self._item_id,
+            u'dict_list_pos': outer_pos,
+            u'list_pos': inner_pos,
+        }
+        inner_dict = item[field][outer_pos][inner_field][inner_pos]
+        for column_name in column_names:
+            columns[column_name] = inner_dict[column_name]
+        self._transaction.insert(table_name, columns)
+
 
 class DeleteWalker(qvarn.ItemWalker):
 
@@ -262,4 +278,11 @@ class DeleteWalker(qvarn.ItemWalker):
             resource_type=self._item_type,
             list_field=field,
             subdict_list_field=str_list_field)
+        self._delete_rows(table_name, self._item_id)
+
+    def visit_inner_dict_list(self, item, field, inner_field, column_names):
+        table_name = qvarn.table_name(
+            resource_type=self._item_type,
+            list_field=field,
+            subdict_list_field=inner_field)
         self._delete_rows(table_name, self._item_id)

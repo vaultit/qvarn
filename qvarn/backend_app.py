@@ -18,13 +18,16 @@
 
 import argparse
 import ConfigParser
-import logging
-import logging.handlers
+import os
 import sys
 
 import bottle
 
 import qvarn
+
+
+log = qvarn.StructuredLog()
+log.set_log_writer(qvarn.NullSlogWriter())
 
 
 class BackendApplication(object):
@@ -49,6 +52,13 @@ class BackendApplication(object):
 
     def __init__(self):
         self._app = bottle.app()
+
+        # We'll parse the HTTP request body ourselves, because Bottle
+        # sometimes wants to use simplejson, which returns plain
+        # strings instead of Unicode strings, and that's not
+        # acceptable to us.
+        self._app.config['autojson'] = False
+
         self._dbconn = None
         self._vs = None
         self._resources = []
@@ -99,7 +109,7 @@ class BackendApplication(object):
         except SystemExit as e:
             sys.exit(e.code if isinstance(e.code, int) else 1)
         except BaseException as e:
-            logging.critical(str(e), exc_info=True)
+            log.log('critical', exc_info=True, msg_text=str(e))
             sys.exit(1)
         else:
             return self._app
@@ -110,11 +120,13 @@ class BackendApplication(object):
         if args.prepare_storage:
             # Logging should be the first plugin (outermost wrapper)
             self._configure_logging(self._conf)
+            qvarn.log.set_context('prepare-storage')
             self._connect_to_storage(self._conf)
             self._prepare_storage(self._conf)
         else:
             # Logging should be the first plugin (outermost wrapper)
             self._configure_logging(self._conf)
+            qvarn.log.set_context('setup')
             self._install_logging_plugin()
             # Error catching should also be as high as possible to catch all
             self._app.install(qvarn.ErrorTransformPlugin())
@@ -154,16 +166,20 @@ class BackendApplication(object):
     def _connect_to_storage(self, conf):
         '''Prepare the database for use.'''
 
-        logging.debug('Connecting to storage')
+        args = {
+            'host': conf.get('database', 'host'),
+            'port': conf.get('database', 'port'),
+            'db_name': conf.get('database', 'name'),
+            'user': conf.get('database', 'user'),
+            'min_conn': conf.get('database', 'minconn'),
+            'max_conn': conf.get('database', 'maxconn'),
+        }
+
+        # Log all connection parameters except password.
+        log.log('connect-to-storage', **args)
         sql = qvarn.PostgresAdapter(
-            host=conf.get('database', 'host'),
-            port=conf.get('database', 'port'),
-            db_name=conf.get('database', 'name'),
-            user=conf.get('database', 'user'),
             password=conf.get('database', 'password'),
-            min_conn=conf.get('database', 'minconn'),
-            max_conn=conf.get('database', 'maxconn'),
-        )
+            **args)
 
         self._dbconn = qvarn.DatabaseConnection()
         self._dbconn.set_sql(sql)
@@ -171,37 +187,30 @@ class BackendApplication(object):
     def _prepare_storage(self, conf):
         '''Prepare the database for use.'''
         if not conf.getboolean('database', 'readonly'):
-            logging.debug('Preparing storage')
             with self._dbconn.transaction() as t:
                 self._vs.prepare_storage(t)
 
     def _configure_logging(self, conf):
-        format_string = ('%(asctime)s %(process)d.%(thread)d %(levelname)s '
-                         '%(message)s')
         if conf.has_option('main', 'log'):
-            # TODO: probably add rotation parameters to conf file
-            # Also possible to use fileConfig() directly for this.
-            log = logging.getLogger()
-            log.setLevel(logging.DEBUG)
+            name = conf.get('main', 'log')
+            if name == 'syslog':
+                writer = qvarn.SyslogSlogWriter()
+            else:
+                writer = qvarn.FileSlogWriter()
+                writer.set_filename_prefix(conf.get('main', 'log'))
 
-            max_bytes = 10 * 1024**2
-            if conf.has_option('main', 'log-max-bytes'):
-                max_bytes = conf.getint('main', 'log-max-bytes')
+                max_bytes = 10 * 1024**2
+                if conf.has_option('main', 'log-max-bytes'):
+                    max_bytes = conf.getint('main', 'log-max-bytes')
+                writer.set_max_file_size(max_bytes)
 
-            max_logs = 10
-            if conf.has_option('main', 'log-max-files'):
-                max_logs = conf.getint('main', 'log-max-files')
+            qvarn.log.set_log_writer(writer)
 
-            handler = logging.handlers.RotatingFileHandler(
-                conf.get('main', 'log'),
-                maxBytes=max_bytes,
-                backupCount=max_logs)
-            handler.setFormatter(logging.Formatter(format_string))
-            log.addHandler(handler)
-        else:
-            logging.basicConfig(level=logging.DEBUG, format=format_string)
-        logging.info('========================================')
-        logging.info('%s starts', sys.argv[0])
+        log.log(
+            'startup',
+            msg_text='Program starts',
+            argv=sys.argv,
+            env=dict(os.environ))
 
     def _install_logging_plugin(self):
         logging_plugin = qvarn.LoggingPlugin()

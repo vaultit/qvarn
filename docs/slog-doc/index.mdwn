@@ -1,0 +1,217 @@
+---
+title: Structured logging in Qvarn
+author: Lars Wirzenius (liw@qvarnlabs.com)
+date: work in progress
+...
+
+# Introduction
+
+A typical log file is one where there's a line per message, and each
+line starts with a timestamp and possibly some other data. The actual
+message is free-form text.
+
+This kind of log file is very easy to produce, in a program. However,
+they are not as easy for a program to consume. Any data in the
+free-form part needs to be extracted using custom parsers (often using
+regular expressions), and while that is not too difficult, it gets
+quite tedious quite fast. It is also error prone, and not
+future-proof in any way.
+
+In Qvarn, we use a custom library to produce log files with more
+structure. Each line in a log file is JSON, so you can read the line,
+parse it as JSON, and get a JSON object with named fields. This is
+much easier to process.
+
+Such a JSON record might look like the following, after formatted for
+readability:
+
+    {
+        "_msg_number": 1, 
+        "_process_id": 13808, 
+        "_thread_id": 140351861171968, 
+        "_timestamp": "2016-05-26 15:02:02 +0300", 
+        "msg_text": "hello, there, this is a structured log file",
+        "msg_type": "intro"
+    }
+
+This log message would be produced by the following call:
+
+    log.log('intro', msg_text='hello, there, this is a structured log file')
+
+Note that fields other than `msg_type` and `msg_text` are
+automatically added by the Qvarn structured logging library.
+
+
+## Use cases for logging
+
+There are two main use cases for log files produced by Qvarn:
+
+* Developers want to know what causes a problem. For example, when
+  Qvarn returns an HTTP 500 status code, what happened? In addition to
+  the last step that went wrong, how did Qvarn end up there?
+
+  Apart from functional bugs, developers also want to know what's
+  going on so that they can improve performance.
+
+* Sysadmins want to know if Qvarn is working, and what it is doing,
+  and what's the bottleneck. This is similar to what developers do,
+  but from a different perspective.
+
+The Qvarn structured logging library targets both use cases by making
+it easier to produce clear log files that can be programmatically
+post-processed with relatively simplicity.
+
+## Problems with structured logging
+
+Encoding log files as JSON takes time, and means that using normal
+Unix tools (grep, especially) is somewhat less useful than with
+traditional log files.
+
+# Structured logging tutorial
+
+The Qvarn structured logging library is used like this:
+
+    import qvarn
+
+    log = qvarn.StructuredLog()
+    log.set_writer(qvarn.NullSlogWriter())
+    log.set_filename_prefix('slog-demo')
+    log.log('intro', msg_text='hello, there, this is a structured log file')
+    log.log('intro', msg_text='each line is JSON')
+    log.close()
+
+The `qvarn.StructuredLog` class is used for the log. It writes to a
+file, whose name is derived from the prefix set with
+`set_filename_prefix`, by appending a timestamp to the prefix. The
+maximum size (in bytes written by the log) of a log file is specified
+with `set_max_file_size`. A new file is created every time the log has
+written the specified number of bytes. The default is to not rotate.
+
+Qvarn provides a global instace of `qvarn.StructuredLog`, called
+`qvarn.log`. This is created and configured automatically by the main
+program of Qvarn, so you don't need to do tht part yourself. In most
+of Qvarn code, you can just call `qvarn.log` and not worry about
+anything else.
+
+The log messages are added with the `log` method. It requires one
+normal argument, which is the message type. Each log message has a
+type so that it's possible to filter them programmatically. The type
+is expressed as a string. All other arguments are keyword arguments,
+which get added as key/value pairs in the JSON object. All names and
+values are allowed, as long as the JSON format can handle them.
+Several fields are added automatically, and those names start with an
+underscore, so it's best if the user doesn't use such names.
+
+Log messages in Qvarn may have a context. Typically the context
+identifies that HTTP request that is being processed. This makes it
+possible to identify related log messages easily. The context is set
+with the `StructuredLog.set_context` method, and should be a string.
+It is unset (once the HTTP request processing is finished) with
+`StructuredLog.reset_context`). Contexts are per-thread, so that two
+threads (processing different HTTP requests) do not overwrite each
+other's contexts.
+
+If `log` is given a keyword argument `exc_info` and that is a true
+value, then the entries `_traceback` and `_stack` are added to the log
+entry.
+
+Finally, the `close` method closes the log file.
+
+That's really all there is to it. Well, except actual log files.
+
+## Structured log writers
+
+In the example in the previous section we used `NullSlogWriter`
+without explaining it. Structured logs can be written to various
+places. `NullSlogWriter` writes them into oblivion. In other words, it
+doesn't write them anywhere.
+
+More useful are `FileSlogWriter` and `SyslogSlogWriter`, which write
+to text files and the syslog service, respectively.
+
+`FileSlogWriter` is used like this:
+
+    writer = qvarn.FileSlogWriter()
+    writer.set_filename_prefix('slog-demo')
+
+    log = qvarn.StructuredLog()
+    log.set_log_writer(writer)
+
+In other words, you first crete the writer object, configure it, and
+then you tell the log object which writer to use.
+
+Similarly, syslog:
+
+    writer = qvarn.SyslogSlogWriter()
+
+This requires no configuration.
+
+## Things that you don't get
+
+The Qvarn structured logging library intentionally lacks some features
+that traditional logging libraries have. One of these is log levels.
+Most logging systems support a "log level" that can be attached to
+each message: debug, info, notify, warning, error, fatal, and critical
+are common log levels. The point is to allow filtering based on the
+severity of the message. However, the Qvarn library is of the opinion
+that this is too simplistic to be useful, and that usually when
+there's an error, you want the preceding messages, regardless of log
+level, to figure out what caused the error. Instead of log levels,
+Qvarn log messages have context and message type fields.
+
+# Structured logging API reference
+
+FIXME: This chapter needs to be written.
+
+# Using structured log files
+
+## File format
+
+## The slog-pretty
+
+A Qvarn structured log file has one message per line, and the message
+is encoded as JSON. There's no line length. The log file can be read
+directly, but it is probably not particularly easy.
+
+The `slog-pretty` script reads one or more Qvarn log files, named on the
+command line, and outputs them in prettier JSON format.
+
+Example:
+
+    slog-pretty /var/log/qvarn/*.log | less
+
+Note that a log file isn't valid JSON as such, only each line is JSON.
+
+## Timestamps
+
+Qvarn structured logs have timestamps that are in the UTC time zone,
+and have microsecond resolution.
+
+## Post-processing structured logs
+
+A more powerful approach is to write some code to extract useful
+information from a log file. For example, finding all HTTP requests
+that result in an HTTP 500 status code, and collecting all the log
+messages with the same context.
+
+FIXME: Add some example code for that.
+
+# Best practices for logging
+
+The logging library is quite flexible, but it is good to follow good
+practices to produce log files that are as useful as possible. While
+it will take some time for the best practices to emerge while we get
+used to the new logging library, here are some initial thoughts.
+
+* Read the log files. Do they tell a reader can follow? Does that
+  story make sense and does it match what's actually happening? Does
+  following the story require understanding what's going on in the
+  code or does it stand on its own? It's best if it stands on its own.
+
+* Is there enough detail in the log file to debug problems? Is there
+  too much detail so that the useful parts drown in the excess? Is
+  there a lot of duplicated information?
+
+* Is it possible to write a little filter to extract or summarise
+  information, perhaps produce interesting reports? For example, could
+  you write a report to see how long each type of HTTP request takes?

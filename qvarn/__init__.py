@@ -18,11 +18,17 @@
 
 from .version import __version__, __version_info__
 
+from .slog import (
+    StructuredLog,
+    NullSlogWriter,
+    FileSlogWriter,
+    SyslogSlogWriter,
+)
 from .exc import BackendException
 from .http_statuses import (
     HTTPError, BadRequest, Unauthorized, Forbidden, NotFound, Conflict,
     LengthRequired, UnsupportedMediaType)
-from .walker import ItemWalker
+from .walker import ItemWalker, TooDeeplyNestedPrototype
 from .validate import ItemValidator, ValidationError
 from .basic_validation_plugin import (
     BasicValidationPlugin, NoItemRevision, ContentTypeIsNotJSON)
@@ -34,7 +40,7 @@ from .write_only import (
     WriteOnlyStorage, CannotAddWithId, CannotAddWithRevision,
     WrongRevision)
 from .read_only import ReadOnlyStorage, ItemDoesNotExist, FieldNotInResource
-from .backend_app import BackendApplication
+from .backend_app import BackendApplication, log
 from .filler import add_missing_item_fields
 from .util import (
     route_to_scope,

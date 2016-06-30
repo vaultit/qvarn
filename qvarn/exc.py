@@ -50,3 +50,6 @@ class BackendException(Exception):
             u'error_code': self.__class__.__name__,
             u'message': self.msg
         })
+
+    def __str__(self):  # pragma: no cover
+        return self.msg.format(**self.error)

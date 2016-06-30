@@ -54,6 +54,8 @@ class ItemValidator(object):
 
         '''
 
+        qvarn.log.log('validation', prototype=repr(prototype), item=repr(item))
+
         # We need to validate here that the prototype and item are
         # both dicts. Otherwise we can't validate the type field. This
         # is an unfortunate duplication of the code in _validate_dict;
@@ -105,22 +107,23 @@ class ItemValidator(object):
 
         simple_types = (unicode, bool, int)
         if isinstance(proto_value, simple_types):
-            self._validate_simple_value(proto_value, item_value)
+            self._validate_simple_value(field_name, proto_value, item_value)
         elif isinstance(proto_value, list):
-            self._validate_list_value(proto_value, item_value)
+            self._validate_list_value(field_name, proto_value, item_value)
         else:
             raise InvalidValueInPrototype(
                 field=field_name, type=str(type(proto_value)))
 
-    def _validate_simple_value(self, proto_value, item_value):
+    def _validate_simple_value(self, field_name, proto_value, item_value):
         if item_value is None:
             return
         if not isinstance(item_value, type(proto_value)):
             raise WrongTypeValue(
+                field_name=field_name,
                 expected_type=str(type(proto_value)),
                 conflicting_type=str(type(item_value)))
 
-    def _validate_list_value(self, proto_value, item_value):
+    def _validate_list_value(self, field_name, proto_value, item_value):
         if len(proto_value) != 1:
             raise PrototypeListMustHaveOneValue(item=proto_value)
         if not isinstance(proto_value[0], (unicode, dict)):
@@ -167,7 +170,8 @@ class UnknownKeys(ValidationError):
 
 class WrongTypeValue(ValidationError):
 
-    msg = u'Item has a value of the wrong type'
+    msg = (u'Item field {field_name} has a value of the wrong type: '
+           u'expected {expected_type}, got {conflicting_type}')
 
 
 class PrototypeListMustHaveOneValue(ValidationError):
