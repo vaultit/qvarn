@@ -349,7 +349,8 @@ def validate_contract(obj):
         u'ID06_cards',
         u'SBCC_account',
         u'tilaajavastuu_account',
-        u'service_application'
+        u'service_application',
+        u'taito_subscription'
     ]
     if obj[u'contract_type'] not in allowed_contract_types:
         raise InvalidContractType(id=obj[u'id'])
@@ -379,6 +380,11 @@ def validate_contract(obj):
             if party[u'role'] not in [
                     u'issuer', u'supplier', u'issuer_contact'
             ]:
+                raise InvalidPartyType(id=obj[u'id'])
+
+    if obj[u'contract_type'] is u'taito_subscription':
+        for party in obj[u'contract_parties']:
+            if party[u'role'] not in [u'customer']:
                 raise InvalidPartyType(id=obj[u'id'])
 
     if (obj[u'contract_type'] is u'employment' or

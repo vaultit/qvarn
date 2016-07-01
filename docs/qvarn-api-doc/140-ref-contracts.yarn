@@ -844,6 +844,58 @@ Check that the record is there.
     AND result has key "revision" containing a string, saved as $REV13
     AND values "$REV12" and "$REV13" are identical
 
+Create a new Taito contract.
+
+    WHEN client POSTs /contracts with
+    ... {
+    ... "contract_type": "taito_subscription",
+    ... "start_date": "2013-03-13",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "secret",
+    ...         "role": "customer",
+    ...     }
+    ... ],
+    ... }
+    THEN HTTP status code is 201
+    AND result matches
+    ... {
+    ... "contract_type": "taito_subscription",
+    ... "start_date": "2013-03-13",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "secret",
+    ...         "role": "customer",
+    ...     }
+    ... ],
+    ... }
+    AND result has key "id" containing a string, saved as $ID13
+    AND HTTP Location header is API_URL/contracts/$ID13
+    AND result has key "revision" containing a string, saved as $REV14
+
+Check that the record is there.
+
+    WHEN client GETs /contracts/$ID13
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ... "contract_type": "taito_subscription",
+    ... "start_date": "2013-03-13",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "secret",
+    ...         "role": "customer",
+    ...     }
+    ... ],
+    ... }
+    AND result has key "id" containing a string, saved as $ID14
+    AND values "$ID13" and "$ID14" are identical
+    AND result has key "revision" containing a string, saved as $REV15
+    AND values "$REV14" and "$REV15" are identical
+
 Attempt to send invalid data.
 
     WHEN client POSTs /contracts with {"nonexistent_field": "data"}
