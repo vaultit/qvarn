@@ -10,6 +10,10 @@ Version 0.71+git, not yet released
   JSON. See the `slog-pretty` and `slog-errors` utilities for reading
   such logs. Logs (in JSON) may also be sent to syslog.
 
+* Resources can now have a structure that is one depth deeper than
+  before, and Qvarn gives an error if they're too deep. Thanks to
+  Ville Niskala for reporting the problem.
+
 Version 0.71, released 2016-05-26
 ----------------------------------
 
