@@ -1025,6 +1025,7 @@ Create new contracts.
     WHEN client POSTs /contracts with
     ... {
     ... "contract_type": "employment",
+    ... "right_to_work_based_on": "other",
     ... "start_date": "2013-03-13"
     ... }
     THEN HTTP status code is 201
@@ -1035,6 +1036,7 @@ One for the following day.
     WHEN client POSTs /contracts with
     ... {
     ... "contract_type": "employment",
+    ... "right_to_work_based_on": "other",
     ... "start_date": "2013-03-14"
     ... }
     THEN HTTP status code is 201
@@ -1045,6 +1047,7 @@ One for the following year.
     WHEN client POSTs /contracts with
     ... {
     ... "contract_type": "employment",
+    ... "right_to_work_based_on": "other",
     ... "start_date": "2014-03-13"
     ... }
     THEN HTTP status code is 201
