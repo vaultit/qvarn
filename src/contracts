@@ -348,6 +348,7 @@ def validate_contract(obj):
         u'induction',
         u'ID06_cards',
         u'SBCC_account',
+        u'tilaajavastuu_account',
         u'service_application'
     ]
     if obj[u'contract_type'] not in allowed_contract_types:
