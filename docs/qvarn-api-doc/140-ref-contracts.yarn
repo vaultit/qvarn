@@ -854,9 +854,9 @@ Create a new Taito contract.
     ...     {
     ...         "type": "org",
     ...         "resource_id": "secret",
-    ...         "role": "customer",
+    ...         "role": "customer"
     ...     }
-    ... ],
+    ... ]
     ... }
     THEN HTTP status code is 201
     AND result matches
@@ -867,9 +867,9 @@ Create a new Taito contract.
     ...     {
     ...         "type": "org",
     ...         "resource_id": "secret",
-    ...         "role": "customer",
+    ...         "role": "customer"
     ...     }
-    ... ],
+    ... ]
     ... }
     AND result has key "id" containing a string, saved as $ID13
     AND HTTP Location header is API_URL/contracts/$ID13
@@ -887,9 +887,9 @@ Check that the record is there.
     ...     {
     ...         "type": "org",
     ...         "resource_id": "secret",
-    ...         "role": "customer",
+    ...         "role": "customer"
     ...     }
-    ... ],
+    ... ]
     ... }
     AND result has key "id" containing a string, saved as $ID14
     AND values "$ID13" and "$ID14" are identical
