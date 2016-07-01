@@ -92,6 +92,8 @@ pep8 qvarn/*.py src/*
 #       redefined-variable-type         pylint whinges about a variable getting
 #                                       assigned different values that are all
 #                                       objects with the same supertype. Ugh.
+#
+#       too-many-statements             some of our methods just have to be long.
 
 pylint --rcfile /dev/null \
        --persistent no \
@@ -111,5 +113,6 @@ pylint --rcfile /dev/null \
        --disable too-many-locals \
        --disable locally-disabled \
        --disable redefined-variable-type \
+       --disable too-many-statements \
        \
        qvarn src/*

@@ -129,7 +129,7 @@ class SqlAdapter(object):
             self.quote(old_name), self.quote(new_name))
 
     def format_drop_table(self, table_name):
-        return u'DROP TABLE %s ' % self.quote(table_name)
+        return u'DROP TABLE IF EXISTS %s ' % self.quote(table_name)
 
     def format_select(self, table_name, column_names, select_condition):
         '''Format an SQL SELECT statement.

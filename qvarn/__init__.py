@@ -28,7 +28,7 @@ from .exc import BackendException
 from .http_statuses import (
     HTTPError, BadRequest, Unauthorized, Forbidden, NotFound, Conflict,
     LengthRequired, UnsupportedMediaType)
-from .walker import ItemWalker
+from .walker import ItemWalker, TooDeeplyNestedPrototype
 from .validate import ItemValidator, ValidationError
 from .basic_validation_plugin import (
     BasicValidationPlugin, NoItemRevision, ContentTypeIsNotJSON)

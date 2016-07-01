@@ -87,7 +87,7 @@ contract_prototype_v1 = {
 }
 
 
-contract_prototype_current = contract_prototype_v2 = {
+contract_prototype_v2 = {
     u'type': u'',
     u'id': u'',
     u'revision': u'',
@@ -118,6 +118,172 @@ contract_prototype_current = contract_prototype_v2 = {
             ],
             u'username': u'',
             u'user_role': u'',
+        },
+    ],
+    u'right_to_work_based_on': u'',
+    u'id06_issuer_requires_bankid': False,
+    u'id06_contact_name': u'',
+    u'id06_contact_email': u'',
+    u'contract_state': u'',
+    u'preferred_language': u'',
+    u'contract_state_history': [
+        {
+            u'state': u'',
+            u'modified_by': u'',
+            u'modification_timestamp': u'',
+        },
+    ],
+    u'signers': [
+        {
+            u'signer': u'',
+            u'signing_request_timestamp': u'',
+            u'signing_request_message': u'',
+            u'signing_timestamp': u'',
+        },
+    ],
+}
+
+
+contract_prototype_v3 = {
+    u'type': u'',
+    u'id': u'',
+    u'revision': u'',
+    u'contract_type': u'',
+    u'start_date': u'',
+    u'end_date': u'',
+    u'date_created': u'',
+    u'date_updated': u'',
+    u'contract_parties': [
+        {
+            u'type': u'',
+            u'resource_id': u'',
+            u'role': u'',
+            u'username': u'',
+            u'user_role': u'',
+        },
+    ],
+    u'right_to_work_based_on': u'',
+    u'id06_issuer_requires_bankid': False,
+    u'id06_contact_name': u'',
+    u'id06_contact_email': u'',
+    u'contract_state': u'',
+    u'preferred_language': u'',
+    u'contract_state_history': [
+        {
+            u'state': u'',
+            u'modified_by': u'',
+            u'modification_timestamp': u'',
+        },
+    ],
+    u'signers': [
+        {
+            u'signer': u'',
+            u'signing_request_timestamp': u'',
+            u'signing_request_message': u'',
+            u'signing_timestamp': u'',
+        },
+    ],
+}
+
+
+contract_prototype_v4 = {
+    u'type': u'',
+    u'id': u'',
+    u'revision': u'',
+    u'contract_type': u'',
+    u'start_date': u'',
+    u'end_date': u'',
+    u'date_created': u'',
+    u'date_updated': u'',
+    u'contract_parties': [
+        {
+            u'type': u'',
+            u'resource_id': u'',
+            u'role': u'',
+            u'username': u'',
+            u'user_role': u'',
+            u'contacts': [
+                {
+                    u'contact_type': u'',
+                    u'contact_roles': u'',
+                    u'contact_source': u'',
+                    u'contact_timestamp': u'',
+                    u'phone_number': u'',
+                    u'email_address': u'',
+                    u'full_address': u'',
+                    u'country': u'',
+                    u'address_lines': [u''],
+                    u'post_code': u'',
+                    u'post_area': u'',
+                },
+            ],
+        },
+    ],
+    u'right_to_work_based_on': u'',
+    u'id06_issuer_requires_bankid': False,
+    u'id06_contact_name': u'',
+    u'id06_contact_email': u'',
+    u'contract_state': u'',
+    u'preferred_language': u'',
+    u'contract_state_history': [
+        {
+            u'state': u'',
+            u'modified_by': u'',
+            u'modification_timestamp': u'',
+        },
+    ],
+    u'signers': [
+        {
+            u'signer': u'',
+            u'signing_request_timestamp': u'',
+            u'signing_request_message': u'',
+            u'signing_timestamp': u'',
+        },
+    ],
+}
+
+
+contract_prototype_current = contract_prototype_v5 = {
+    u'type': u'',
+    u'id': u'',
+    u'revision': u'',
+    u'contract_type': u'',
+    u'start_date': u'',
+    u'end_date': u'',
+    u'date_created': u'',
+    u'date_updated': u'',
+    u'contract_parties': [
+        {
+            u'type': u'',
+            u'resource_id': u'',
+            u'role': u'',
+            u'username': u'',
+            u'user_role': u'',
+            u'contacts': [
+                {
+                    u'contact_type': u'',
+                    u'contact_roles': u'',
+                    u'contact_source': u'',
+                    u'contact_timestamp': u'',
+                    u'phone_number': u'',
+                    u'email_address': u'',
+                    u'full_address': u'',
+                    u'country': u'',
+                    u'address_lines': [u''],
+                    u'post_code': u'',
+                    u'post_area': u'',
+                },
+            ],
+            u'permissions': [
+                {
+                    u'permission_name': u'',
+                }
+            ],
+            u'global_permissions': [
+                {
+                    u'permission_name': u'',
+                }
+            ],
         },
     ],
     u'right_to_work_based_on': u'',
@@ -182,40 +348,47 @@ def validate_contract(obj):
         u'induction',
         u'ID06_cards',
         u'SBCC_account',
-        u'service_application'
+        u'tilaajavastuu_account',
+        u'service_application',
+        u'taito_subscription'
     ]
     if obj[u'contract_type'] not in allowed_contract_types:
         raise InvalidContractType(id=obj[u'id'])
 
-    if obj[u'contract_type'] is u'employment':
+    if obj[u'contract_type'] == u'employment':
         for party in obj[u'contract_parties']:
             if party[u'role'] not in [u'employer', u'employee']:
                 raise InvalidPartyType(id=obj[u'id'])
 
-    if obj[u'contract_type'] is u'induction':
+    if obj[u'contract_type'] == u'induction':
         for party in obj[u'contract_parties']:
             if party[u'role'] not in [u'inductor', u'inductee']:
                 raise InvalidPartyType(id=obj[u'id'])
 
-    if obj[u'contract_type'] is u'SBCC_account':
+    if obj[u'contract_type'] in (u'tilaajavastuu_account', u'SBCC_account'):
         for party in obj[u'contract_parties']:
             if party[u'role'] not in [u'user', u'target']:
                 raise InvalidPartyType(id=obj[u'id'])
 
-    if obj[u'contract_type'] is u'service_application':
+    if obj[u'contract_type'] == u'service_application':
         for party in obj[u'contract_parties']:
             if party[u'role'] not in [u'applicant']:
                 raise InvalidPartyType(id=obj[u'id'])
 
-    if obj[u'contract_type'] is u'ID06_cards':
+    if obj[u'contract_type'] == u'ID06_cards':
         for party in obj[u'contract_parties']:
             if party[u'role'] not in [
                     u'issuer', u'supplier', u'issuer_contact'
             ]:
                 raise InvalidPartyType(id=obj[u'id'])
 
-    if (obj[u'contract_type'] is u'employment' or
-            obj[u'contract_type'] is u'induction'):
+    if obj[u'contract_type'] == u'taito_subscription':
+        for party in obj[u'contract_parties']:
+            if party[u'role'] not in [u'customer']:
+                raise InvalidPartyType(id=obj[u'id'])
+
+    if (obj[u'contract_type'] == u'employment' or
+            obj[u'contract_type'] == u'induction'):
         allowed_rights = [u'eea_citizen', u'residence_permit', u'other']
         if obj[u'right_to_work_based_on'] not in allowed_rights:
             raise InvalidRightToWorkBasedOn(id=obj[u'id'])
@@ -238,6 +411,27 @@ def setup():
 
     vs.start_version(u'v2', None)
     vs.add_prototype(contract_prototype_v2)
+    vs.add_prototype(contract_document_prototype, subpath=u'document')
+    vs.add_prototype(contract_sync_prototype, subpath=u'sync')
+    vs.add_prototype(qvarn.listener_prototype, auxtable=u'listener')
+    vs.add_prototype(qvarn.notification_prototype, auxtable=u'notification')
+
+    vs.start_version(u'v3', None)
+    vs.add_prototype(contract_prototype_v3)
+    vs.add_prototype(contract_document_prototype, subpath=u'document')
+    vs.add_prototype(contract_sync_prototype, subpath=u'sync')
+    vs.add_prototype(qvarn.listener_prototype, auxtable=u'listener')
+    vs.add_prototype(qvarn.notification_prototype, auxtable=u'notification')
+
+    vs.start_version(u'v4', None)
+    vs.add_prototype(contract_prototype_v4)
+    vs.add_prototype(contract_document_prototype, subpath=u'document')
+    vs.add_prototype(contract_sync_prototype, subpath=u'sync')
+    vs.add_prototype(qvarn.listener_prototype, auxtable=u'listener')
+    vs.add_prototype(qvarn.notification_prototype, auxtable=u'notification')
+
+    vs.start_version(u'v5', None)
+    vs.add_prototype(contract_prototype_v5)
     vs.add_prototype(contract_document_prototype, subpath=u'document')
     vs.add_prototype(contract_sync_prototype, subpath=u'sync')
     vs.add_prototype(qvarn.listener_prototype, auxtable=u'listener')

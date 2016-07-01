@@ -51,8 +51,8 @@ Example result for a contract:
         "type": "contract",
         "id": "1234",
         "contract_type": "employment",
-	"start_date": "2015-03-01",
-	"end_date": "2015-08-31",
+        "start_date": "2015-03-01",
+        "end_date": "2015-08-31",
         "contract_parties": [
             {
                 "type": "org",
@@ -66,7 +66,7 @@ Example result for a contract:
             }
         ],
         "right_to_work_based_on": "eea_citizen",
-	"contract_state": "active"
+        "contract_state": "active"
     }
 
 Fields in the result:
@@ -77,6 +77,7 @@ Fields in the result:
       a person
     - `ID06_cards` --- contract between an ID06 card issuer and
       supplier (see the cards resource for details)
+    - `tilaajavastuu_account` --- a user account for Tilaajavastuu service
     - `SBCC_account` --- a user account for SBCC service
     - `service_application` --- an application for a service by an
       organisation, applied by a person
@@ -93,6 +94,10 @@ Fields in the result:
     service account contract
     - `user_role` --- name of the user role, if this contract is a
     service account contract
+    - `permissions` --- a list of permissions, if this contract is a
+    service account contract, see below
+    - `global_permissions` --- a list of global permissions, if this
+    contract is a service account contract, see below
 * `right_to_work_based_on` --- basis for a foreign employee's right to
   work, one of:
     - `eea_citizen` --- citizenship of an EU or EEA country
@@ -124,6 +129,9 @@ allowed roles are dependent on the type of contract, as follows:
     - `supplier` --- must be an `org`
     - `issuer_contact` --- person at issuer responsible for ordering
       ID06 card; must be a `person`
+* `tilaajavastuu_account` contracts:
+    - `user` --- must be a `person`
+    - `target` --- must be an `org` or a `person`
 * `SBCC_account` contracts:
     - `user` --- must be a `person`
     - `target` --- must be an `org` or a `person`
@@ -142,6 +150,11 @@ The `signers` list consists of structures of the following form:
 * `signing_request_timestamp` --- time when the request was sent
 * `signing_request_message` --- a custom message for the signer
 * `signing_timestamp` --- time when the signer signed the contract
+
+The `permissions` and `global_permissions` lists consist of structures
+of the following form:
+
+* `permission_name` --- name of the granted permission
 
 ### Tests
 
@@ -187,12 +200,14 @@ Create a new contract.
     ...     {
     ...         "type": "org",
     ...         "resource_id": "123",
-    ...         "role": "employer"
+    ...         "role": "employer",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "person",
     ...         "resource_id": "7",
-    ...         "role": "employee"
+    ...         "role": "employee",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "right_to_work_based_on": "eea_citizen",
@@ -215,12 +230,14 @@ Check that the record is there.
     ...     {
     ...         "type": "org",
     ...         "resource_id": "123",
-    ...         "role": "employer"
+    ...         "role": "employer",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "person",
     ...         "resource_id": "7",
-    ...         "role": "employee"
+    ...         "role": "employee",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "right_to_work_based_on": "eea_citizen",
@@ -244,12 +261,27 @@ Update the record.
     ...     {
     ...         "type": "org",
     ...         "resource_id": "123",
-    ...         "role": "employer"
+    ...         "role": "employer",
+    ...         "contacts": [
+    ...             {
+    ...                 "contact_type": "address",
+    ...                 "contact_source": "hat",
+    ...                 "contact_timestamp": "20160630T141516",
+    ...                 "phone_number": "",
+    ...                 "email_address": "",
+    ...                 "full_address": "10 Downing St, London, UK",
+    ...                 "country": "UK",
+    ...                 "address_lines": ["10 Downing St", "London", "UK"],
+    ...                 "post_code": "1 BP",
+    ...                 "post_area": "Buckingham Palace"
+    ...             }
+    ...         ]
     ...     },
     ...     {
     ...         "type": "person",
     ...         "resource_id": "7",
-    ...         "role": "employee"
+    ...         "role": "employee",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "right_to_work_based_on": "residence_permit"
@@ -265,12 +297,27 @@ Update the record.
     ...     {
     ...         "type": "org",
     ...         "resource_id": "123",
-    ...         "role": "employer"
+    ...         "role": "employer",
+    ...         "contacts": [
+    ...             {
+    ...                 "contact_type": "address",
+    ...                 "contact_source": "hat",
+    ...                 "contact_timestamp": "20160630T141516",
+    ...                 "phone_number": "",
+    ...                 "email_address": "",
+    ...                 "full_address": "10 Downing St, London, UK",
+    ...                 "country": "UK",
+    ...                 "address_lines": ["10 Downing St", "London", "UK"],
+    ...                 "post_code": "1 BP",
+    ...                 "post_area": "Buckingham Palace"
+    ...             }
+    ...         ]
     ...     },
     ...     {
     ...         "type": "person",
     ...         "resource_id": "7",
-    ...         "role": "employee"
+    ...         "role": "employee",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "right_to_work_based_on": "residence_permit"
@@ -307,12 +354,14 @@ Can not send documentation with no Content-Length header set.
     ...     {
     ...         "type": "org",
     ...         "resource_id": "123",
-    ...         "role": "employer"
+    ...         "role": "employer",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "person",
     ...         "resource_id": "7",
-    ...         "role": "employee"
+    ...         "role": "employee",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "right_to_work_based_on": "eea_citizen"
@@ -340,12 +389,14 @@ Update the main record, this should not affect the subrecord(s).
     ...     {
     ...         "type": "org",
     ...         "resource_id": "123",
-    ...         "role": "employer"
+    ...         "role": "employer",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "person",
     ...         "resource_id": "7",
-    ...         "role": "employee"
+    ...         "role": "employee",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "right_to_work_based_on": "eea_citizen"
@@ -358,12 +409,14 @@ Update the main record, this should not affect the subrecord(s).
     ...     {
     ...         "type": "org",
     ...         "resource_id": "123",
-    ...         "role": "employer"
+    ...         "role": "employer",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "person",
     ...         "resource_id": "7",
-    ...         "role": "employee"
+    ...         "role": "employee",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "right_to_work_based_on": "eea_citizen"
@@ -394,13 +447,15 @@ Create a new service account contract.
     ...         "type": "person",
     ...         "resource_id": "123",
     ...         "role": "user",
-    ...		"username": "mrbond",
-    ...		"user_role": "secret_agent"
+    ...         "username": "mrbond",
+    ...         "user_role": "secret_agent",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "org",
     ...         "resource_id": "MI6",
-    ...         "role": "target"
+    ...         "role": "target",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "preferred_language": "en"
@@ -416,13 +471,15 @@ Create a new service account contract.
     ...         "type": "person",
     ...         "resource_id": "123",
     ...         "role": "user",
-    ...		"username": "mrbond",
-    ...		"user_role": "secret_agent"
+    ...         "username": "mrbond",
+    ...         "user_role": "secret_agent",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "org",
     ...         "resource_id": "MI6",
-    ...         "role": "target"
+    ...         "role": "target",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "preferred_language": "en"
@@ -445,13 +502,15 @@ Check that the record is there.
     ...         "type": "person",
     ...         "resource_id": "123",
     ...         "role": "user",
-    ...		"username": "mrbond",
-    ...		"user_role": "secret_agent"
+    ...         "username": "mrbond",
+    ...         "user_role": "secret_agent",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "org",
     ...         "resource_id": "MI6",
-    ...         "role": "target"
+    ...         "role": "target",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "preferred_language": "en"
@@ -471,12 +530,14 @@ Create a new service application contract.
     ...     {
     ...         "type": "person",
     ...         "resource_id": "123",
-    ...         "role": "applicant"
+    ...         "role": "applicant",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "org",
     ...         "resource_id": "536457",
-    ...         "role": "applicant"
+    ...         "role": "applicant",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "contract_state_history": [
@@ -503,12 +564,14 @@ Create a new service application contract.
     ...     {
     ...         "type": "person",
     ...         "resource_id": "123",
-    ...         "role": "applicant"
+    ...         "role": "applicant",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "org",
     ...         "resource_id": "536457",
-    ...         "role": "applicant"
+    ...         "role": "applicant",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "contract_state_history": [
@@ -542,12 +605,14 @@ Check that the record is there.
     ...     {
     ...         "type": "person",
     ...         "resource_id": "123",
-    ...         "role": "applicant"
+    ...         "role": "applicant",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "org",
     ...         "resource_id": "536457",
-    ...         "role": "applicant"
+    ...         "role": "applicant",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "contract_state_history": [
@@ -581,17 +646,20 @@ Create a new ID06 contract.
     ...     {
     ...         "type": "org",
     ...         "resource_id": "123",
-    ...         "role": "issuer"
+    ...         "role": "issuer",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "org",
     ...         "resource_id": "536457",
-    ...         "role": "supplier"
+    ...         "role": "supplier",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "person",
     ...         "resource_id": "543534",
-    ...         "role": "issuer_contact"
+    ...         "role": "issuer_contact",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "id06_issuer_requires_bankid": false,
@@ -608,17 +676,20 @@ Create a new ID06 contract.
     ...     {
     ...         "type": "org",
     ...         "resource_id": "123",
-    ...         "role": "issuer"
+    ...         "role": "issuer",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "org",
     ...         "resource_id": "536457",
-    ...         "role": "supplier"
+    ...         "role": "supplier",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "person",
     ...         "resource_id": "543534",
-    ...         "role": "issuer_contact"
+    ...         "role": "issuer_contact",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "id06_issuer_requires_bankid": false,
@@ -642,17 +713,20 @@ Check that the record is there.
     ...     {
     ...         "type": "org",
     ...         "resource_id": "123",
-    ...         "role": "issuer"
+    ...         "role": "issuer",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "org",
     ...         "resource_id": "536457",
-    ...         "role": "supplier"
+    ...         "role": "supplier",
+    ...         "contacts": []
     ...     },
     ...     {
     ...         "type": "person",
     ...         "resource_id": "543534",
-    ...         "role": "issuer_contact"
+    ...         "role": "issuer_contact",
+    ...         "contacts": []
     ...     }
     ... ],
     ... "id06_issuer_requires_bankid": false,
@@ -663,6 +737,164 @@ Check that the record is there.
     AND values "$ID9" and "$ID10" are identical
     AND result has key "revision" containing a string, saved as $REV11
     AND values "$REV10" and "$REV11" are identical
+
+Create a new Tilaajavastuu account contract.
+
+    WHEN client POSTs /contracts with
+    ... {
+    ... "contract_type": "tilaajavastuu_account",
+    ... "start_date": "2013-03-13",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "person",
+    ...         "resource_id": "125",
+    ...         "role": "user",
+    ...	        "username": "sherlockholmes"
+    ...     },
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "secret",
+    ...         "role": "target",
+    ...	        "user_role": "detective",
+    ...	        "permissions": [
+    ...             {
+    ...	                "permission_name": "taito_user"
+    ...             }
+    ...         ],
+    ...	        "global_permissions": [
+    ...             {
+    ...	                "permission_name": "korttivarasto_user"
+    ...             }
+    ...         ]
+    ...     }
+    ... ],
+    ... "preferred_language": "en"
+    ... }
+    THEN HTTP status code is 201
+    AND result matches
+    ... {
+    ... "contract_type": "tilaajavastuu_account",
+    ... "start_date": "2013-03-13",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "person",
+    ...         "resource_id": "125",
+    ...         "role": "user",
+    ...	        "username": "sherlockholmes"
+    ...     },
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "secret",
+    ...         "role": "target",
+    ...	        "user_role": "detective",
+    ...	        "permissions": [
+    ...             {
+    ...	                "permission_name": "taito_user"
+    ...             }
+    ...         ],
+    ...	        "global_permissions": [
+    ...             {
+    ...	                "permission_name": "korttivarasto_user"
+    ...             }
+    ...         ]
+    ...     }
+    ... ],
+    ... "preferred_language": "en"
+    ... }
+    AND result has key "id" containing a string, saved as $ID11
+    AND HTTP Location header is API_URL/contracts/$ID11
+    AND result has key "revision" containing a string, saved as $REV12
+
+Check that the record is there.
+
+    WHEN client GETs /contracts/$ID11
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ... "contract_type": "tilaajavastuu_account",
+    ... "start_date": "2013-03-13",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "person",
+    ...         "resource_id": "125",
+    ...         "role": "user",
+    ...		"username": "sherlockholmes"
+    ...     },
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "secret",
+    ...         "role": "target",
+    ...		"user_role": "detective",
+    ...		"permissions": [
+    ...             {
+    ...	                "permission_name": "taito_user"
+    ...             }
+    ...         ],
+    ...		"global_permissions": [
+    ...             {
+    ...	                "permission_name": "korttivarasto_user"
+    ...             }
+    ...         ]
+    ...     }
+    ... ],
+    ... "preferred_language": "en"
+    ... }
+    AND result has key "id" containing a string, saved as $ID12
+    AND values "$ID11" and "$ID12" are identical
+    AND result has key "revision" containing a string, saved as $REV13
+    AND values "$REV12" and "$REV13" are identical
+
+Create a new Taito contract.
+
+    WHEN client POSTs /contracts with
+    ... {
+    ... "contract_type": "taito_subscription",
+    ... "start_date": "2013-03-13",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "secret",
+    ...         "role": "customer"
+    ...     }
+    ... ]
+    ... }
+    THEN HTTP status code is 201
+    AND result matches
+    ... {
+    ... "contract_type": "taito_subscription",
+    ... "start_date": "2013-03-13",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "secret",
+    ...         "role": "customer"
+    ...     }
+    ... ]
+    ... }
+    AND result has key "id" containing a string, saved as $ID13
+    AND HTTP Location header is API_URL/contracts/$ID13
+    AND result has key "revision" containing a string, saved as $REV14
+
+Check that the record is there.
+
+    WHEN client GETs /contracts/$ID13
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ... "contract_type": "taito_subscription",
+    ... "start_date": "2013-03-13",
+    ... "contract_parties": [
+    ...     {
+    ...         "type": "org",
+    ...         "resource_id": "secret",
+    ...         "role": "customer"
+    ...     }
+    ... ]
+    ... }
+    AND result has key "id" containing a string, saved as $ID14
+    AND values "$ID13" and "$ID14" are identical
+    AND result has key "revision" containing a string, saved as $REV15
+    AND values "$REV14" and "$REV15" are identical
 
 Attempt to send invalid data.
 

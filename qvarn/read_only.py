@@ -304,6 +304,34 @@ class ReadWalker(qvarn.ItemWalker):
         result = [row[str_list_field] for row in in_order]
         item[field][pos][str_list_field] = result
 
+    def visit_inner_dict_list(self, item, outer_field, inner_field,
+                              column_names):
+        table_name = qvarn.table_name(
+            resource_type=self._item_type,
+            list_field=outer_field,
+            subdict_list_field=inner_field)
+
+        column_names = [u'list_pos', u'dict_list_pos'] + column_names
+
+        match = ('=', table_name, u'id', self._item_id)
+        rows = self._transaction.select(table_name, column_names, match)
+
+        def get_pos(row):
+            return row[u'dict_list_pos'], row[u'list_pos']
+
+        in_order = list(sorted(rows, key=get_pos))
+
+        for outer_dict in item[outer_field]:
+            if inner_field not in outer_dict:
+                outer_dict[inner_field] = []
+
+        for row in self._make_dicts_from_rows(in_order, column_names):
+            i = row.pop(u'dict_list_pos')
+            j = row.pop(u'list_pos')
+            inner_list = item[outer_field][i][inner_field]
+            assert j == len(inner_list), '{} != {}'.format(j, len(inner_list))
+            inner_list.append(row)
+
 
 class Measurement(object):  # pragma: no cover
 
