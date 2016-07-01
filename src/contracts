@@ -355,12 +355,12 @@ def validate_contract(obj):
     if obj[u'contract_type'] not in allowed_contract_types:
         raise InvalidContractType(id=obj[u'id'])
 
-    if obj[u'contract_type'] is u'employment':
+    if obj[u'contract_type'] == u'employment':
         for party in obj[u'contract_parties']:
             if party[u'role'] not in [u'employer', u'employee']:
                 raise InvalidPartyType(id=obj[u'id'])
 
-    if obj[u'contract_type'] is u'induction':
+    if obj[u'contract_type'] == u'induction':
         for party in obj[u'contract_parties']:
             if party[u'role'] not in [u'inductor', u'inductee']:
                 raise InvalidPartyType(id=obj[u'id'])
@@ -370,25 +370,25 @@ def validate_contract(obj):
             if party[u'role'] not in [u'user', u'target']:
                 raise InvalidPartyType(id=obj[u'id'])
 
-    if obj[u'contract_type'] is u'service_application':
+    if obj[u'contract_type'] == u'service_application':
         for party in obj[u'contract_parties']:
             if party[u'role'] not in [u'applicant']:
                 raise InvalidPartyType(id=obj[u'id'])
 
-    if obj[u'contract_type'] is u'ID06_cards':
+    if obj[u'contract_type'] == u'ID06_cards':
         for party in obj[u'contract_parties']:
             if party[u'role'] not in [
                     u'issuer', u'supplier', u'issuer_contact'
             ]:
                 raise InvalidPartyType(id=obj[u'id'])
 
-    if obj[u'contract_type'] is u'taito_subscription':
+    if obj[u'contract_type'] == u'taito_subscription':
         for party in obj[u'contract_parties']:
             if party[u'role'] not in [u'customer']:
                 raise InvalidPartyType(id=obj[u'id'])
 
-    if (obj[u'contract_type'] is u'employment' or
-            obj[u'contract_type'] is u'induction'):
+    if (obj[u'contract_type'] == u'employment' or
+            obj[u'contract_type'] == u'induction'):
         allowed_rights = [u'eea_citizen', u'residence_permit', u'other']
         if obj[u'right_to_work_based_on'] not in allowed_rights:
             raise InvalidRightToWorkBasedOn(id=obj[u'id'])
