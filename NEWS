@@ -8,7 +8,8 @@ Version 0.71+git, not yet released
 
 * Qvarn now uses structured logs. These are logs where each line is in
   JSON. See the `slog-pretty` and `slog-errors` utilities for reading
-  such logs. Logs (in JSON) may also be sent to syslog.
+  such logs. Logs (in JSON) may also be sent to syslog by configuring
+  main.log variable as `syslog`.
 
 * Resources can now have a structure that is one depth deeper than
   before, and Qvarn gives an error if they're too deep. Thanks to
