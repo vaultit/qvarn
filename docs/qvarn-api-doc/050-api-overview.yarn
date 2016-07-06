@@ -46,7 +46,7 @@ the data model behind the API, and their connections with each other.
 The details of each entity resource are described in the section for
 each resource.
 
-![API data model](data-model.eps)
+![API data model](data-model.dot)
 
 The data model has the following entities:
 

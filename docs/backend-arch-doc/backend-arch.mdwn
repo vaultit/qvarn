@@ -82,7 +82,7 @@ exist:
 Backend architecture
 ====================
 
-![Backend architecture](backend-arch.eps)
+![Backend architecture](backend-arch.dia)
 
 This chapter describes the architecture of the API backend.
 

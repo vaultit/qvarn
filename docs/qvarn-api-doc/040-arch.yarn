@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 Architecture overview
 =====================
 
-![Services architecture](services-arch.eps)
+![Services architecture](services-arch.dia)
 
 This chapter describes the high level architecture of the
 Tilaajavastuu services and the way various applications fit into the

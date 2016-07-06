@@ -40,7 +40,7 @@ API.
 
 # Architecture view
 
-![Service architecture](services-arch.eps)\ 
+![Service architecture](services-arch.dia)\ 
 
 # Overview
 
