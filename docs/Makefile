@@ -18,9 +18,8 @@ docdirs = $(wildcard *-doc)
 
 all: $(docdirs)
 	for dir in $(docdirs); do \
-		(set -eu; cd "$$dir" && \
+		(set -eu; echo "$$dir"; cd "$$dir" && \
                 if [ -e format.sh ]; then ./format.sh; fi; \
-		../format-as-pdf "$$dir.pdf" \
-		$$(find -name '*.yarn' -o -name '*.mdwn' -o -name '*.dia' \
-                        -o -name '*.dot' | sort)); \
+		qvdoc --output "$$dir.pdf" \
+		$$(find -name '*.yarn' -o -name '*.mdwn' | sort)); \
 	done
