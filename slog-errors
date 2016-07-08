@@ -35,7 +35,7 @@ def has_error_status(msgs):
     for msg in msgs:
         if msg['msg_type'] == 'error':
             return True
-        if msg['msg_type'] == 'http-response' and msg['status'] == 500:
+        if msg['msg_type'] == 'http-response' and msg['status'] >= 400:
             return True
     return False
 
