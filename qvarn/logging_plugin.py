@@ -126,8 +126,6 @@ class RequestCounter(object):
         self._counter = 0
 
     def increment(self):
-        if self._lock.acquire():
+        with self._lock:
             self._counter += 1
-            new_value = self._counter
-            self._lock.release()
-            return new_value
+            return self._counter
