@@ -31,6 +31,9 @@ import qvarn
 
 class LoggingPlugin(object):
 
+    def __init__(self):
+        self._counter = RequestCounter()
+
     def apply(self, callback, route):
         def wrapper(*args, **kwargs):
             # Do the thing and catch any exceptions.
