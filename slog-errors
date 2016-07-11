@@ -48,6 +48,7 @@ def show_msgs(msgs):
 msgs = []
 for filename in sys.argv[1:]:
     for msg in parse_log_file(filename):
+        msg['_filename'] = filename
         msgs.append(msg)
 
 
