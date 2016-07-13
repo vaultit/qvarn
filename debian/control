@@ -6,7 +6,7 @@ Priority: optional
 Standards-Version: 3.9.4
 Build-Depends: debhelper (>= 9), python-all (>= 2.6.6-3~),
   python-coverage-test-runner, pep8, pylint, python-psycopg2,
-  python-bottle, python-jwt, python-cryptography
+  python-bottle, python-jwt, python-cryptography, python-yaml
 X-Python-Version: >= 2.6
 
 Package: qvarn
@@ -20,6 +20,7 @@ Depends: ${python:Depends}, ${misc:Depends},
  python-cryptography (>= 0.8),
  python-bottle,
  python-psycopg2,
+ python-yaml,
  python-uwsgidecorators
 Description: web service backend for structured data storage
  This is a backend service for storing structured (JSON) and some

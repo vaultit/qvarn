@@ -1,6 +1,8 @@
 qvarn (0.72+git-1) UNRELEASED; urgency=medium
 
   * New upstream version.
+  * Add build and runtime dependency on python-yaml, as it's used by
+    slog-pretty.
 
  -- Lars Wirzenius <liw@liw.fi>  Tue, 05 Jul 2016 11:39:48 +0300
 
