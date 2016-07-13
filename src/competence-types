@@ -73,6 +73,8 @@ def validate_competence_type(obj):
 
 
 def setup():
+    path = u'/competence-types'
+    
     vs = qvarn.VersionedStorage()
     vs.set_resource_type(resource_type)
 
@@ -99,12 +101,11 @@ def setup():
     app.set_versioned_storage(vs)
 
     listener_resource = qvarn.ListenerResource()
-    listener_resource.set_top_resource_path(
-        resource_type, u'/competence_types')
+    listener_resource.set_top_resource_path(resource_type, path)
     app.add_resource(listener_resource)
 
     resource = qvarn.ListResource()
-    resource.set_path(u'/competence_types')
+    resource.set_path(path)
     resource.set_item_type(resource_type)
     resource.set_item_prototype(competence_type_prototype_current)
     resource.set_item_validator(validate_competence_type)
@@ -113,7 +114,7 @@ def setup():
 
     card_front_resource = qvarn.FileResource()
     card_front_resource.set_item_prototype(competence_type_prototype_current)
-    card_front_resource.set_top_resource_path(u'/competence_types')
+    card_front_resource.set_top_resource_path(path)
     card_front_resource.set_item_type(resource_type)
     card_front_resource.set_file_resource_name(u'card_front')
     card_front_resource.set_listener(listener_resource)
@@ -121,7 +122,7 @@ def setup():
 
     card_back_resource = qvarn.FileResource()
     card_back_resource.set_item_prototype(competence_type_prototype_current)
-    card_back_resource.set_top_resource_path(u'/competence_types')
+    card_back_resource.set_top_resource_path(path)
     card_back_resource.set_item_type(resource_type)
     card_back_resource.set_file_resource_name(u'card_back')
     card_back_resource.set_listener(listener_resource)
@@ -130,7 +131,7 @@ def setup():
     registry_logo_resource = qvarn.FileResource()
     registry_logo_resource.set_item_prototype(
         competence_type_prototype_current)
-    registry_logo_resource.set_top_resource_path(u'/competence_types')
+    registry_logo_resource.set_top_resource_path(path)
     registry_logo_resource.set_item_type(resource_type)
     registry_logo_resource.set_file_resource_name(u'registry_logo')
     registry_logo_resource.set_listener(listener_resource)
