@@ -74,7 +74,7 @@ def validate_competence_type(obj):
 
 def setup():
     path = u'/competence_types'
-    
+
     vs = qvarn.VersionedStorage()
     vs.set_resource_type(resource_type)
 
