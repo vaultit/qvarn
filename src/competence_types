@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 #
-# src/competence-types - implement the /competence_types resource
+# src/competence_types - implement the /competence_types resource
 #
 # Copyright 2015, 2016 Suomen Tilaajavastuu Oy
 #
@@ -73,7 +73,7 @@ def validate_competence_type(obj):
 
 
 def setup():
-    path = u'/competence-types'
+    path = u'/competence_types'
     
     vs = qvarn.VersionedStorage()
     vs.set_resource_type(resource_type)
