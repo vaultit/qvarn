@@ -19,7 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ---
 title: Qvarn API client example
 author: Suomen Tilaajavastuu Oy
-date: 2015-09-14
 ...
 
 # Introduction

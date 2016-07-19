@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ---
 title: Qvarn Backend Architecture
 author: Suomen Tilaajavastuu Oy
-date: UNRELEASED GIT VERSION
 ...
 
 

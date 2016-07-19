@@ -1,7 +1,6 @@
 ---
 title: Structured logging in Qvarn
 author: Lars Wirzenius (liw@qvarnlabs.com)
-date: work in progress
 ...
 
 # Introduction

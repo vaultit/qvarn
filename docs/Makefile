@@ -15,11 +15,13 @@
 
 
 docdirs = $(wildcard *-doc)
+version = $(shell python ../setup.py --version)
 
 all: $(docdirs)
-	for dir in $(docdirs); do \
+	set -x; for dir in $(docdirs); do \
 		(set -eu; echo "$$dir"; cd "$$dir" && \
                 if [ -e format.sh ]; then ./format.sh; fi; \
 		qvdoc --output "$$dir.pdf" \
+		-V "date:$(version)" \
 		$$(find -name '*.yarn' -o -name '*.mdwn' | sort)); \
 	done
