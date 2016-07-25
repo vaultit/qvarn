@@ -217,17 +217,33 @@ class BackendApplication(object):
         self._app.install(logging_plugin)
 
     def _setup_auth(self, conf):
-        if (conf.has_option('auth', 'token_validation_key') and
-                conf.has_option('auth', 'token_issuer')):
+        validation_key = None
+        issuer = None
 
+        if conf.has_option('auth', 'token_validation_key'):
+            validation_key  = conf.get('auth', 'token_validation_key')
+
+        if conf.has_option('auth', 'token_issuer'):
+            issuer = conf.get('auth', 'token_issuer')
+
+        if validation_key and issuer:
             authorization_plugin = qvarn.AuthorizationPlugin(
-                conf.get('auth', 'token_validation_key'),
-                conf.get('auth', 'token_issuer'))
-
+                validation_key, issuer)
             self._app.install(authorization_plugin)
+        else:
+            raise MissingAuthorizationError(
+                validation_key=validation_key,
+                issuer=issuer)
 
     def _prepare_resources(self):
         routes = []
         for resource in self._resources:
             routes += resource.prepare_resource(self._dbconn)
         return routes
+
+
+class MissingAuthorizationError(qvarn.BackendException):
+
+    msg = (u'Configuration is missing authentication fields: '
+           u'token_validation_key is set to {validation_key!r}, '
+           u'token_issuer is set to {issuer!r}.')
