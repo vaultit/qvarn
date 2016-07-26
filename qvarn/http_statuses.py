@@ -34,8 +34,6 @@ class HTTPError(qvarn.QvarnException):
     Subclasses MUST define an attribute ``status_code``.
     '''
 
-    msg = u'Internal server error'
-
 
 class BadRequest(HTTPError):
 
