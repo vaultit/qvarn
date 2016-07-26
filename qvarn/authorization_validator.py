@@ -44,7 +44,7 @@ class AuthorizationValidator(object):
         authorization_header_value = headers[u'Authorization']
         authorization_header_values = authorization_header_value.split(u' ')
         if len(authorization_header_values) != 2 or \
-           not authorization_header_values[0].lower() == 'bearer':
+           authorization_header_values[0].lower() != 'bearer':
             raise InvalidAuthorizationHeaderFormat()
 
         return authorization_header_values[1]
@@ -111,7 +111,8 @@ class AuthorizationHeaderMissing(qvarn.Unauthorized):
 
 class InvalidAuthorizationHeaderFormat(qvarn.Forbidden):
 
-    msg = u'Authorization header is in invalid format, should be "Bearer TOKEN"'
+    msg = (u'Authorization header is in invalid format, '
+           u'should be "Bearer TOKEN"')
 
 
 class InvalidAccessTokenError(qvarn.Unauthorized):
