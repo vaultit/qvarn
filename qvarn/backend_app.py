@@ -197,17 +197,10 @@ class BackendApplication(object):
         if conf.has_option('main', 'log'):
             name = conf.get('main', 'log')
             if name == 'syslog':
-                writer = qvarn.SyslogSlogWriter()
+                self._configure_logging_to_syslog()
             else:
-                writer = qvarn.FileSlogWriter()
-                writer.set_filename_prefix(conf.get('main', 'log'))
-
-                max_bytes = 10 * 1024**2
-                if conf.has_option('main', 'log-max-bytes'):
-                    max_bytes = conf.getint('main', 'log-max-bytes')
-                writer.set_max_file_size(max_bytes)
-
-            qvarn.log.set_log_writer(writer)
+                max_bytes = self._get_max_log_bytes(conf)
+                self._configure_logging_to_file(name, max_bytes)
 
         log.log(
             'startup',
@@ -215,6 +208,22 @@ class BackendApplication(object):
             version=qvarn.__version__,
             argv=sys.argv,
             env=dict(os.environ))
+
+    def _configure_logging_to_syslog(self):
+        writer = qvarn.SyslogSlogWriter()
+        qvarn.log.set_log_writer(writer)
+
+    def _get_max_log_bytes(self, conf):
+        max_bytes = 10 * 1024**2
+        if conf.has_option('main', 'log-max-bytes'):
+            max_bytes = conf.getint('main', 'log-max-bytes')
+        return max_bytes
+
+    def _configure_logging_to_file(self, filename, max_bytes):
+        writer = qvarn.FileSlogWriter()
+        writer.set_filename_prefix(filename)
+        writer.set_max_file_size(max_bytes)
+        qvarn.log.set_log_writer(writer)
 
     def _install_logging_plugin(self):
         logging_plugin = qvarn.LoggingPlugin()
