@@ -31,7 +31,11 @@ import qvarn
 
 class LoggingPlugin(object):
 
+    '''A Bottle plugin to log HTTP requests.'''
+
     def __init__(self):
+        # Create a counter shared between threads so that HTTP
+        # requests can be numbered linearly between threads.
         self._counter = RequestCounter()
 
     def apply(self, callback, route):
@@ -123,6 +127,8 @@ class LoggingPlugin(object):
 
 
 class RequestCounter(object):
+
+    '''A threadsafe incrementing counter.'''
 
     def __init__(self):
         self._lock = thread.allocate_lock()
