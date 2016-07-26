@@ -80,20 +80,20 @@ N4PPykCxhJqNdBVftYFadYLXUlgwFdy7jzR5q8M10FMe375mVxZi60agArldNaFGDjqNFU6aYe6aPfI
 class AuthorizationValidatorTests(unittest.TestCase):
 
     def setUp(self):
-        self.authorization_validator = qvarn.AuthorizationValidator()
+        self.av = qvarn.AuthorizationValidator()
 
     def test_no_authorization_header_errors_raises(self):
         with self.assertRaises(qvarn.Unauthorized):
-            self.authorization_validator.get_access_token_from_headers({})
+            self.av.get_access_token_from_headers({})
 
     def test_invalid_authorization_header_format_raises(self):
         with self.assertRaises(qvarn.Forbidden):
-            self.authorization_validator.get_access_token_from_headers({
+            self.av.get_access_token_from_headers({
                 'Authorization': 'Fail tokentoken'
             })
 
     def test_valid_authorization_header_format_returns_token(self):
-        token = self.authorization_validator.get_access_token_from_headers({
+        token = self.av.get_access_token_from_headers({
             'Authorization': 'Bearer tokentoken'
         })
         self.assertEqual(token, 'tokentoken')
@@ -101,7 +101,7 @@ class AuthorizationValidatorTests(unittest.TestCase):
     def test_token_validation_with_valid_token(self):
         token = get_valid_token()
         encoded_token = jwt.encode(token, private_test_key, algorithm='RS512')
-        result = self.authorization_validator.validate_token(
+        result = self.av.validate_token(
             encoded_token,
             public_test_key,
             token[u'iss'])
@@ -122,7 +122,7 @@ class AuthorizationValidatorTests(unittest.TestCase):
         token = get_valid_token()
         encoded_token = jwt.encode(token, private_test_key, algorithm='RS512')
         with self.assertRaises(qvarn.Unauthorized):
-            self.authorization_validator.validate_token(
+            self.av.validate_token(
                 encoded_token,
                 public_test_key,
                 u'otherissuer')
@@ -132,7 +132,7 @@ class AuthorizationValidatorTests(unittest.TestCase):
         del token[u'sub']
         encoded_token = jwt.encode(token, private_test_key, algorithm='RS512')
         with self.assertRaises(qvarn.Unauthorized):
-            self.authorization_validator.validate_token(
+            self.av.validate_token(
                 encoded_token,
                 public_test_key,
                 token[u'iss'])
@@ -145,14 +145,14 @@ class AuthorizationValidatorTests(unittest.TestCase):
         token['iat'] = now - 3820
         encoded_token = jwt.encode(token, private_test_key, algorithm='RS512')
         with self.assertRaises(qvarn.Unauthorized):
-            self.authorization_validator.validate_token(
+            self.av.validate_token(
                 encoded_token,
                 public_test_key,
                 token[u'iss'])
 
     def test_token_validation_with_malformed_token(self):
         with self.assertRaises(qvarn.Unauthorized):
-            self.authorization_validator.validate_token(
+            self.av.validate_token(
                 u'blahblah',
                 public_test_key,
                 u'issuer')
