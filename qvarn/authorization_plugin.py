@@ -87,4 +87,4 @@ class AuthorizationPlugin(object):
 
 class NoAccessToRouteScope(qvarn.Forbidden):
 
-    msg = u'No access to route scope'
+    msg = u'No access to route scope: need scope {route_scope}'
