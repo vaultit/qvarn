@@ -91,8 +91,6 @@ class SqlAdapter(object):
     # override it.
     type_name = {}
 
-    debug = False
-
     def quote(self, name):
         '''Quote a name for SQL.
 
@@ -120,8 +118,6 @@ class SqlAdapter(object):
             self.quote(table_name),
             u', '.join(column_specs),
         )
-        if self.debug:
-            print 'create table sql:', repr(sql)
         return sql
 
     def format_rename_table(self, old_name, new_name):
@@ -281,7 +277,6 @@ class SqliteAdapter(SqlAdapter):
 
     def __init__(self):
         self._conn = sqlite3.connect(u':memory:')
-        self.debug = False
 
     def format_placeholder(self, column_name):
         return ':{}'.format(self.quote(column_name))
