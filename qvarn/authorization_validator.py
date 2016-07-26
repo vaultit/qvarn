@@ -68,7 +68,24 @@ class AuthorizationValidator(object):
         '''
 
         try:
-            payload = jwt.decode(
+            payload = self._decode_token(
+                access_token, token_validation_key, issuer)
+            self._check_token_subject(payload)
+        except InvalidAccessTokenError:
+            bottle.response.headers['WWW-Authenticate'] = \
+                'Bearer error="invalid_token"'
+            raise
+
+        return {
+            u'scopes': payload[u'scope'].split(' '),
+            u'user_id': payload[u'sub'],
+            u'client_id': payload[u'aud']
+        }
+
+    def _decode_token(self, access_token, token_validation_key, issuer):
+        '''Return decoded access token.'''
+        try:
+            return jwt.decode(
                 access_token,
                 token_validation_key,
                 options={
@@ -78,22 +95,20 @@ class AuthorizationValidator(object):
                 issuer=issuer,
                 algorithms=[u'RS512'],
                 # Leeway for time checks (issued at, expiration)
-                leeway=datetime.timedelta(seconds=60))
-            # Additionally always require sub field (subject)
-            if u'sub' not in payload:
-                bottle.response.headers['WWW-Authenticate'] = \
-                    'Bearer error="invalid_token"'
-                raise InvalidAccessTokenError(
-                    token_error=u'Invalid subject (sub)')
-            return {
-                u'scopes': payload[u'scope'].split(' '),
-                u'user_id': payload[u'sub'],
-                u'client_id': payload[u'aud']
-            }
+                leeway=datetime.timedelta(seconds=60),
+            )
         except jwt.InvalidTokenError, e:
-            bottle.response.headers['WWW-Authenticate'] = \
-                'Bearer error="invalid_token"'
+            qvarn.log.log(
+                'error',
+                msg_text='Access token is invalid: jwt.decode')
             raise InvalidAccessTokenError(token_error=unicode(e))
+
+    def _check_token_subject(self, payload):
+        # Always require sub field (subject).
+        if u'sub' not in payload:
+            qvarn.log.log('error', msg_text='Access token has no sub field')
+            raise InvalidAccessTokenError(
+                token_error=u'Invalid subject (sub)')
 
 
 class AuthorizationHeaderMissing(qvarn.Unauthorized):
