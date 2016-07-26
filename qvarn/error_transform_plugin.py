@@ -36,8 +36,7 @@ class ErrorTransformPlugin(object):
     def apply(self, callback, route):
         def wrapper(*args, **kwargs):
             try:
-                result = callback(*args, **kwargs)
-                return result
+                return callback(*args, **kwargs)
             except qvarn.QvarnException as e:
                 qvarn.log.log(
                     'exception', msg_text=str(e), exc_info=True)
