@@ -29,6 +29,16 @@ import qvarn
 
 class AuthorizationPlugin(object):
 
+    '''Bottle plugin to check authorization for HTTP API endpoints.
+
+    Authorization is communicated via the "Authorization" HTTP header.
+    The header value should be a token from Gluu. The plugin verifies
+    the token signature, decodes the token, and checks that it's
+    valid: issued by the right Gluu, hasn't expired, has the scope
+    required for the access.
+
+    '''
+
     def __init__(self, token_validation_key, token_issuer):
         self._token_validation_key = token_validation_key
         self._token_issuer = token_issuer
