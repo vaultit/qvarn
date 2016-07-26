@@ -70,6 +70,11 @@ class AuthorizationPlugin(object):
         scopes = bottle.request.environ['scopes']
         route_scope = self._get_current_scope()
         if not scopes or route_scope not in scopes:
+            qvarn.log.log(
+                'error',
+                msg_text='Token has no scope for request',
+                wanted_scope=route_scope,
+                token_scopes=scopes)
             bottle.response.headers['WWW-Authenticate'] = \
                 'Bearer error="insufficient_scope"'
             raise NoAccessToRouteScope(route_scope=route_scope)
