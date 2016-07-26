@@ -35,30 +35,38 @@ class AuthorizationValidator(object):
     '''
 
     def get_access_token_from_headers(self, headers):
-        ''' Gets access token from headers dict.
-        Raises AuthenticationError for missing Authorization header.
-        Raises AuthorizationError for invalid Authorization header.
+        '''Get access token from headers dict.
+
+        Raise AuthenticationError for missing Authorization header.
+        Raise AuthorizationError for invalid Authorization header.
+
         '''
+
         # Header has to be present in the form "Authorization: Bearer token"
         if u'Authorization' not in headers:
             raise AuthorizationHeaderMissing()
+
         authorization_header_value = headers[u'Authorization']
         authorization_header_values = authorization_header_value.split(u' ')
         if len(authorization_header_values) != 2 or \
            not authorization_header_values[0].lower() == 'bearer':
             raise InvalidAuthorizationHeaderFormat()
+
         return authorization_header_values[1]
 
     def validate_token(self, access_token, token_validation_key, issuer):
-        ''' Validates access token with validation key.
-        Raises AuthorizationError on invalid token.
+        '''Validate access token with validation key.
+
+        Raise AuthorizationError on invalid token.
 
         Token validation result is a dict containing:
 
         scopes: a list of scope strings that the requester has access to
         client_id: id of the client that the end-user is using
         user_id: id of the end-user
+
         '''
+
         try:
             payload = jwt.decode(
                 access_token,
