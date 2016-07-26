@@ -39,10 +39,16 @@ class AuthorizationPlugin(object):
 
     '''
 
-    def __init__(self, token_validation_key, token_issuer):
-        self._token_validation_key = token_validation_key
-        self._token_issuer = token_issuer
+    def __init__(self):
+        self._token_validation_key = None
+        self._token_issuer = None
         self._authz_validator = qvarn.AuthorizationValidator()
+
+    def set_token_validation_key(self, key):
+        self._token_validation_key = key
+
+    def set_token_issuer(self, issuer):
+        self._token_issuer = issuer
 
     def apply(self, callback, route):
         def wrapper(*args, **kwargs):

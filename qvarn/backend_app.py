@@ -227,9 +227,10 @@ class BackendApplication(object):
             issuer = conf.get('auth', 'token_issuer')
 
         if validation_key and issuer:
-            authorization_plugin = qvarn.AuthorizationPlugin(
-                validation_key, issuer)
-            self._app.install(authorization_plugin)
+            plugin = qvarn.AuthorizationPlugin()
+            plugin.set_token_validation_key(validation_key)
+            plugin.set_token_issuer(issuer)
+            self._app.install(plugin)
         else:
             raise MissingAuthorizationError(
                 validation_key=validation_key,
