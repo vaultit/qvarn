@@ -243,7 +243,7 @@ class BackendApplication(object):
         return routes
 
 
-class MissingAuthorizationError(qvarn.BackendException):
+class MissingAuthorizationError(qvarn.QvarnException):
 
     msg = (u'Configuration is missing authentication fields: '
            u'token_validation_key is set to {validation_key!r}, '

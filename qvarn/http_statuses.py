@@ -21,7 +21,7 @@
 import qvarn
 
 
-class HTTPError(qvarn.BackendException):
+class HTTPError(qvarn.QvarnException):
 
     '''Base class for HTTP client errors (4xx).
 

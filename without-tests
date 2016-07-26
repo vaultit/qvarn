@@ -57,7 +57,7 @@ qvarn/error_transform_plugin.py
 # util.py
 qvarn/authorization_plugin.py
 
-# Contains only subclasses of BackendException that don't add any additional
+# Contains only subclasses of QvarnException that don't add any additional
 # functionality.
 qvarn/http_statuses.py
 

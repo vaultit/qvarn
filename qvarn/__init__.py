@@ -29,7 +29,7 @@ from .slog import (
 )
 
 from .exc import (
-    BackendException,
+    QvarnException,
 )
 
 from .http_statuses import (
