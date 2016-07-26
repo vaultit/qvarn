@@ -43,6 +43,10 @@ from .http_statuses import (
     UnsupportedMediaType,
 )
 
+from .counter import (
+    Counter,
+)
+
 from .walker import (
     ItemWalker,
     TooDeeplyNestedPrototype,
