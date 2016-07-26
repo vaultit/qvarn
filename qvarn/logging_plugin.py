@@ -93,23 +93,6 @@ class LoggingPlugin(object):
             }
         )
 
-        try:
-            if r.method in ('POST', 'PUT'):
-                body_text = r.body.read()
-                qvarn.log.log(
-                    'http-request-body',
-                    body_text_repr=repr(body_text))
-        except ValueError:
-            # When Bottle parses the body as JSON, if it fails, it
-            # raises the ValueError exception. We catch this and
-            # report the API client the content is not JSON.
-            #
-            # Any other errors will result in HTTP status 500
-            # (internal error), which is fine.
-            qvarn.log.log(
-                'http-request-body',
-                msg_text='Request body is malformed JSON (ignored)')
-
     def _log_response(self, data):
         r = bottle.response
         qvarn.log.log(
