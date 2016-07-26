@@ -221,7 +221,7 @@ class BackendApplication(object):
         issuer = None
 
         if conf.has_option('auth', 'token_validation_key'):
-            validation_key  = conf.get('auth', 'token_validation_key')
+            validation_key = conf.get('auth', 'token_validation_key')
 
         if conf.has_option('auth', 'token_issuer'):
             issuer = conf.get('auth', 'token_issuer')
