@@ -45,13 +45,13 @@ class BasicValidationPlugin(object):
         if method == 'POST':
             def post_wrapper(*args, **kwargs):
                 self._parse_json()
-                self._check_create_json()
+                self._check_json_for_create()
                 return callback(*args, **kwargs)
             return post_wrapper
         elif method == 'PUT':
             def put_wrapper(*args, **kwargs):
                 self._parse_json()
-                self._check_update_json(kwargs)
+                self._check_json_for_update(kwargs)
                 return callback(*args, **kwargs)
             return put_wrapper
         return callback
@@ -70,14 +70,14 @@ class BasicValidationPlugin(object):
             obj_repr=repr(obj),
             qvarn_json_repr=repr(bottle.request.qvarn_json))
 
-    def _check_create_json(self):
+    def _check_json_for_create(self):
         item = bottle.request.qvarn_json
         if u'id' in item:
             raise NewItemHasIdAlready(item_id=item[u'id'])
         if u'revision' in item:
             raise NewItemHasRevisionAlready(revision=item[u'revision'])
 
-    def _check_update_json(self, kwargs):
+    def _check_json_for_update(self, kwargs):
         item = bottle.request.qvarn_json
         item_route_id = kwargs[self._id_field_name]
         if u'id' in item and item[u'id'] != item_route_id:
