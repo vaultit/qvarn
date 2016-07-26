@@ -16,7 +16,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-'''See http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html'''
+'''Define exceptions for various HTTP errors.
+
+See http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html for
+definitions of the errors.
+
+'''
+
 
 import qvarn
 
