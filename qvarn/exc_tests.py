@@ -51,3 +51,7 @@ class QvarnExceptionTests(unittest.TestCase):
         e = DummyException()
         e2 = AnotherDummyException()
         self.assertNotEqual(e.error[u'error_code'], e2.error[u'error_code'])
+
+    def test_stringifies(self):
+        e = DummyException()
+        self.assertTrue(isinstance(str(e), str))
