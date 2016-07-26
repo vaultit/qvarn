@@ -111,7 +111,7 @@ class AuthorizationHeaderMissing(qvarn.Unauthorized):
 
 class InvalidAuthorizationHeaderFormat(qvarn.Forbidden):
 
-    msg = u'Authorization header is in invalid format'
+    msg = u'Authorization header is in invalid format, should be "Bearer TOKEN"'
 
 
 class InvalidAccessTokenError(qvarn.Unauthorized):
