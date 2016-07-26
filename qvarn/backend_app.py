@@ -212,6 +212,7 @@ class BackendApplication(object):
         log.log(
             'startup',
             msg_text='Program starts',
+            version=qvarn.__version__,
             argv=sys.argv,
             env=dict(os.environ))
 
