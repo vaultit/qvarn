@@ -21,6 +21,25 @@ import qvarn
 
 class Transaction(object):
 
+    '''Execute SQL statements in a transaction.
+
+    All SQL statements in Qvarn get executed through this class. It
+    provides methods for each type of statement Qvarn needs, executes
+    them, and logs data about the execution.
+
+    This class is meant to be used as a context manager with the
+    Python with statement. When entered, the transaction starts. When
+    exited, the transaction ends, automatically either committong or
+    rolling back the transaction, depending on the cause of the exit.
+
+    Since different database engines implement the SQL standard in
+    different ways, this transaction class delegates the formation of
+    the actual text of the statements to an SQLAdapter subclass. No
+    actual SQL text is allowed anywhere outside SQLAdapter and its
+    subclasses.
+
+    '''
+
     def __init__(self):
         self._sql = None
         self._conn = None
