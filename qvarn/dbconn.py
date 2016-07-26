@@ -21,7 +21,13 @@ import qvarn
 
 class DatabaseConnection(object):
 
-    '''Allow transactions on a database connection.'''
+    '''Allow transactions on a database connection.
+
+    This is a very simple class, but it provides a useful abstraction
+    that makes code that needs to start a transaction a little
+    simpler.
+
+    '''
 
     def __init__(self):
         self._sql = None
