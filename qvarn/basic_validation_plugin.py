@@ -31,17 +31,7 @@ import qvarn
 
 class BasicValidationPlugin(object):
 
-    '''Perform basic validation for JSON resource POST and PUT.
-
-    Checks that content type is application/json
-
-    Checks that new resources have no id or revision.
-
-    Checks that resource updates have revision.
-
-    Checks that when resource updates have id
-    then that id matches the route id.
-    '''
+    '''Perform basic validation for JSON resource POST and PUT.'''
 
     def __init__(self, id_field_name=None):
         self._id_field_name = id_field_name
