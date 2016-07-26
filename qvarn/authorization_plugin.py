@@ -29,10 +29,26 @@ import qvarn
 
 class AuthorizationPlugin(object):
 
-    def __init__(self, token_validation_key, token_issuer):
-        self._token_validation_key = token_validation_key
-        self._token_issuer = token_issuer
+    '''Bottle plugin to check authorization for HTTP API endpoints.
+
+    Authorization is communicated via the "Authorization" HTTP header.
+    The header value should be a token from Gluu. The plugin verifies
+    the token signature, decodes the token, and checks that it's
+    valid: issued by the right Gluu, hasn't expired, has the scope
+    required for the access.
+
+    '''
+
+    def __init__(self):
+        self._token_validation_key = None
+        self._token_issuer = None
         self._authz_validator = qvarn.AuthorizationValidator()
+
+    def set_token_validation_key(self, key):
+        self._token_validation_key = key
+
+    def set_token_issuer(self, issuer):
+        self._token_issuer = issuer
 
     def apply(self, callback, route):
         def wrapper(*args, **kwargs):
@@ -54,6 +70,11 @@ class AuthorizationPlugin(object):
         scopes = bottle.request.environ['scopes']
         route_scope = self._get_current_scope()
         if not scopes or route_scope not in scopes:
+            qvarn.log.log(
+                'error',
+                msg_text='Token has no scope for request',
+                wanted_scope=route_scope,
+                token_scopes=scopes)
             bottle.response.headers['WWW-Authenticate'] = \
                 'Bearer error="insufficient_scope"'
             raise NoAccessToRouteScope(route_scope=route_scope)
@@ -66,4 +87,4 @@ class AuthorizationPlugin(object):
 
 class NoAccessToRouteScope(qvarn.Forbidden):
 
-    msg = u'No access to route scope'
+    msg = u'No access to route scope: need scope {route_scope}'

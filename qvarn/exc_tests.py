@@ -1,4 +1,4 @@
-# exc_tests.py - unit tests for BackendException
+# exc_tests.py - unit tests for QvarnException
 #
 # Copyright 2015, 2016 Suomen Tilaajavastuu Oy
 #
@@ -21,17 +21,17 @@ import unittest
 import qvarn
 
 
-class DummyException(qvarn.BackendException):
+class DummyException(qvarn.QvarnException):
 
     msg = u'dummy msg'
 
 
-class AnotherDummyException(qvarn.BackendException):
+class AnotherDummyException(qvarn.QvarnException):
 
     msg = u'another dummy msg'
 
 
-class BackendExceptionTests(unittest.TestCase):
+class QvarnExceptionTests(unittest.TestCase):
 
     def test_stores_keyword_arguments_in_error(self):
         e = DummyException(param=123)
@@ -51,3 +51,7 @@ class BackendExceptionTests(unittest.TestCase):
         e = DummyException()
         e2 = AnotherDummyException()
         self.assertNotEqual(e.error[u'error_code'], e2.error[u'error_code'])
+
+    def test_stringifies(self):
+        e = DummyException()
+        self.assertTrue(isinstance(str(e), str))

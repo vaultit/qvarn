@@ -53,10 +53,13 @@ class ListResource(object):
         self._path = None
         self._item_type = None
         self._item_prototype = None
-        self._item_validator = None
+        self._item_validator = self._no_validator
         self._subitem_prototypes = qvarn.SubItemPrototypes()
         self._listener = None
         self._dbconn = None
+
+    def _no_validator(self, item):
+        return
 
     def set_path(self, path):
         '''Set path of the top level resource, e.g., /persons.'''
@@ -79,7 +82,7 @@ class ListResource(object):
 
         '''
 
-        self._item_validator = item_validator
+        self._item_validator = item_validator or self._no_validator
 
     def set_subitem_prototype(self, subitem_name, prototype):
         '''Set prototype for a subitem.'''

@@ -158,6 +158,6 @@ class ItemWalker(object):
         '''Visit str list in each dict in an inner dict list.'''
 
 
-class TooDeeplyNestedPrototype(qvarn.BackendException):
+class TooDeeplyNestedPrototype(qvarn.QvarnException):
 
     msg = u'Resource prototype is too deeply nested: {prototype!r}'

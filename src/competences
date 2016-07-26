@@ -21,9 +21,6 @@
 import qvarn
 
 
-resource_type = u'competence'
-
-
 competence_prototype_v0 = {
     u'type': u'',
     u'id': u'',
@@ -83,48 +80,34 @@ competence_sync_prototype = {
 }
 
 
-def validate_competence(obj):
-    pass
+resource_type_spec = {
+    u'path': u'/competences',
+    u'type': u'competence',
+    u'versions': [
+        {
+            u'version': u'v0',
+            u'prototype': competence_prototype_v0,
+        },
+        {
+            u'version': u'v1',
+            u'prototype': competence_prototype_v1,
+            u'subpaths': {
+                u'sync': {
+                    u'prototype': competence_sync_prototype,
+                },
+            },
+        },
+        {
+            u'version': u'v2',
+            u'prototype': competence_prototype_v2,
+            u'subpaths': {
+                u'sync': {
+                    u'prototype': competence_sync_prototype,
+                },
+            },
+        },
+    ],
+}
 
 
-def setup():
-    vs = qvarn.VersionedStorage()
-    vs.set_resource_type(resource_type)
-
-    vs.start_version(u'v0', None)
-    vs.add_prototype(competence_prototype_v0)
-
-    vs.start_version(u'v1', None)
-    vs.add_prototype(competence_prototype_v1)
-    vs.add_prototype(competence_sync_prototype, subpath=u'sync')
-    vs.add_prototype(qvarn.listener_prototype, auxtable=u'listener')
-    vs.add_prototype(
-        qvarn.notification_prototype, auxtable=u'notification')
-
-    vs.start_version(u'v2', None)
-    vs.add_prototype(competence_prototype_v2)
-    vs.add_prototype(competence_sync_prototype, subpath=u'sync')
-    vs.add_prototype(qvarn.listener_prototype, auxtable=u'listener')
-    vs.add_prototype(
-        qvarn.notification_prototype, auxtable=u'notification')
-
-    app = qvarn.BackendApplication()
-    app.set_versioned_storage(vs)
-
-    listener_resource = qvarn.ListenerResource()
-    listener_resource.set_top_resource_path(resource_type, u'/competences')
-    app.add_resource(listener_resource)
-
-    resource = qvarn.ListResource()
-    resource.set_path(u'/competences')
-    resource.set_item_type(resource_type)
-    resource.set_item_prototype(competence_prototype_current)
-    resource.set_item_validator(validate_competence)
-    resource.set_subitem_prototype(u'sync', competence_sync_prototype)
-    resource.set_listener(listener_resource)
-    app.add_resource(resource)
-
-    return app.prepare_for_uwsgi()
-
-
-application = setup()
+application = qvarn.create_resource_server(resource_type_spec)

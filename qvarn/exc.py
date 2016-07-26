@@ -16,9 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-class BackendException(Exception):
+class QvarnException(Exception):
 
-    '''Base class for backend specific exceptions.
+    '''Base class for Qvarn specific exceptions.
 
     Every other exception defined by the backend should be a subclass
     of this one. Subclasses MUST define an attribute ``msg``, that contains
@@ -35,7 +35,7 @@ class BackendException(Exception):
     (It's the job of the presentation layer to break it into lines, if
     need be.)
 
-    All BackendExceptions are converted to user and machine readable messages
+    All QvarnExceptions are converted to user and machine readable messages
     with matching HTTP status codes. This error should not be used directly
     which is why its status code is set to 500 (internal server error).
     '''
@@ -44,7 +44,7 @@ class BackendException(Exception):
     msg = u'Internal server error'
 
     def __init__(self, **kwargs):
-        super(BackendException, self).__init__(self)
+        super(QvarnException, self).__init__(self)
         self.error = kwargs
         self.error.update({
             u'error_code': self.__class__.__name__,

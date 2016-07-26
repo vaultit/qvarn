@@ -119,16 +119,7 @@ import hashlib
 
 class ResourceIdGenerator(object):
 
-    '''Generate resource identifiers.
-
-    Identifiers are unicode strings, which include sufficient
-    randomness that there is no need to check a database for them
-    already existing. This means identifiers can be generated in a
-    distributed manner, avoiding an architectural bottleneck.
-
-    This class has only one method, new_id.
-
-    '''
+    '''Generate resource identifiers.'''
 
     def __init__(self):
         self._urandom = URandom()

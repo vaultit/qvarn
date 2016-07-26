@@ -33,14 +33,8 @@ class BasicValidationPlugin(object):
 
     '''Perform basic validation for JSON resource POST and PUT.
 
-    Checks that content type is application/json
+    This is a Bottle plugin.
 
-    Checks that new resources have no id or revision.
-
-    Checks that resource updates have revision.
-
-    Checks that when resource updates have id
-    then that id matches the route id.
     '''
 
     def __init__(self, id_field_name=None):
@@ -50,19 +44,19 @@ class BasicValidationPlugin(object):
         method = route['method']
         if method == 'POST':
             def post_wrapper(*args, **kwargs):
-                self._check_json()
-                self._check_create_json()
+                self._parse_json()
+                self._check_json_for_create()
                 return callback(*args, **kwargs)
             return post_wrapper
         elif method == 'PUT':
             def put_wrapper(*args, **kwargs):
-                self._check_json()
-                self._check_update_json(kwargs)
+                self._parse_json()
+                self._check_json_for_update(kwargs)
                 return callback(*args, **kwargs)
             return put_wrapper
         return callback
 
-    def _check_json(self):
+    def _parse_json(self):
         if bottle.request.content_type != 'application/json':
             raise ContentIsNotJSON()
         try:
@@ -71,19 +65,15 @@ class BasicValidationPlugin(object):
             raise ContentIsNotJSON()
 
         bottle.request.qvarn_json = obj
-        qvarn.log.log(
-            'json-parse',
-            obj_repr=repr(obj),
-            qvarn_json_repr=repr(bottle.request.qvarn_json))
 
-    def _check_create_json(self):
+    def _check_json_for_create(self):
         item = bottle.request.qvarn_json
         if u'id' in item:
             raise NewItemHasIdAlready(item_id=item[u'id'])
         if u'revision' in item:
             raise NewItemHasRevisionAlready(revision=item[u'revision'])
 
-    def _check_update_json(self, kwargs):
+    def _check_json_for_update(self, kwargs):
         item = bottle.request.qvarn_json
         item_route_id = kwargs[self._id_field_name]
         if u'id' in item and item[u'id'] != item_route_id:

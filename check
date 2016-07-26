@@ -67,7 +67,7 @@ pep8 qvarn/*.py src/*
 #
 #       star-args                       *args and **kwargs in method arguments
 #                                       can be quite useful, and the way
-#                                       we use them in BackendException is
+#                                       we use them in QvarnException is
 #                                       a valid and necessary use of them
 #
 #       no-self-use                     this warns also about helper methods

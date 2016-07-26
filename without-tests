@@ -53,11 +53,18 @@ qvarn/logging_plugin.py
 qvarn/basic_validation_plugin.py
 qvarn/error_transform_plugin.py
 
+# A very simple class that got written without unit tests. Might be
+# worthwhile to remove
+qvarn/measurement.py
+
 # Does not contain much logic, logic is mostly separated to AuthValidator and
 # util.py
 qvarn/authorization_plugin.py
 
-# Contains only subclasses of BackendException that don't add any additional
+# This is mainly tying up other classes, not easily unit tested.
+qvarn/resource_server.py
+
+# Contains only subclasses of QvarnException that don't add any additional
 # functionality.
 qvarn/http_statuses.py
 

@@ -27,13 +27,12 @@ import qvarn
 def get_valid_token():
     now = time.time()
     return {
-        u'oxValidationURI':
-        u'https://dev-gluu.tilaajavastuu.io/oxauth/opiframe',
+        u'oxValidationURI': u'https://gluu.example.com/oxauth/opiframe',
         u'oxOpenIDConnectVersion': u'openidconnect-1.0',
         u'c_hash': u'dSxmNqq0uc7rT-c0qgr276hH-yUaW9HMaKY-2xyBM90',
         u'aud': u'@!1E2D.4C48.2272.F616!0001!CC3B.680A!0008!C2A9.C9A2',
         u'sub': u'useridhash',
-        u'iss': u'https://dev-gluu.tilaajavastuu.io',
+        u'iss': u'https://gluu.example.com',
         u'exp': now + 3600,
         u'auth_time': now - 60,
         u'iat': now - 120,
@@ -81,20 +80,20 @@ N4PPykCxhJqNdBVftYFadYLXUlgwFdy7jzR5q8M10FMe375mVxZi60agArldNaFGDjqNFU6aYe6aPfI
 class AuthorizationValidatorTests(unittest.TestCase):
 
     def setUp(self):
-        self.authorization_validator = qvarn.AuthorizationValidator()
+        self.av = qvarn.AuthorizationValidator()
 
     def test_no_authorization_header_errors_raises(self):
         with self.assertRaises(qvarn.Unauthorized):
-            self.authorization_validator.get_access_token_from_headers({})
+            self.av.get_access_token_from_headers({})
 
     def test_invalid_authorization_header_format_raises(self):
         with self.assertRaises(qvarn.Forbidden):
-            self.authorization_validator.get_access_token_from_headers({
+            self.av.get_access_token_from_headers({
                 'Authorization': 'Fail tokentoken'
             })
 
     def test_valid_authorization_header_format_returns_token(self):
-        token = self.authorization_validator.get_access_token_from_headers({
+        token = self.av.get_access_token_from_headers({
             'Authorization': 'Bearer tokentoken'
         })
         self.assertEqual(token, 'tokentoken')
@@ -102,7 +101,7 @@ class AuthorizationValidatorTests(unittest.TestCase):
     def test_token_validation_with_valid_token(self):
         token = get_valid_token()
         encoded_token = jwt.encode(token, private_test_key, algorithm='RS512')
-        result = self.authorization_validator.validate_token(
+        result = self.av.validate_token(
             encoded_token,
             public_test_key,
             token[u'iss'])
@@ -123,7 +122,7 @@ class AuthorizationValidatorTests(unittest.TestCase):
         token = get_valid_token()
         encoded_token = jwt.encode(token, private_test_key, algorithm='RS512')
         with self.assertRaises(qvarn.Unauthorized):
-            self.authorization_validator.validate_token(
+            self.av.validate_token(
                 encoded_token,
                 public_test_key,
                 u'otherissuer')
@@ -133,7 +132,7 @@ class AuthorizationValidatorTests(unittest.TestCase):
         del token[u'sub']
         encoded_token = jwt.encode(token, private_test_key, algorithm='RS512')
         with self.assertRaises(qvarn.Unauthorized):
-            self.authorization_validator.validate_token(
+            self.av.validate_token(
                 encoded_token,
                 public_test_key,
                 token[u'iss'])
@@ -146,14 +145,14 @@ class AuthorizationValidatorTests(unittest.TestCase):
         token['iat'] = now - 3820
         encoded_token = jwt.encode(token, private_test_key, algorithm='RS512')
         with self.assertRaises(qvarn.Unauthorized):
-            self.authorization_validator.validate_token(
+            self.av.validate_token(
                 encoded_token,
                 public_test_key,
                 token[u'iss'])
 
     def test_token_validation_with_malformed_token(self):
         with self.assertRaises(qvarn.Unauthorized):
-            self.authorization_validator.validate_token(
+            self.av.validate_token(
                 u'blahblah',
                 public_test_key,
                 u'issuer')

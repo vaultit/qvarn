@@ -21,9 +21,6 @@
 import qvarn
 
 
-resource_type = u'person'
-
-
 person_prototype_v0 = {
     u'type': u'',
     u'id': u'',
@@ -155,57 +152,53 @@ def validate_person(obj):
             raise PersonWithoutFullName(id=obj.get(u'id', u'(no id provided)'))
 
 
-def setup():
-    vs = qvarn.VersionedStorage()
-    vs.set_resource_type(resource_type)
-
-    vs.start_version(u'v0', None)
-    vs.add_prototype(person_prototype_v0)
-
-    vs.start_version(u'v1', None)
-    vs.add_prototype(person_prototype_v1)
-    vs.add_prototype(person_photo_prototype, subpath=u'photo')
-    vs.add_prototype(person_private_prototype, subpath=u'private')
-    vs.add_prototype(person_sync_prototype, subpath=u'sync')
-    vs.add_prototype(qvarn.listener_prototype, auxtable=u'listener')
-    vs.add_prototype(
-        qvarn.notification_prototype, auxtable=u'notification')
-
-    vs.start_version(u'v2', None)
-    vs.add_prototype(person_prototype_v1)
-    vs.add_prototype(person_photo_prototype, subpath=u'photo')
-    vs.add_prototype(person_private_prototype_v2, subpath=u'private')
-    vs.add_prototype(person_sync_prototype, subpath=u'sync')
-    vs.add_prototype(qvarn.listener_prototype, auxtable=u'listener')
-    vs.add_prototype(qvarn.notification_prototype, auxtable=u'notification')
-
-    app = qvarn.BackendApplication()
-    app.set_versioned_storage(vs)
-
-    listener_resource = qvarn.ListenerResource()
-    listener_resource.set_top_resource_path(resource_type, u'/persons')
-    app.add_resource(listener_resource)
-
-    resource = qvarn.ListResource()
-    resource.set_path(u'/persons')
-    resource.set_item_type(resource_type)
-    resource.set_item_prototype(person_prototype_current)
-    resource.set_item_validator(validate_person)
-    resource.set_subitem_prototype(
-        u'private', person_private_prototype_current)
-    resource.set_subitem_prototype(u'sync', person_sync_prototype)
-    resource.set_listener(listener_resource)
-    app.add_resource(resource)
-
-    file_resource = qvarn.FileResource()
-    file_resource.set_item_prototype(person_prototype_current)
-    file_resource.set_top_resource_path(u'/persons')
-    file_resource.set_item_type(resource_type)
-    file_resource.set_file_resource_name(u'photo')
-    file_resource.set_listener(listener_resource)
-    app.add_resource(file_resource)
-
-    return app.prepare_for_uwsgi()
+resource_type_spec = {
+    u'path': u'/persons',
+    u'type': u'person',
+    u'versions': [
+        {
+            u'version': 'v0',
+            u'prototype': person_prototype_v0,
+        },
+        {
+            u'version': 'v1',
+            u'prototype': person_prototype_v1,
+            u'subpaths': {
+                u'photo': {
+                    u'prototype': person_photo_prototype,
+                },
+                u'private': {
+                    u'prototype': person_private_prototype,
+                },
+                u'sync': {
+                    u'prototype': person_sync_prototype,
+                },
+            },
+            u'files': [
+                u'photo',
+            ],
+        },
+        {
+            u'version': 'v2',
+            u'prototype': person_prototype_v1,
+            u'subpaths': {
+                u'photo': {
+                    u'prototype': person_photo_prototype,
+                },
+                u'private': {
+                    u'prototype': person_private_prototype_v2,
+                },
+                u'sync': {
+                    u'prototype': person_sync_prototype,
+                },
+            },
+            u'files': [
+                u'photo',
+            ],
+            u'validator': validate_person,
+        },
+    ],
+}
 
 
-application = setup()
+application = qvarn.create_resource_server(resource_type_spec)

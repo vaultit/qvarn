@@ -1,4 +1,4 @@
-# error_transform_plugin.py - transforms qvarn.BackendExceptions
+# error_transform_plugin.py - transforms qvarn.QvarnExceptions
 #                             to HTTP JSON responses
 #
 # Copyright 2015, 2016 Suomen Tilaajavastuu Oy
@@ -24,20 +24,22 @@ import qvarn
 
 class ErrorTransformPlugin(object):
 
-    '''Catches a qvarn.BackendException and returns error as dict instead.
+    '''Catches a qvarn.QvarnException and returns error as dict instead.
 
-    Uses BackendException error attribute as the to-be-JSONified dict and also
+    This is a Bottle plugin.
+
+    Uses QvarnException error attribute as the to-be-JSONified dict and also
     sets the response error status code to HTTPError status_code.
+
     '''
 
     def apply(self, callback, route):
         def wrapper(*args, **kwargs):
             try:
-                result = callback(*args, **kwargs)
-                return result
-            except qvarn.BackendException as e:
+                return callback(*args, **kwargs)
+            except qvarn.QvarnException as e:
                 qvarn.log.log(
-                    'backend-exception', msg_text=str(e), exc_info=True)
+                    'exception', msg_text=str(e), exc_info=True)
                 bottle.response.status = e.status_code
                 return e.error
         return wrapper

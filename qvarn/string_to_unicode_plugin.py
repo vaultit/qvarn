@@ -19,7 +19,7 @@
 
 class StringToUnicodePlugin(object):
 
-    '''Currently only transforms str args and kwargs to unicode.'''
+    '''Bottle plugin to transform str in args and kwargs values to unicode.'''
 
     def apply(self, callback, route):
         def wrapper(*args, **kwargs):

@@ -150,7 +150,7 @@ def table_name(**kwargs):
     assert False  # pragma: no cover
 
 
-class ComplicatedTableNameError(qvarn.BackendException):
+class ComplicatedTableNameError(qvarn.QvarnException):
 
     msg = (u'Internal error: tried to construct a database table name '
            u'that was too complicated')

@@ -40,13 +40,16 @@ class BackendApplication(object):
     expected to all have the same external interface, provided by this
     class.
 
-    This class is parameterised by calling the ``set_storage_preparer``,
-    ``add_resource`` and ``add_routes`` methods. The application actually
-    starts when the ``run`` method is called. The resources added with
-    ``add_resource`` MUST have a ``prepare_resource`` method, which gets
-    as its parameter the database, and returns a representation
-    of routes suitable to be given to ``add_routes``. The resource object
-    does not need to call ``add_routes`` directly.
+    This class is parameterised by calling the
+    ``set_storage_preparer``, ``add_resource`` and ``add_routes``
+    methods. The application actually starts when UWSGI starts the
+    Bottle application that our prepare_for_wsgi method returns.
+
+    The resources added with ``add_resource`` MUST have a
+    ``prepare_resource`` method, which gets as its parameter the
+    database, and returns a representation of routes suitable to be
+    given to ``add_routes``. The resource object does not need to call
+    ``add_routes`` directly.
 
     '''
 
@@ -194,23 +197,33 @@ class BackendApplication(object):
         if conf.has_option('main', 'log'):
             name = conf.get('main', 'log')
             if name == 'syslog':
-                writer = qvarn.SyslogSlogWriter()
+                self._configure_logging_to_syslog()
             else:
-                writer = qvarn.FileSlogWriter()
-                writer.set_filename_prefix(conf.get('main', 'log'))
-
-                max_bytes = 10 * 1024**2
-                if conf.has_option('main', 'log-max-bytes'):
-                    max_bytes = conf.getint('main', 'log-max-bytes')
-                writer.set_max_file_size(max_bytes)
-
-            qvarn.log.set_log_writer(writer)
+                max_bytes = self._get_max_log_bytes(conf)
+                self._configure_logging_to_file(name, max_bytes)
 
         log.log(
             'startup',
             msg_text='Program starts',
+            version=qvarn.__version__,
             argv=sys.argv,
             env=dict(os.environ))
+
+    def _configure_logging_to_syslog(self):
+        writer = qvarn.SyslogSlogWriter()
+        qvarn.log.set_log_writer(writer)
+
+    def _get_max_log_bytes(self, conf):
+        max_bytes = 10 * 1024**2
+        if conf.has_option('main', 'log-max-bytes'):
+            max_bytes = conf.getint('main', 'log-max-bytes')
+        return max_bytes
+
+    def _configure_logging_to_file(self, filename, max_bytes):
+        writer = qvarn.FileSlogWriter()
+        writer.set_filename_prefix(filename)
+        writer.set_max_file_size(max_bytes)
+        qvarn.log.set_log_writer(writer)
 
     def _install_logging_plugin(self):
         logging_plugin = qvarn.LoggingPlugin()
@@ -221,15 +234,16 @@ class BackendApplication(object):
         issuer = None
 
         if conf.has_option('auth', 'token_validation_key'):
-            validation_key  = conf.get('auth', 'token_validation_key')
+            validation_key = conf.get('auth', 'token_validation_key')
 
         if conf.has_option('auth', 'token_issuer'):
             issuer = conf.get('auth', 'token_issuer')
 
         if validation_key and issuer:
-            authorization_plugin = qvarn.AuthorizationPlugin(
-                validation_key, issuer)
-            self._app.install(authorization_plugin)
+            plugin = qvarn.AuthorizationPlugin()
+            plugin.set_token_validation_key(validation_key)
+            plugin.set_token_issuer(issuer)
+            self._app.install(plugin)
         else:
             raise MissingAuthorizationError(
                 validation_key=validation_key,
@@ -242,7 +256,7 @@ class BackendApplication(object):
         return routes
 
 
-class MissingAuthorizationError(qvarn.BackendException):
+class MissingAuthorizationError(qvarn.QvarnException):
 
     msg = (u'Configuration is missing authentication fields: '
            u'token_validation_key is set to {validation_key!r}, '

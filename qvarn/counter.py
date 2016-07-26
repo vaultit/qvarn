@@ -1,5 +1,3 @@
-# dbconn.py - Transactions on database connections
-#
 # Copyright 2015, 2016 Suomen Tilaajavastuu Oy
 #
 # This program is free software: you can redistribute it and/or modify
@@ -16,26 +14,21 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import qvarn
+import thread
 
 
-class DatabaseConnection(object):
+class Counter(object):
 
-    '''Allow transactions on a database connection.
-
-    This is a very simple class, but it provides a useful abstraction
-    that makes code that needs to start a transaction a little
-    simpler.
-
-    '''
+    '''A threadsafe incrementing counter.'''
 
     def __init__(self):
-        self._sql = None
+        self._lock = thread.allocate_lock()
+        self._counter = 0
 
-    def set_sql(self, sql):
-        self._sql = sql
+    def get(self):
+        return self._counter
 
-    def transaction(self):
-        trans = qvarn.Transaction()
-        trans.set_sql(self._sql)
-        return trans
+    def increment(self):
+        with self._lock:
+            self._counter += 1
+            return self._counter
