@@ -31,7 +31,11 @@ import qvarn
 
 class BasicValidationPlugin(object):
 
-    '''Perform basic validation for JSON resource POST and PUT.'''
+    '''Perform basic validation for JSON resource POST and PUT.
+
+    This is a Bottle plugin.
+
+    '''
 
     def __init__(self, id_field_name=None):
         self._id_field_name = id_field_name
