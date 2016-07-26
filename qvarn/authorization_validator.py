@@ -35,12 +35,7 @@ class AuthorizationValidator(object):
     '''
 
     def get_access_token_from_headers(self, headers):
-        '''Get access token from headers dict.
-
-        Raise AuthenticationError for missing Authorization header.
-        Raise AuthorizationError for invalid Authorization header.
-
-        '''
+        '''Get access token from headers dict.'''
 
         # Header has to be present in the form "Authorization: Bearer token"
         if u'Authorization' not in headers:
@@ -56,8 +51,6 @@ class AuthorizationValidator(object):
 
     def validate_token(self, access_token, token_validation_key, issuer):
         '''Validate access token with validation key.
-
-        Raise AuthorizationError on invalid token.
 
         Token validation result is a dict containing:
 
