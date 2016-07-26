@@ -59,9 +59,6 @@ class LoggingPlugin(object):
                 self._end_context()
                 raise bottle.HTTPError(status=500, body=str(e))
 
-        # pylint: disable=attribute-defined-outside-init
-        self._counter = RequestCounter()
-
         return wrapper
 
     def _start_context(self):
