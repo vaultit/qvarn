@@ -25,6 +25,8 @@ import thread
 import time
 import traceback
 
+import qvarn
+
 
 class StructuredLog(object):
 
@@ -41,7 +43,7 @@ class StructuredLog(object):
     '''
 
     def __init__(self):
-        self._msg_counter = MessageCounter()
+        self._msg_counter = qvarn.Counter()
         self._context = {}
         self._writer = None
 
@@ -174,20 +176,6 @@ class SyslogSlogWriter(SlogWriter):  # pragma: no cover
 
     def close(self):
         pass
-
-
-class MessageCounter(object):
-
-    def __init__(self):
-        self._lock = thread.allocate_lock()
-        self._counter = 0
-
-    def increment(self):
-        if self._lock.acquire():
-            self._counter += 1
-            new_value = self._counter
-            self._lock.release()
-            return new_value
 
 
 class SlogEncoder(json.JSONEncoder):  # pragma: no cover
