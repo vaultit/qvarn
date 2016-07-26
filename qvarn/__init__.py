@@ -16,7 +16,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from .version import __version__, __version_info__
+from .version import (
+    __version__,
+    __version_info__,
+)
 
 from .slog import (
     StructuredLog,
@@ -24,42 +27,133 @@ from .slog import (
     FileSlogWriter,
     SyslogSlogWriter,
 )
-from .exc import BackendException
+
+from .exc import (
+    BackendException,
+)
+
 from .http_statuses import (
-    HTTPError, BadRequest, Unauthorized, Forbidden, NotFound, Conflict,
-    LengthRequired, UnsupportedMediaType)
-from .walker import ItemWalker, TooDeeplyNestedPrototype
-from .validate import ItemValidator, ValidationError
+    HTTPError,
+    BadRequest,
+    Unauthorized,
+    Forbidden,
+    NotFound,
+    Conflict,
+    LengthRequired,
+    UnsupportedMediaType,
+)
+
+from .walker import (
+    ItemWalker,
+    TooDeeplyNestedPrototype,
+)
+
+from .validate import (
+    ItemValidator,
+    ValidationError,
+)
+
 from .basic_validation_plugin import (
-    BasicValidationPlugin, NoItemRevision, ContentTypeIsNotJSON)
-from .sql import SqliteAdapter, PostgresAdapter, column_types
-from .transaction import Transaction
-from .dbconn import DatabaseConnection
-from .subitem_protos import SubItemPrototypes
+    BasicValidationPlugin,
+    NoItemRevision,
+    ContentTypeIsNotJSON,
+)
+
+from .sql import (
+    SqliteAdapter,
+    PostgresAdapter,
+    column_types,
+)
+
+from .transaction import (
+    Transaction,
+)
+
+from .dbconn import (
+    DatabaseConnection,
+)
+
+from .subitem_protos import (
+    SubItemPrototypes,
+)
+
 from .write_only import (
-    WriteOnlyStorage, CannotAddWithId, CannotAddWithRevision,
-    WrongRevision)
-from .read_only import ReadOnlyStorage, ItemDoesNotExist, FieldNotInResource
-from .backend_app import BackendApplication, log
-from .filler import add_missing_item_fields
+    WriteOnlyStorage,
+    CannotAddWithId,
+    CannotAddWithRevision,
+    WrongRevision,
+)
+
+from .read_only import (
+    ReadOnlyStorage,
+    ItemDoesNotExist,
+    FieldNotInResource,
+)
+
+from .backend_app import (
+    BackendApplication,
+    log,
+)
+
+from .filler import (
+    add_missing_item_fields,
+)
+
 from .util import (
     route_to_scope,
     table_name,
     ComplicatedTableNameError,
-    create_tables_for_resource_type)
-from .simple_resource import SimpleResource
-from .list_resource import ListResource
-from .idgen import ResourceIdGenerator
-from .authorization_plugin import AuthorizationPlugin
-from .authorization_validator import AuthorizationValidator
-from .logging_plugin import LoggingPlugin
-from .string_to_unicode_plugin import StringToUnicodePlugin
+    create_tables_for_resource_type,
+)
+
+from .simple_resource import (
+    SimpleResource,
+)
+
+from .list_resource import (
+    ListResource,
+)
+
+from .idgen import (
+    ResourceIdGenerator,
+)
+
+from .authorization_plugin import (
+    AuthorizationPlugin,
+)
+
+from .authorization_validator import (
+    AuthorizationValidator,
+)
+
+from .logging_plugin import (
+    LoggingPlugin,
+)
+
+from .string_to_unicode_plugin import (
+    StringToUnicodePlugin,
+)
+
 from .listener_resource import (
     ListenerResource,
     listener_prototype,
-    notification_prototype)
+    notification_prototype,
+)
+
 from .file_resource import (
-    FileResource, ContentLengthMissing, InvalidContentType)
-from .error_transform_plugin import ErrorTransformPlugin
-from .schema import schema_from_prototype
-from .versioned_storage import VersionedStorage
+    FileResource,
+    ContentLengthMissing,
+    InvalidContentType,
+)
+
+from .error_transform_plugin import (
+    ErrorTransformPlugin,
+)
+
+from .schema import (
+    schema_from_prototype,
+)
+
+from .versioned_storage import (
+    VersionedStorage,
+)
