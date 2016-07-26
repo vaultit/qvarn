@@ -22,8 +22,6 @@
 # pylint: disable=not-an-iterable
 
 
-import thread
-
 import bottle
 
 import qvarn
@@ -36,7 +34,7 @@ class LoggingPlugin(object):
     def __init__(self):
         # Create a counter shared between threads so that HTTP
         # requests can be numbered linearly between threads.
-        self._counter = RequestCounter()
+        self._counter = qvarn.Counter()
 
     def apply(self, callback, route):
         def wrapper(*args, **kwargs):
@@ -99,17 +97,3 @@ class LoggingPlugin(object):
             'http-response',
             status=r.status_code,
             headers=dict(r.headers))
-
-
-class RequestCounter(object):
-
-    '''A threadsafe incrementing counter.'''
-
-    def __init__(self):
-        self._lock = thread.allocate_lock()
-        self._counter = 0
-
-    def increment(self):
-        with self._lock:
-            self._counter += 1
-            return self._counter
