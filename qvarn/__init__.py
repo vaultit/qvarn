@@ -165,3 +165,8 @@ from .schema import (
 from .versioned_storage import (
     VersionedStorage,
 )
+
+from .resource_server import (
+    ResourceServer,
+    create_resource_server,
+)

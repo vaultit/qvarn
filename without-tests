@@ -61,6 +61,9 @@ qvarn/measurement.py
 # util.py
 qvarn/authorization_plugin.py
 
+# This is mainly tying up other classes, not easily unit tested.
+qvarn/resource_server.py
+
 # Contains only subclasses of QvarnException that don't add any additional
 # functionality.
 qvarn/http_statuses.py
