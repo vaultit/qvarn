@@ -9,6 +9,13 @@ Version 0.72+git, not yet released
   This means configuration files now MUST define `token_issuer` and
   `token_validation_key`. If they're not set, Qvarn doesn't start.
 
+* Many code cleanups. Hopefully no bugs introduced (tests still pass).
+  Most importantly, `src/*` are now using shared code
+  (`ResourceServer`) to set up an application, based on a data
+  description. The description still needs to be Python code in `src`,
+  but this is a big step towards liberating Qvarn installations to
+  specify the resources they need via configuration files.
+
 Version 0.72, released 2016-07-05
 ----------------------------------
 
