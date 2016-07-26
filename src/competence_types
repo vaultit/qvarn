@@ -68,76 +68,40 @@ registry_logo_prototype = {
 }
 
 
-def validate_competence_type(obj):
-    pass
+resource_type_spec = {
+    u'path': u'/competence_types',
+    u'type': u'competence_type',
+    u'versions': [
+        {
+            u'version': u'v0',
+            u'prototype': competence_type_prototype_v0,
+        },
+        {
+            u'version': u'v1',
+            u'prototype': competence_type_prototype_v1,
+        },
+        {
+            u'version': u'v2',
+            u'prototype': competence_type_prototype_v1,
+            u'subpaths': {
+                u'card_front': {
+                    u'prototype': card_front_prototype,
+                },
+                u'card_back': {
+                    u'prototype': card_back_prototype,
+                },
+                u'registry_logo': {
+                    u'prototype': registry_logo_prototype,
+                },
+            },
+            u'files': [
+                u'card_front',
+                u'card_back',
+                u'registry_logo',
+            ],
+        },
+    ],
+}
 
 
-def setup():
-    path = u'/competence_types'
-
-    vs = qvarn.VersionedStorage()
-    vs.set_resource_type(resource_type)
-
-    vs.start_version(u'v0', None)
-    vs.add_prototype(competence_type_prototype_v0)
-
-    vs.start_version(u'v1', None)
-    vs.add_prototype(competence_type_prototype_v1)
-    vs.add_prototype(qvarn.listener_prototype, auxtable=u'listener')
-    vs.add_prototype(
-        qvarn.notification_prototype, auxtable=u'notification')
-
-    vs.start_version(u'v2', None)
-    # No changes in the base resource
-    vs.add_prototype(competence_type_prototype_v1)
-    vs.add_prototype(qvarn.listener_prototype, auxtable=u'listener')
-    vs.add_prototype(
-        qvarn.notification_prototype, auxtable=u'notification')
-    vs.add_prototype(card_front_prototype, subpath=u'card_front')
-    vs.add_prototype(card_back_prototype, subpath=u'card_back')
-    vs.add_prototype(registry_logo_prototype, subpath=u'registry_logo')
-
-    app = qvarn.BackendApplication()
-    app.set_versioned_storage(vs)
-
-    listener_resource = qvarn.ListenerResource()
-    listener_resource.set_top_resource_path(resource_type, path)
-    app.add_resource(listener_resource)
-
-    resource = qvarn.ListResource()
-    resource.set_path(path)
-    resource.set_item_type(resource_type)
-    resource.set_item_prototype(competence_type_prototype_current)
-    resource.set_item_validator(validate_competence_type)
-    resource.set_listener(listener_resource)
-    app.add_resource(resource)
-
-    card_front_resource = qvarn.FileResource()
-    card_front_resource.set_item_prototype(competence_type_prototype_current)
-    card_front_resource.set_top_resource_path(path)
-    card_front_resource.set_item_type(resource_type)
-    card_front_resource.set_file_resource_name(u'card_front')
-    card_front_resource.set_listener(listener_resource)
-    app.add_resource(card_front_resource)
-
-    card_back_resource = qvarn.FileResource()
-    card_back_resource.set_item_prototype(competence_type_prototype_current)
-    card_back_resource.set_top_resource_path(path)
-    card_back_resource.set_item_type(resource_type)
-    card_back_resource.set_file_resource_name(u'card_back')
-    card_back_resource.set_listener(listener_resource)
-    app.add_resource(card_back_resource)
-
-    registry_logo_resource = qvarn.FileResource()
-    registry_logo_resource.set_item_prototype(
-        competence_type_prototype_current)
-    registry_logo_resource.set_top_resource_path(path)
-    registry_logo_resource.set_item_type(resource_type)
-    registry_logo_resource.set_file_resource_name(u'registry_logo')
-    registry_logo_resource.set_listener(listener_resource)
-    app.add_resource(registry_logo_resource)
-
-    return app.prepare_for_uwsgi()
-
-
-application = setup()
+application = qvarn.create_resource_server(resource_type_spec)
