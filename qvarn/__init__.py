@@ -65,6 +65,10 @@ from .sql import (
     column_types,
 )
 
+from .measurement import (
+    Measurement,
+)
+
 from .transaction import (
     Transaction,
 )
