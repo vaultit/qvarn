@@ -341,6 +341,10 @@ class PostgresAdapter(SqlAdapter):
             password=kwargs['password'],
             host=kwargs['host'],
             port=kwargs['port'])
+
+        # These are needed (in Python 2) so that we always get
+        # database input in Unicode. See
+        # http://initd.org/psycopg/docs/usage.html for details.
         psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
         psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
         return pool
