@@ -23,6 +23,13 @@ import qvarn
 
 class VersionedStorage(object):
 
+    '''Prepare storage for different resource type versions.
+
+    Note that this is versions for resource types, not actual
+    resources.
+
+    '''
+
     def __init__(self):
         self._resource_type = None
         self._versions = []
