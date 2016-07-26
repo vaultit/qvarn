@@ -40,14 +40,13 @@ class AuthorizationValidator(object):
         # Header has to be present in the form "Authorization: Bearer token"
         if u'Authorization' not in headers:
             raise AuthorizationHeaderMissing()
+        return self._parse_authorization_header(headers[u'Authorization'])
 
-        authorization_header_value = headers[u'Authorization']
-        authorization_header_values = authorization_header_value.split(u' ')
-        if len(authorization_header_values) != 2 or \
-           authorization_header_values[0].lower() != 'bearer':
+    def _parse_authorization_header(self, value):
+        words = value.split(u' ')
+        if len(words) != 2 or words[0].lower() != 'bearer':
             raise InvalidAuthorizationHeaderFormat()
-
-        return authorization_header_values[1]
+        return words[1]
 
     def validate_token(self, access_token, token_validation_key, issuer):
         '''Validate access token with validation key.
