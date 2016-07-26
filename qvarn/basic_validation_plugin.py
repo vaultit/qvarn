@@ -44,19 +44,19 @@ class BasicValidationPlugin(object):
         method = route['method']
         if method == 'POST':
             def post_wrapper(*args, **kwargs):
-                self._check_json()
+                self._parse_json()
                 self._check_create_json()
                 return callback(*args, **kwargs)
             return post_wrapper
         elif method == 'PUT':
             def put_wrapper(*args, **kwargs):
-                self._check_json()
+                self._parse_json()
                 self._check_update_json(kwargs)
                 return callback(*args, **kwargs)
             return put_wrapper
         return callback
 
-    def _check_json(self):
+    def _parse_json(self):
         if bottle.request.content_type != 'application/json':
             raise ContentIsNotJSON()
         try:
