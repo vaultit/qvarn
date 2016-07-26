@@ -26,6 +26,8 @@ class ErrorTransformPlugin(object):
 
     '''Catches a qvarn.QvarnException and returns error as dict instead.
 
+    This is a Bottle plugin.
+
     Uses QvarnException error attribute as the to-be-JSONified dict and also
     sets the response error status code to HTTPError status_code.
 
@@ -38,7 +40,7 @@ class ErrorTransformPlugin(object):
                 return result
             except qvarn.QvarnException as e:
                 qvarn.log.log(
-                    'backend-exception', msg_text=str(e), exc_info=True)
+                    'exception', msg_text=str(e), exc_info=True)
                 bottle.response.status = e.status_code
                 return e.error
         return wrapper
