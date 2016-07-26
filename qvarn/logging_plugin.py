@@ -83,11 +83,6 @@ class LoggingPlugin(object):
             method=r.method,
             path=r.path.decode('utf-8'),
             url_args=r.url_args,
-
-            # Form the header dict with list comprehension and .get()
-            # to get over KeyError. The exact problem is still
-            # unknown. (lighttpd + flup + bottle header dict +
-            # Content-Length -problem).
             headers={
                 key: (
                     'HIDDEN'
