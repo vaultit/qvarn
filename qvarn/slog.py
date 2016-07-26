@@ -28,6 +28,18 @@ import traceback
 
 class StructuredLog(object):
 
+    '''A structuctured logging system.
+
+    A structured log is one that can be easily parsed
+    programmatically. Traditional logs are free form text, usually
+    with a weakly enforced line structure and some minimal metadata
+    prepended to each file. This class produces JSON records instead.
+
+    See the separate manual for more background and examples of how to
+    use this system.
+
+    '''
+
     def __init__(self):
         self._msg_counter = MessageCounter()
         self._context = {}
