@@ -40,13 +40,16 @@ class BackendApplication(object):
     expected to all have the same external interface, provided by this
     class.
 
-    This class is parameterised by calling the ``set_storage_preparer``,
-    ``add_resource`` and ``add_routes`` methods. The application actually
-    starts when the ``run`` method is called. The resources added with
-    ``add_resource`` MUST have a ``prepare_resource`` method, which gets
-    as its parameter the database, and returns a representation
-    of routes suitable to be given to ``add_routes``. The resource object
-    does not need to call ``add_routes`` directly.
+    This class is parameterised by calling the
+    ``set_storage_preparer``, ``add_resource`` and ``add_routes``
+    methods. The application actually starts when UWSGI starts the
+    Bottle application that our prepare_for_wsgi method returns.
+
+    The resources added with ``add_resource`` MUST have a
+    ``prepare_resource`` method, which gets as its parameter the
+    database, and returns a representation of routes suitable to be
+    given to ``add_routes``. The resource object does not need to call
+    ``add_routes`` directly.
 
     '''
 
