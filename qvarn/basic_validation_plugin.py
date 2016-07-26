@@ -65,10 +65,6 @@ class BasicValidationPlugin(object):
             raise ContentIsNotJSON()
 
         bottle.request.qvarn_json = obj
-        qvarn.log.log(
-            'json-parse',
-            obj_repr=repr(obj),
-            qvarn_json_repr=repr(bottle.request.qvarn_json))
 
     def _check_json_for_create(self):
         item = bottle.request.qvarn_json
