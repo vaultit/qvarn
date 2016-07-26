@@ -73,37 +73,26 @@ def validate_event(obj):
         raise TimelessEvent(id=obj.get(u'id', u'(no id provided)'))
 
 
-def setup():
-    vs = qvarn.VersionedStorage()
-    vs.set_resource_type(resource_type)
-
-    vs.start_version(u'v0', None)
-    vs.add_prototype(event_prototype_v0)
-
-    vs.start_version(u'v1', None)
-    vs.add_prototype(event_prototype_v1)
-    vs.add_prototype(event_sync_prototype, subpath=u'sync')
-    vs.add_prototype(qvarn.listener_prototype, auxtable=u'listener')
-    vs.add_prototype(
-        qvarn.notification_prototype, auxtable=u'notification')
-
-    app = qvarn.BackendApplication()
-    app.set_versioned_storage(vs)
-
-    listener_resource = qvarn.ListenerResource()
-    listener_resource.set_top_resource_path(resource_type, u'/events')
-    app.add_resource(listener_resource)
-
-    resource = qvarn.ListResource()
-    resource.set_path(u'/events')
-    resource.set_item_type(resource_type)
-    resource.set_item_prototype(event_prototype_current)
-    resource.set_item_validator(validate_event)
-    resource.set_subitem_prototype(u'sync', event_sync_prototype)
-    resource.set_listener(listener_resource)
-    app.add_resource(resource)
-
-    return app.prepare_for_uwsgi()
+resource_type_spec = {
+    u'path': u'/events',
+    u'type': u'event',
+    u'versions': [
+        {
+            u'version': u'v0',
+            u'prototype': event_prototype_v0,
+        },
+        {
+            u'version': u'v1',
+            u'prototype': event_prototype_v1,
+            u'subpaths': {
+                u'sync': {
+                    u'prototype': event_sync_prototype,
+                },
+            },
+            u'validator': validate_event,
+        },
+    ],
+}
 
 
-application = setup()
+application = qvarn.create_resource_server(resource_type_spec)
