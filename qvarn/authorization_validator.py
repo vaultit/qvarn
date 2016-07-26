@@ -27,10 +27,11 @@ import qvarn
 
 class AuthorizationValidator(object):
 
-    ''' Utilities for handling authorization header and JWT token validation.
+    '''Validate request headers and JWT access token.
 
-    Separated from AuthorizationPlugin for easier testing. No need to mock
-    global bottle.request.
+    Separated from AuthorizationPlugin for easier testing. No need to
+    mock global bottle.request.
+
     '''
 
     def get_access_token_from_headers(self, headers):
