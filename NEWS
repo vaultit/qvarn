@@ -4,6 +4,9 @@ NEWS for Qvarn
 Version 0.72+git, not yet released
 ----------------------------------
 
+* The "competence type" resource is now systematically spelled with an
+  underscore ("competence_types") instead of sometimes using a dash.
+
 * Qvarn now fails to start if its configuration lacks the fields to
   check authentication (i.e., checking the validity of access tokens).
   This means configuration files now MUST define `token_issuer` and
