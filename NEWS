@@ -14,7 +14,7 @@ Bug fixes:
 
 * The "competence type" resource is now systematically spelled with an
   underscore ("competence_types") instead of sometimes using a dash.
-  This prevent much confusion and error.
+  This prevents much confusion and error.
 
 Small changes:
 
