@@ -4,13 +4,35 @@ NEWS for Qvarn
 Version 0.72+git, not yet released
 ----------------------------------
 
-* The "competence type" resource is now systematically spelled with an
-  underscore ("competence_types") instead of sometimes using a dash.
+Bug fixes:
 
 * Qvarn now fails to start if its configuration lacks the fields to
   check authentication (i.e., checking the validity of access tokens).
   This means configuration files now MUST define `token_issuer` and
   `token_validation_key`. If they're not set, Qvarn doesn't start.
+  This prevents accidentally running Qvarn in an insecure mode.
+
+* The "competence type" resource is now systematically spelled with an
+  underscore ("competence_types") instead of sometimes using a dash.
+  This prevent much confusion and error.
+
+Small changes:
+
+* Manuals are now built using `qvdoc`, with Qvarn logo and everything.
+  Also, Qvarn version is now used as document version.
+
+* The single structured log message of type `critical` is now `error`,
+  like all other errors.
+
+* `slog-error` considers a HTTP status code of 400 or greater to
+  indicate a failure. Previously it was 500 or greater.
+
+* `slog-error` reports the filename from which it gets the log
+  messages it reports.
+
+* Debian packaging for Qvarn now depends on `python-yaml`.
+
+Developer-only changes:
 
 * Many code cleanups. Hopefully no bugs introduced (tests still pass).
   Most importantly, `src/*` are now using shared code
@@ -18,6 +40,8 @@ Version 0.72+git, not yet released
   description. The description still needs to be Python code in `src`,
   but this is a big step towards liberating Qvarn installations to
   specify the resources they need via configuration files.
+
+* The source tree no longer has obsolete configuration file snippets.
 
 Version 0.72, released 2016-07-05
 ----------------------------------
