@@ -18,6 +18,7 @@
 
 import datetime
 import json
+import logging
 import math
 import os
 import syslog
@@ -185,3 +186,36 @@ class SlogEncoder(json.JSONEncoder):  # pragma: no cover
         if isinstance(o, buffer):
             return str(o)
         return json.JSONEncoder.default(self, o)
+
+
+class SlogHandler(logging.Handler):  # pragma: no cover
+
+    '''A handler for the logging library to capture into a slog.
+
+    In order to capture all logging.* log messages into a structured
+    log, configure the logging library to use this handler.
+
+    '''
+
+    def __init__(self, slog):
+        super(SlogHandler, self).__init__()
+        self.slog = slog
+
+    def emit(self, record):
+        log_args = dict()
+        for attr in dir(record):
+            if not attr.startswith('_'):
+                value = getattr(record, attr)
+                if not isinstance(value, (str, unicode, int, bool, float)):
+                    value = repr(value)
+                log_args[attr] = value
+        self.slog.log('logging', **log_args)
+
+
+def hijack_logging(slog):  # pragma: no cover
+    '''Hijack log messages that come via logging.* into a slog.'''
+
+    handler = SlogHandler(slog)
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(handler)

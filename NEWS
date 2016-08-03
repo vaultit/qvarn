@@ -4,6 +4,11 @@ NEWS for Qvarn
 Version 0.73+git, not yet released
 ----------------------------------
 
+* The structured log of Qvarn now includes log messages from the
+  standard Python logging library. This is useful when the bottle.py
+  framework or one of the library Qvarn uses emits log messags of its
+  own. They now all end up in the same structured log file as Qvarn's
+  own messages.
 
 Version 0.73, released 2016-07-27
 ----------------------------------

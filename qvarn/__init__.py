@@ -26,6 +26,7 @@ from .slog import (
     NullSlogWriter,
     FileSlogWriter,
     SyslogSlogWriter,
+    hijack_logging,
 )
 
 from .exc import (
