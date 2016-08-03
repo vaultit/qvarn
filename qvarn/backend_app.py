@@ -28,6 +28,7 @@ import qvarn
 
 log = qvarn.StructuredLog()
 log.set_log_writer(qvarn.NullSlogWriter())
+qvarn.hijack_logging(log)
 
 
 class BackendApplication(object):
