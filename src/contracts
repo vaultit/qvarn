@@ -372,7 +372,7 @@ def validate_contract(obj):
 
     if obj[u'contract_type'] == u'service_application':
         for party in obj[u'contract_parties']:
-            if party[u'role'] not in [u'applicant', u'org', u'target']:
+            if party[u'role'] not in [u'applicant', u'target']:
                 raise InvalidPartyType(id=obj[u'id'])
 
     if obj[u'contract_type'] == u'ID06_cards':
