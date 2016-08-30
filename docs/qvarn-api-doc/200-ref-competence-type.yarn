@@ -71,6 +71,10 @@ Example result for a competence type:
                 "name": "napping"
             }
         ],
+	"customer_org_ids": [
+	    "1a2b3c",
+	    "4d5e6f"
+	],
         "descriptions": [
             {
                 "locale": "fi_FI",
@@ -92,6 +96,8 @@ Fields in the result:
   locale; the fields for one entry are:
     * `locale` --- the locale code
     * `name` --- a name for the competence in the given locale
+* `customer_org_ids` --- a list of organisation ids this competence
+  type is intended for
 * `descriptions` --- a list of descriptions for the competence type;
   the description can be given in any locale, but only once per
   locale
@@ -138,6 +144,9 @@ Create a new competence type.
     ...             "name": "napping"
     ...         }
     ...     ],
+    ...     "customer_org_ids": [
+    ...             "mattress_testing_org"
+    ...     ],
     ...     "descriptions": [
     ...         {
     ...             "locale": "fi_FI",
@@ -163,6 +172,9 @@ Create a new competence type.
     ...             "locale": "en_GB",
     ...             "name": "napping"
     ...         }
+    ...     ],
+    ...     "customer_org_ids": [
+    ...             "mattress_testing_org"
     ...     ],
     ...     "descriptions": [
     ...         {
@@ -200,6 +212,9 @@ Check that the record is there.
     ...             "locale": "en_GB",
     ...             "name": "napping"
     ...         }
+    ...     ],
+    ...     "customer_org_ids": [
+    ...             "mattress_testing_org"
     ...     ],
     ...     "descriptions": [
     ...         {
