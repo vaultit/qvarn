@@ -50,7 +50,8 @@ competence_type_prototype_v1 = {
     ]
 }
 
-competence_type_prototype_current = competence_type_prototype_v2 = {
+
+competence_type_prototype_v2 = {
     u'type': u'',
     u'id': u'',
     u'revision': u'',
@@ -69,6 +70,33 @@ competence_type_prototype_current = competence_type_prototype_v2 = {
         }
     ]
 }
+
+
+competence_type_prototype_current = competence_type_prototype_v3 = {
+    u'type': u'',
+    u'id': u'',
+    u'revision': u'',
+    u'competence_type_id': u'',
+    u'names': [
+        {
+            u'locale': u'',
+            u'name': u''
+        }
+    ],
+    u'customer_org_ids': [u''],
+    u'master_register':
+        {
+            u'master_register_name': u'',
+            u'master_register_org_id': u'',
+        }
+    u'descriptions': [
+        {
+            u'locale': u'',
+            u'description': u''
+        }
+    ]
+}
+
 
 card_front_prototype = {
     u'body': buffer(''),
@@ -123,6 +151,26 @@ resource_type_spec = {
         {
             u'version': u'v3',
             u'prototype': competence_type_prototype_v2,
+            u'subpaths': {
+                u'card_front': {
+                    u'prototype': card_front_prototype,
+                },
+                u'card_back': {
+                    u'prototype': card_back_prototype,
+                },
+                u'registry_logo': {
+                    u'prototype': registry_logo_prototype,
+                },
+            },
+            u'files': [
+                u'card_front',
+                u'card_back',
+                u'registry_logo',
+            ],
+        },
+        {
+            u'version': u'v4',
+            u'prototype': competence_type_prototype_v3,
             u'subpaths': {
                 u'card_front': {
                     u'prototype': card_front_prototype,
