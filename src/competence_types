@@ -84,11 +84,8 @@ competence_type_prototype_current = competence_type_prototype_v3 = {
         }
     ],
     u'customer_org_ids': [u''],
-    u'master_register':
-        {
-            u'master_register_name': u'',
-            u'master_register_org_id': u'',
-        },
+    u'master_register_name': u'',
+    u'master_register_org_id': u'',
     u'descriptions': [
         {
             u'locale': u'',

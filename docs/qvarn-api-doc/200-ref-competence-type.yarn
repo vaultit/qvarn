@@ -75,10 +75,8 @@ Example result for a competence type:
 	    "1a2b3c",
 	    "4d5e6f"
 	],
-	"master_register": {
-	    "master_register_name": "Couch",
-	    "master_register_org_id": "1a2b3c"
-        },
+        "master_register_name": "Couch",
+	"master_register_org_id": "1a2b3c",
         "descriptions": [
             {
                 "locale": "fi_FI",
@@ -102,8 +100,9 @@ Fields in the result:
     * `name` --- a name for the competence in the given locale
 * `customer_org_ids` --- a list of organisation ids this competence
   type is intended for
-* `master_register` --- the master register that contains all competences
-  of this type
+* `master_register_name` --- name of the master register that contains
+  all competences of this type
+* `master_register_org_id` --- id of the master register
 * `descriptions` --- a list of descriptions for the competence type;
   the description can be given in any locale, but only once per
   locale
@@ -153,10 +152,8 @@ Create a new competence type.
     ...     "customer_org_ids": [
     ...             "mattress_testing_org"
     ...     ],
-    ...     "master_register": {
-    ...         "master_register_name": "NappersList",
-    ...         "master_register_org_id": "abcdef"
-    ...     },
+    ...     "master_register_name": "NappersList",
+    ...     "master_register_org_id": "abcdef",
     ...     "descriptions": [
     ...         {
     ...             "locale": "fi_FI",
@@ -186,10 +183,8 @@ Create a new competence type.
     ...     "customer_org_ids": [
     ...             "mattress_testing_org"
     ...     ],
-    ...     "master_register": {
-    ...         "master_register_name": "NappersList",
-    ...         "master_register_org_id": "abcdef"
-    ...     },
+    ...     "master_register_name": "NappersList",
+    ...     "master_register_org_id": "abcdef",
     ...     "descriptions": [
     ...         {
     ...             "locale": "fi_FI",
@@ -230,10 +225,8 @@ Check that the record is there.
     ...     "customer_org_ids": [
     ...             "mattress_testing_org"
     ...     ],
-    ...     "master_register": {
-    ...         "master_register_name": "NappersList",
-    ...         "master_register_org_id": "abcdef"
-    ...     },
+    ...     "master_register_name": "NappersList",
+    ...     "master_register_org_id": "abcdef",
     ...     "descriptions": [
     ...         {
     ...             "locale": "fi_FI",
