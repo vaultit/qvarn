@@ -88,7 +88,7 @@ competence_type_prototype_current = competence_type_prototype_v3 = {
         {
             u'master_register_name': u'',
             u'master_register_org_id': u'',
-        }
+        },
     u'descriptions': [
         {
             u'locale': u'',
