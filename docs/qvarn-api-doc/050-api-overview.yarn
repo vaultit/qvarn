@@ -839,6 +839,7 @@ Create a test person with sufficient amount of diverse data.
     ...             "surnames": ["Bond"]}]}
     THEN result has key "id" containing a string, saved as $ID1
     THEN result has key "revision" containing a string, saved as $REV1
+    THEN result has a valid Date header
 
     WHEN client PUTs /persons/$ID1/private with
     ... {

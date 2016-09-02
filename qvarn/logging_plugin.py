@@ -22,6 +22,8 @@
 # pylint: disable=not-an-iterable
 
 
+import time
+
 import bottle
 
 import qvarn
@@ -43,6 +45,7 @@ class LoggingPlugin(object):
                 self._start_context()
                 self._log_request()
                 data = callback(*args, **kwargs)
+                self._add_response_headers()
                 self._log_response(data)
                 self._end_context()
                 return data
@@ -90,6 +93,12 @@ class LoggingPlugin(object):
                 for key in bottle.request.headers
             }
         )
+
+    def _add_response_headers(self):
+        bottle.response.set_header('Date', self._rfc822_now())
+
+    def _rfc822_now(self):
+        return time.strftime('%a, %d %b %Y %H:%M:%S %z')
 
     def _log_response(self, data):
         r = bottle.response

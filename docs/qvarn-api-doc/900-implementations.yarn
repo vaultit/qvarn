@@ -188,6 +188,24 @@ Check if a specific header exists in the response headers.
     IMPLEMENTS THEN HTTP header (\S+) exists
     cat "$DATADIR/curl.headers" | grep "^$MATCH_1: "
 
+Check result Date header.
+
+    IMPLEMENTS THEN result has a valid Date header
+    if ! grep Date: "$DATADIR/curl.headers"
+    then
+        echo No Date: header  in response
+        exit 1
+    fi
+    now="$(date +%s)"
+    date="$(sed -n '/^Date: /s///p' "$DATADIR/curl.headers" | tr -d '\n\r')"
+    hdr="$(date --date="$date" +%s)"
+    delta="$(echo "$now" - "$hdr" | bc -l)"
+    if [ "$delta" -lt -5 ] || [ "$delta" -gt 5 ]
+    then
+        echo "Date: header is too old or too new"
+        exit 1
+    fi
+
 If the response had a body, we can check if the body matches file contents.
 
     IMPLEMENTS THEN result body matches file (\S+)

@@ -10,6 +10,9 @@ Version 0.73+git, not yet released
   own. They now all end up in the same structured log file as Qvarn's
   own messages.
 
+* Qvarn's HTTP responses now have a `Date:` header. Thanks to Teemu
+  Kääriäinen for reporting the issue.
+
 Version 0.73, released 2016-07-27
 ----------------------------------
 
