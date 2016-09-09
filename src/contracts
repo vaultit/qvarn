@@ -357,7 +357,7 @@ contract_prototype_current = contract_prototype_v6 = {
         {
             u'terms_of_service_version': u'',
             u'acceptance_time': u'',
-            u'accepter_id': u''
+            u'accepter_person_id': u''
         }
     ],
     u'right_to_work_based_on': u'',
