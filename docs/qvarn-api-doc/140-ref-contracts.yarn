@@ -907,7 +907,7 @@ Create a new Tilaajavastuu subscription contract.
 
     WHEN client POSTs /contracts with
     ... {
-    ... "contract_type": "ttilaajavastuu_subscription",
+    ... "contract_type": "tilaajavastuu_subscription",
     ... "start_date": "2016-09-01",
     ... "contract_parties": [
     ...     {
