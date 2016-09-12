@@ -82,20 +82,21 @@ exist (please nag).
 The yarns require the `createtoken` tool to be configured. Create
 `~/.config/qvarn/createtoken.conf` with contents like this:
 
-    [https://dev-gluu.tilaajavastuu.io]
+    [https://qvarn.example.com]
     client_id = G00G00G000
     client_secret = thisisveryverysecrethushhush
 
 In other words, it's an INI file with a section named after the URL of
-the API instance that runs. The client id and secret are set up in the
-Gluu instance associated with the API instance.
+the Qvarn instance that runs (not the associated Gluu instance). The
+client id and secret are set up in the Gluu instance associated with
+the API instance.
 
 The integration tests are run like this:
 
     cd docs/qvarn-api-doc
-    ./test-api https://qvarncd-alpha.qvarn.io
+    ./test-api https://qvarn.example.com
 
-where `qvarncd-alpha.qvarn.io` is the API instance being tested.
+where `qvarn.example.com` is the Qvarn API instance being tested.
 
 See the documentation for `yarn` for more options.
 
