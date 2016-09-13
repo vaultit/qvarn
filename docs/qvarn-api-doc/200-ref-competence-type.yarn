@@ -100,8 +100,8 @@ Fields in the result:
     * `name` --- a name for the competence in the given locale
 * `customer_org_ids` --- a list of organisation ids this competence
   type is intended for
-* `is_paid_competence` --- indicates if the competences of this type
-  are free or paid for
+* `is_verified` --- indicates if the competences of this type
+  need to be verified
 * `descriptions` --- a list of descriptions for the competence type;
   the description can be given in any locale, but only once per
   locale
@@ -151,7 +151,7 @@ Create a new competence type.
     ...     "customer_org_ids": [
     ...             "mattress_testing_org"
     ...     ],
-    ...     "is_paid_competence": true,
+    ...     "is_verified": true,
     ...     "descriptions": [
     ...         {
     ...             "locale": "fi_FI",
@@ -181,7 +181,7 @@ Create a new competence type.
     ...     "customer_org_ids": [
     ...             "mattress_testing_org"
     ...     ],
-    ...     "is_paid_competence": true,
+    ...     "is_verified": true,
     ...     "descriptions": [
     ...         {
     ...             "locale": "fi_FI",
@@ -222,7 +222,7 @@ Check that the record is there.
     ...     "customer_org_ids": [
     ...             "mattress_testing_org"
     ...     ],
-    ...     "is_paid_competence": true,
+    ...     "is_verified": true,
     ...     "descriptions": [
     ...         {
     ...             "locale": "fi_FI",
