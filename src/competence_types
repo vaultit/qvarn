@@ -107,7 +107,7 @@ competence_type_prototype_current = competence_type_prototype_v4 = {
         }
     ],
     u'customer_org_ids': [u''],
-    u'is_paid_competence': False,
+    u'is_verified': False,
     u'descriptions': [
         {
             u'locale': u'',
