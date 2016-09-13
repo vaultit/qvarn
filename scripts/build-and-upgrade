@@ -53,7 +53,8 @@ upstream_version="$(echo "$debian_version" | sed 's/-.*//')"
 rm -f ../qvarn*_*
 
 git archive HEAD | xz > "../qvarn_${upstream_version}.orig.tar.xz"
-debuild -us -uc
+#debuild -us -uc
+debuild -d -us -uc
 scp "../qvarn_${debian_version}_all.deb" "$host:"
 
 ssh "$host" sudo systemctl stop uwsgi || true
