@@ -118,7 +118,7 @@ class ReadOnlyStorage(object):
             for idx, table_name in enumerate(tables_used):
                 if table_name != main_table:
                     table_alias = u't' + str(idx)
-                    query += (u' INNER JOIN {1} AS {2} ON {0}.id = {2}.id'
+                    query += (u' LEFT JOIN {1} AS {2} ON {0}.id = {2}.id'
                               .format(u't0', sql.quote(table_name),
                                       sql.quote(table_alias)))
             query += u' WHERE ' + u' AND '.join(
