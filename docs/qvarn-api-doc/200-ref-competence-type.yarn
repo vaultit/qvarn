@@ -76,6 +76,13 @@ Example result for a competence type:
 	    "4d5e6f"
 	],
         "is_verified": true,
+	"attribute_validation": [
+	    {
+	        "attribute": "valid_from_date",
+		"required": true,
+		"regex": "2016-*"
+	    }
+	],
         "descriptions": [
             {
                 "locale": "fi_FI",
@@ -101,6 +108,12 @@ Fields in the result:
   type is intended for
 * `is_verified` --- indicates if the competences of this type
   need to be verified
+* `attribute_validation` --- a list of validation rules for competences
+  of this type
+    * `attribute` --- attribute of the competence
+    * `required` --- a boolean value to indicate if this attribute
+      is required
+    * `regex` --- a regex to describe a valid form for this attribute
 * `descriptions` --- a list of descriptions for the competence type;
   the description can be given in any locale, but only once per
   locale
@@ -151,6 +164,13 @@ Create a new competence type.
     ...             "mattress_testing_org"
     ...     ],
     ...     "is_verified": true,
+    ...	    "attribute_validation": [
+    ...	        {
+    ...	            "attribute": "valid_from_date",
+    ...	            "required": true,
+    ...             "regex": "2016-*"
+    ...         }
+    ...     ],
     ...     "descriptions": [
     ...         {
     ...             "locale": "fi_FI",
@@ -181,6 +201,13 @@ Create a new competence type.
     ...             "mattress_testing_org"
     ...     ],
     ...     "is_verified": true,
+    ...	    "attribute_validation": [
+    ...	        {
+    ...	            "attribute": "valid_from_date",
+    ...	            "required": true,
+    ...             "regex": "2016-*"
+    ...         }
+    ...     ],
     ...     "descriptions": [
     ...         {
     ...             "locale": "fi_FI",
@@ -222,6 +249,13 @@ Check that the record is there.
     ...             "mattress_testing_org"
     ...     ],
     ...     "is_verified": true,
+    ...	    "attribute_validation": [
+    ...	        {
+    ...	            "attribute": "valid_from_date",
+    ...	            "required": true,
+    ...             "regex": "2016-*"
+    ...         }
+    ...     ],
     ...     "descriptions": [
     ...         {
     ...             "locale": "fi_FI",
