@@ -188,7 +188,16 @@ class ListResource(object):
         search_params = []
         show_params = []
 
-        opers = [u'exact', u'gt', u'ge', u'lt', u'le', u'ne']
+        opers = [
+            u'exact',
+            u'gt',
+            u'ge',
+            u'lt',
+            u'le',
+            u'ne',
+            u'startswith',
+            u'contains',
+        ]
         i = 0
         while i < len(criteria):
             part = criteria[i]

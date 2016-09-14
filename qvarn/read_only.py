@@ -155,7 +155,9 @@ class ReadOnlyStorage(object):
             u'ge': u'{} >= {}',
             u'lt': u'{} < {}',
             u'le': u'{} <= {}',
-            u'ne': u'{} != {}'
+            u'ne': u'{} != {}',
+            u'startswith': u'{} LIKE {} || \'%%\'',
+            u'contains': u'{} LIKE \'%%\' || {} || \'%%\''
         }
         rule, key, value = param
         assert rule in rule_queries.keys()
