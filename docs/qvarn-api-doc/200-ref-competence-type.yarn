@@ -75,8 +75,7 @@ Example result for a competence type:
 	    "1a2b3c",
 	    "4d5e6f"
 	],
-        "master_register_name": "Couch",
-	"master_register_org_id": "1a2b3c",
+        "is_verified": true,
         "descriptions": [
             {
                 "locale": "fi_FI",
