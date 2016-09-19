@@ -1233,6 +1233,28 @@ Create an organisation, a person and an employment contract between them.
     THEN HTTP status code is 201
     AND result has key "id" containing a string, saved as $CONTRACT_ID1
 
+Search for names beginning with a string:
+
+    WHEN client GETs /orgs/search/startswith/names/Test
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ORG_ID1"}
+
+    WHEN client GETs /orgs/search/startswith/names/Nessie
+    THEN HTTP status code is 200
+    AND result has key "resources",
+    ... a list that does not contain {"id": "$ORG_ID1"}
+
+Search for names containing a string:
+
+    WHEN client GETs /orgs/search/contains/names/Company
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ORG_ID1"}
+
+    WHEN client GETs /orgs/search/contains/names/Nessie
+    THEN HTTP status code is 200
+    AND result has key "resources",
+    ... a list that does not contain {"id": "$ORG_ID1"}
+
 Perform searches with multiple conditions on resource's main level.
 
     WHEN client GETs /contracts/search/exact/start_date/2016-01-01/exact/contract_state/active
