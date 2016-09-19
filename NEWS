@@ -16,7 +16,10 @@ Version 0.73+git, not yet released
 * A fix to `/search` by Ville Niskala. The bug caused OR conditions to
   fail if there were no corresponding rows in a joined table.
 
-* New `/search` operators: `contains` and `startswith`.
+* New `/search` operators: `contains`, `startswith`, and `show`. The
+  former follow the pattern of `exact`, but `show` takes a single
+  parameter, which is a top-level field name and includes that field
+  in the response. It may be used multiple times.
 
 Version 0.73, released 2016-07-27
 ----------------------------------
