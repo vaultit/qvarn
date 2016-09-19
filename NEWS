@@ -13,6 +13,9 @@ Version 0.73+git, not yet released
 * Qvarn's HTTP responses now have a `Date:` header. Thanks to Teemu
   Kääriäinen for reporting the issue.
 
+* A fix to `/search` by Ville Niskala. The bug caused OR conditions to
+  fail if there were no corresponding rows in a joined table.
+
 Version 0.73, released 2016-07-27
 ----------------------------------
 
