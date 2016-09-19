@@ -16,6 +16,8 @@ Version 0.73+git, not yet released
 * A fix to `/search` by Ville Niskala. The bug caused OR conditions to
   fail if there were no corresponding rows in a joined table.
 
+* New `/search` operators: `contains` and `startswith`.
+
 Version 0.73, released 2016-07-27
 ----------------------------------
 
