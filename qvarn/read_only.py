@@ -51,10 +51,11 @@ class ReadOnlyStorage(object):
             row['id']
             for row in transaction.select(self._item_type, [u'id'], None)]
 
-    def get_item(self, transaction, item_id):
+    def get_item(self, transaction, item_id, main_fields=None):
         '''Get a specific item.'''
         item = {}
-        rw = ReadWalker(transaction, self._item_type, item_id)
+        rw = ReadWalker(
+            transaction, self._item_type, item_id, main_fields=main_fields)
         rw.walk_item(item, self._prototype)
         return item
 
@@ -196,8 +197,16 @@ class ReadOnlyStorage(object):
 
     def _build_search_result(self, transaction, ids,
                              show_params):  # pragma: no cover
-        if show_params == [u'show_all']:
-            return self._build_search_result_show_all(transaction, ids)
+        fields = []
+        for param in show_params:
+            if param == u'show_all':
+                return self._build_search_result_show_all(transaction, ids)
+            elif isinstance(param, tuple) and param[0] == u'show':
+                fields.append(param[1])
+
+        if fields:
+            return self._build_search_result_with_fields(
+                transaction, ids, fields)
         else:
             return self._build_search_result_ids_only(ids)
 
@@ -206,6 +215,17 @@ class ReadOnlyStorage(object):
         return {
             u'resources': [
                 self.get_item(transaction, resource_id) for resource_id in ids
+            ],
+        }
+
+    def _build_search_result_with_fields(self, transaction, ids,
+                                         fields):  # pragma: no cover
+        if u'id' not in fields:
+            fields = fields + [u'id']
+        return {
+            u'resources': [
+                self.get_item(transaction, resource_id, main_fields=fields)
+                for resource_id in ids
             ],
         }
 
@@ -231,12 +251,15 @@ class ReadWalker(qvarn.ItemWalker):
 
     '''Visit every part of an item to retrieve it from the database.'''
 
-    def __init__(self, transaction, item_type, item_id):
+    def __init__(self, transaction, item_type, item_id, main_fields=None):
         self._transaction = transaction
         self._item_type = item_type
         self._item_id = item_id
+        self._main_fields = main_fields
 
     def visit_main_dict(self, item, column_names):
+        if self._main_fields:  # pragma: no cover
+            column_names = [c for c in column_names if c in self._main_fields]
         row = self._get_row(self._item_type, self._item_id, column_names)
         for name in column_names:
             item[name] = row[name]

@@ -213,6 +213,11 @@ class ListResource(object):
             elif part == u'show_all':
                 show_params.append(part)
                 i += 1
+            elif part == u'show':
+                if i + 1 >= len(criteria):
+                    raise BadSearchCondition()
+                show_params.append((part, criteria[i+1]))
+                i += 2
             else:
                 raise BadSearchCondition()
 
