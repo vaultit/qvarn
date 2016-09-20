@@ -1,7 +1,7 @@
 NEWS for Qvarn
 ==============
 
-Version 0.73+git, not yet released
+Version 0.74, released 2016-09-20
 ----------------------------------
 
 * The structured log of Qvarn now includes log messages from the
