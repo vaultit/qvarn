@@ -533,7 +533,7 @@ def validate_contract(obj):
                 raise InvalidPartyType(id=obj[u'id'])
 
     if obj[u'contract_type'] in (
-            u'tilaajavastuu_subscription', 
+            u'tilaajavastuu_subscription',
             u'taito_subscription'):
         for party in obj[u'contract_parties']:
             if party[u'role'] not in [u'customer']:
