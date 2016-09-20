@@ -165,7 +165,7 @@ class RequiredKeysMissing(ValidationError):
 
 class UnknownKeys(ValidationError):
 
-    msg = u'Unknown keys in item'
+    msg = u'Unknown keys in item: {unknown_keys}'
 
 
 class WrongTypeValue(ValidationError):
