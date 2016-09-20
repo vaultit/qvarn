@@ -21,6 +21,9 @@ Version 0.73+git, not yet released
   parameter, which is a top-level field name and includes that field
   in the response. It may be used multiple times.
 
+* Updates to the contracts and competence type resources, by Ville
+  Niskala.
+
 Version 0.73, released 2016-07-27
 ----------------------------------
 
