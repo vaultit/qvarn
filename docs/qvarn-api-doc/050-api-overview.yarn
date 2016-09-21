@@ -914,27 +914,12 @@ Perform a search with show_all in the beginning of the condition.
 
     WHEN client GETs /persons/search/show_all/exact/given_names/James/exact/date_of_birth/1920-11-11
     THEN HTTP status code is 200
-    AND result matches
-    ... {
-    ...     "resources": [
-    ...         {
-    ...             "id": "$ID1",
-    ...             "names": [
-    ...                 {
-    ...                     "full_name": "James Bond",
-    ...                     "sort_key": "Bond, James",
-    ...                     "titles": ["Päällikkö", "Seppä"],
-    ...                     "given_names": ["James", "詹姆斯"],
-    ...                     "surnames": ["Bond"]
-    ...                 }
-    ...             ]
-    ...         }
-    ...     ]
-    ... }
+    AND result has key "resources", a list containing {"id": "$ID1"}
 
 Perform a search with `show` to select a specific field to show.
 
-    WHEN client GETs /persons/search/show/names/exact/given_names/James/exact/date_of_birth/1920-11-11
+    WHEN client GETs
+    ... /persons/search/show/names/exact/given_names/James/exact/date_of_birth/1920-11-11/exact/id/$ID1
     THEN HTTP status code is 200
     AND result matches
     ... {
