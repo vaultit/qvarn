@@ -1,0 +1,84 @@
+#!/usr/bin/env python2
+#
+# src/bolagsfakta_suppliers - implement the /bolagsfakta_suppliers resource
+#
+# Copyright 2015, 2016 Suomen Tilaajavastuu Oy
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+import qvarn
+
+
+RESOURCE_TYPE = u'bolagsfakta_supplier'
+SUPPLIER_TYPES = ('linked', 'unlinked')
+
+
+class NoProjectResourceIdProvided(qvarn.ValidationError):
+    msg = u'Supplier {id} has no project ID.'
+
+
+class NoSupplierOrgIdProvided(qvarn.ValidationError):
+    msg = u'Supplier {id} has no organisation ID provided'
+
+
+class NoSupplierTypeProvided(qvarn.ValidationError):
+    msg = u'Supplier {id} has no supplier type provided'
+
+
+class InvalidSupplierType(qvarn.ValidationError):
+    msg = u'Invalid supplier type provided'
+
+
+def validate_supplier(obj):
+    if not obj['project_resource_id']:
+        raise NoProjectResourceIdProvided(
+            id=obj.get(u'id', u'(no id provided)')
+        )
+    if not obj['supplier_org_id']:
+        raise NoSupplierOrgIdProvided(id=obj.get(u'id', u'(no id provided)'))
+    if not obj['supplier_type']:
+        raise NoSupplierTypeProvided(id=obj.get(u'id', u'(no id provided)'))
+    elif obj['supplier_type'] not in SUPPLIER_TYPES:
+        raise InvalidSupplierType(id=obj.get(u'id', u'(no id provided)'))
+
+
+supplier_prototype_current = supplier_prototype_v0 = {
+    u'type': u'',
+    u'id': u'',
+    u'revision': u'',
+    u'project_resource_id': u'',
+    u'supplier_type': u'',
+    u'parent_org_id': u'',
+    u'supplier_org_id': u'',
+    u'contract_start_date': u'',
+    u'contract_end_date': u'',
+    u'materialized_path': [u''],
+    u'bolagsfakta_status': u'',
+}
+
+
+resource_type_spec = {
+    u'path': u'/bolagsfakta_suppliers',
+    u'type': RESOURCE_TYPE,
+    u'versions': [
+        {
+            u'version': u'v0',
+            u'prototype': supplier_prototype_v0,
+            u'validator': validate_supplier,
+        },
+    ],
+}
+
+application = qvarn.create_resource_server(resource_type_spec)
