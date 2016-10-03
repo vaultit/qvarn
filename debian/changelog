@@ -1,9 +1,6 @@
 qvarn (0.74+git-1) UNRELEASED; urgency=medium
 
   * New upstream version.
-  * Build depend on cmdtest (current version).
-  * Make debian/rules run ./check (local-only automated tests), which
-    requires yarn, hence the cmdtest dependency.
 
  -- Lars Wirzenius <liw@qvarnlabs.com>  Tue, 20 Sep 2016 17:40:53 +0300
 
