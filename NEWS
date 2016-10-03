@@ -4,6 +4,8 @@ NEWS for Qvarn
 Version 0.74+git, not yet released
 ----------------------------------
 
+* Debian packaging now runs automated local tests, and adds a
+  build-dependency on the cmdtest package.
 
 Version 0.74, released 2016-09-20
 ----------------------------------
