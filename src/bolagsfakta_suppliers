@@ -60,6 +60,7 @@ supplier_prototype_current = supplier_prototype_v0 = {
     u'revision': u'',
     u'project_resource_id': u'',
     u'supplier_type': u'',
+    u'parent_supplier_id': u'',
     u'parent_org_id': u'',
     u'supplier_org_id': u'',
     u'contract_start_date': u'',
