@@ -68,9 +68,71 @@ class StructuredLog(object):
         log_obj = {
             'msg_type': msg_type,
         }
-        log_obj.update(kwargs)
+        for key, value in kwargs.items():
+            log_obj[key] = self._convert_value(value)
+
         self._add_extra_fields(log_obj, exc_info)
         self._writer.write(log_obj)
+
+    def _convert_value(self, value):
+        # Convert a value into an form that's safe to write. Meaning,
+        # it can't be binary data, and it is UTF-8 compatible, if it's
+        # a string of any sort.
+        #
+        # Note that we do not need to be able to parse the value back
+        # again, we just need to write it to a log file in a form that
+        # the user will understand. At least for now.
+        #
+        # We can't do this while encoding JSON, because the Python
+        # JSON library doesn't seem to allow us to override how
+        # encoding happens for types it already knows about, only for
+        # other types of values.
+
+        converters = {
+            int: self._nop_conversion,
+            float: self._nop_conversion,
+            bool: self._nop_conversion,
+            unicode: self._nop_conversion,
+            type(None): self._nop_conversion,
+
+            str: self._convert_str_value,
+            buffer: self._convert_buffer_value,
+            list: self._convert_list_value,
+            dict: self._convert_dict_value,
+            tuple: self._convert_tuple_value,
+        }
+
+        value_type = type(value)
+        assert value_type in converters, \
+            'Unknown data type {}'.format(value_type)
+        func = converters[type(value)]
+        converted = func(value)
+        return converted
+
+    def _nop_conversion(self, value):
+        return value
+
+    def _convert_str_value(self, value):
+        # Convert to UTF8, if that works. Otherwise, repr(value).
+        try:
+            return value.encode('utf8')
+        except UnicodeDecodeError:
+            return repr(value)
+
+    def _convert_buffer_value(self, value):
+        return repr(str(value))
+
+    def _convert_list_value(self, value):
+        return [self._convert_value(item) for item in value]
+
+    def _convert_tuple_value(self, value):
+        return tuple(self._convert_value(item) for item in value)
+
+    def _convert_dict_value(self, value):
+        return {
+            self._convert_value(key): self._convert_value(value[key])
+            for key in value
+        }
 
     def _add_extra_fields(self, log_obj, stack_info):
         log_obj['_msg_number'] = self._get_next_message_number()
@@ -153,7 +215,7 @@ class FileSlogWriter(SlogWriter):
 
     def write(self, log_obj):
         if self._log_file:
-            encoder = SlogEncoder(sort_keys=True)
+            encoder = json.JSONEncoder(sort_keys=True)
             s = encoder.encode(log_obj)
             self._log_file.write(s + '\n')
             self._log_file.flush()
@@ -171,21 +233,12 @@ class FileSlogWriter(SlogWriter):
 class SyslogSlogWriter(SlogWriter):  # pragma: no cover
 
     def write(self, log_obj):
-        encoder = SlogEncoder(sort_keys=True)
+        encoder = json.JSONEncoder(sort_keys=True)
         s = encoder.encode(log_obj)
         syslog.syslog(s)
 
     def close(self):
         pass
-
-
-class SlogEncoder(json.JSONEncoder):  # pragma: no cover
-
-    # pylint: disable=method-hidden
-    def default(self, o):
-        if isinstance(o, buffer):
-            return str(o)
-        return json.JSONEncoder.default(self, o)
 
 
 class SlogHandler(logging.Handler):  # pragma: no cover

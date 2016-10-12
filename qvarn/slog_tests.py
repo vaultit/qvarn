@@ -164,9 +164,52 @@ class StructuredLogTests(unittest.TestCase):
 
     def test_logs_buffer(self):
         slog, writer, _ = self.create_structured_log()
-        slog.log('testmsg', text=buffer('foo'))
+        binary = ''.join(chr(x) for x in range(256))
+        slog.log('testmsg', text=buffer(binary))
         slog.close()
 
         objs = self.read_log_entries(writer)
         self.assertEqual(len(objs), 1)
-        self.assertEqual(objs[0]['text'], 'foo')
+        self.assertEqual(objs[0]['text'], repr(binary))
+
+    def test_logs_nonutf8(self):
+        slog, writer, _ = self.create_structured_log()
+        notutf8 = '\x86'
+        slog.log('blobmsg', notutf8=notutf8)
+        slog.close()
+
+        objs = self.read_log_entries(writer)
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0]['notutf8'], repr(notutf8))
+
+    def test_logs_list(self):
+        slog, writer, _ = self.create_structured_log()
+        slog.log('testmsg', items=[1, 2, 3])
+        slog.close()
+
+        objs = self.read_log_entries(writer)
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0]['items'], [1, 2, 3])
+
+    def test_logs_tuple(self):
+        slog, writer, _ = self.create_structured_log()
+        slog.log('testmsg', t=(1, 2, 3))
+        slog.close()
+
+        objs = self.read_log_entries(writer)
+        self.assertEqual(len(objs), 1)
+        # Tuples get returned as s list.
+        self.assertEqual(objs[0]['t'], [1, 2, 3])
+
+    def test_logs_dict(self):
+        slog, writer, _ = self.create_structured_log()
+        dikt = {
+            'foo': 'bar',
+            'yo': [1, 2, 3],
+        }
+        slog.log('testmsg', dikt=dikt)
+        slog.close()
+
+        objs = self.read_log_entries(writer)
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0]['dikt'], dikt)
