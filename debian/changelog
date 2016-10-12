@@ -1,3 +1,9 @@
+qvarn (0.75+git-1) UNRELEASED; urgency=medium
+
+  * New upstream version.
+
+ -- Lars Wirzenius <liw@qvarnlabs.com>  Wed, 12 Oct 2016 20:41:18 +0300
+
 qvarn (0.75-1) experimental; urgency=medium
 
   * New upstream version.
