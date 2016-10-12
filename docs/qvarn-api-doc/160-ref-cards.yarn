@@ -528,9 +528,9 @@ Cannot get an unsent card holder photo.
 
 Send a card holder photo.
 
-    GIVEN file test.png containing "This pretends to be a png"
+    GIVEN file photo.png containing "\x89 this is a binary file"
 
-    WHEN client PUTs file test.png with content type image/png
+    WHEN client PUTs file photo.png with content type image/png
     ...  and revision $REV2 to /cards/$ID1/holder_photo
     THEN HTTP status code is 200
 
@@ -538,7 +538,7 @@ Send a card holder photo.
     THEN HTTP status code is 200
     AND HTTP header Content-Type is image/png
     AND HTTP header Revision exists
-    AND result body matches file test.png
+    AND result body matches file photo.png
 
     WHEN client GETs /cards/$ID1
     THEN HTTP status code is 200
@@ -559,9 +559,9 @@ Cannot get an unsent issuer logo file.
 
 Send an issuer logo file.
 
-    GIVEN file test.png containing "This pretends to be a png"
+    GIVEN file logo.png containing "\x89 this a binary file"
 
-    WHEN client PUTs file test.png with content type image/png
+    WHEN client PUTs file logo.png with content type image/png
     ...  and revision $REV3 to /cards/$ID1/issuer_logo
     THEN HTTP status code is 200
 
@@ -569,7 +569,7 @@ Send an issuer logo file.
     THEN HTTP status code is 200
     AND HTTP header Content-Type is image/png
     AND HTTP header Revision exists
-    AND result body matches file test.png
+    AND result body matches file logo.png
 
     WHEN client GETs /cards/$ID1
     THEN HTTP status code is 200
@@ -622,13 +622,13 @@ Update the main record, this should not affect the subrecord(s).
     THEN HTTP status code is 200
     AND HTTP header Content-Type is image/png
     AND HTTP header Revision exists
-    AND result body matches file test.png
+    AND result body matches file photo.png
 
     WHEN client GETs /cards/$ID1/issuer_logo
     THEN HTTP status code is 200
     AND HTTP header Content-Type is image/png
     AND HTTP header Revision exists
-    AND result body matches file test.png
+    AND result body matches file logo.png
 
 Delete the record.
 

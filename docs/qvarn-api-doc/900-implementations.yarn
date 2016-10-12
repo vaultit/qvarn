@@ -62,7 +62,7 @@ Files
 Creates a file with text content.
 
     IMPLEMENTS GIVEN file (\S+) containing "(.+)"
-    echo "$MATCH_2" > "$DATADIR/$MATCH_1"
+    /usr/bin/printf "$MATCH_2" > "$DATADIR/$MATCH_1"
 
 Requests
 --------

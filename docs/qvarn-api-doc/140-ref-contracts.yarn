@@ -341,7 +341,7 @@ Can not get unsent documentation.
 
 Send documentation.
 
-    GIVEN file test.file containing "This pretends to be a pdf"
+    GIVEN file test.file containing "\x89\xff This pretends to be a pdf"
 
     WHEN client PUTs file test.file with content type application/pdf
     ...  and revision $REV3 to /contracts/$ID1/document
