@@ -4,6 +4,8 @@ NEWS for Qvarn
 Version 0.74+git, not yet released
 ----------------------------------
 
+* Logging of non-UTF8 strings has been fixed. This in turn fixes
+  uploads of binary files.
 
 Version 0.74, released 2016-09-20
 ----------------------------------
