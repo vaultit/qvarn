@@ -1,0 +1,75 @@
+<!--
+Copyright 2015, 2016 Suomen Tilaajavastuu Oy
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+
+`/bolagsfakta_suppliers`
+------------------------
+
+This resource stores information about project supplier relationships
+for Bolagsfakta project.
+
+
+Synopsis:
+
+* `GET /bolagsfakta_suppliers` --- get a list of ids of suppliers
+* `POST /bolagsfakta_suppliers` --- create a new supplier relationship
+* `GET /bolagsfakta_suppliers/<id>` --- get the information about a specific
+  supplier relationship
+* `PUT /bolagsfakta_suppliers/<id>` --- update supplier relationship
+* `DELETE /bolagsfakta_suppliers/<id>` --- update supplier relationship
+* `GET /bolagsfakta_suppliers/search/exact/materialized_path/<org_id>`  --- find
+  all supplier that are descendands of org_id organisation
+
+Errors:
+
+* There are no errors that are specific to this resource.
+
+
+Example result for a supplier:
+
+    EXAMPLE An example of a bolagsfakta supplier entity
+    {
+        "type": "bolagsfakta_supplier",
+        "id": "12345",
+        "bolagsfakta_status": "ok",
+        "contract_start_date": 2016-06-01",
+        "contract_end_date": "2016-12-31",
+        "materialized_path": [
+            "23456",
+            "34567",
+            "45678"
+        ],
+        "parent_org_id": "34567",
+        "parent_supplier_id": "34567",
+        "project_resource_id": "123456",
+        "supplier_org_id": "45678",
+        "supplier_type": "linked"
+    }
+
+Fields in the result:
+
+* `bolagsfakta_status` --- cached status of the company in question
+* `contract_start_date` --- start of the contract for this supplier relationship
+* `contract_end_date` --- end of the contract for this supplier relationship
+* `materialized_path` --- a path of organisation within the tree.
+* `parent_org_id` --- suppliers direct parent organisation in the tree
+* `parent_supplier_id` --- ID of parent supplier organisation. Used when searching
+  for direct descendants.
+* `supplier_type` --- supplier type, can be one of:
+    - `linked` --- Supplier is fully linked to other suppliers in the tree
+    - `unlinked` --- Supplier links to other suppliers not known
+
