@@ -4,6 +4,8 @@ NEWS for Qvarn
 Version 0.75+git, not yet released
 ----------------------------------
 
+* Fix /show so it only shows those fields that are specified (plus
+  `id`).
 
 Version 0.75, released 2016-10-12
 ----------------------------------

@@ -1175,12 +1175,29 @@ Client has needed access rights for orgs resource.
     THEN HTTP status code is 201
     THEN result has key "id" containing a string, saved as $ID2
 
-    WHEN client POSTs /orgs with
-    ... {"names": ["Suomen Tilaajavastuu Oy"],
-    ... "country": "FI"
+Only get fields specifically required:
+
+    WHEN client GETs /orgs/search/contains/names/Tilaajavastuu/show/country
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "resources": [
+    ...         {
+    ...             "id": "$ID2",
+    ...             "country": "FI"
+    ...         }
+    ...     ]
     ... }
-    THEN HTTP status code is 201
-    THEN result has key "id" containing a string, saved as $ID3
+    AND result doesn't match
+    ... {
+    ...     "resources": [
+    ...         {
+    ...             "id": "$ID2",
+    ...             "contacts": [],
+    ...             "gov_org_ids": []
+    ...         }
+    ...     ]
+    ... }
 
 We create different resource instances and search for them using multiple
 search conditions.

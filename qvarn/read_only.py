@@ -257,6 +257,21 @@ class ReadWalker(qvarn.ItemWalker):
         self._item_id = item_id
         self._main_fields = main_fields
 
+    def _get_main_str_lists(self, proto):
+        return [
+            x for x in self._get_str_lists(proto)
+            if self._main_field_ok(x)
+        ]
+
+    def _get_main_dict_lists(self, proto):
+        return [
+            x for x in self._get_dict_lists(proto)
+            if self._main_field_ok(x)
+        ]
+
+    def _main_field_ok(self, field):
+        return not self._main_fields or field in self._main_fields
+
     def visit_main_dict(self, item, column_names):
         if self._main_fields:  # pragma: no cover
             column_names = [c for c in column_names if c in self._main_fields]
@@ -279,9 +294,10 @@ class ReadWalker(qvarn.ItemWalker):
         raise ItemDoesNotExist(item_id=item_id)
 
     def visit_main_str_list(self, item, field):
-        table_name = qvarn.table_name(
-            resource_type=self._item_type, list_field=field)
-        item[field] = self._get_str_list(table_name, field, self._item_id)
+        if self._main_field_ok(field):
+            table_name = qvarn.table_name(
+                resource_type=self._item_type, list_field=field)
+            item[field] = self._get_str_list(table_name, field, self._item_id)
 
     def _get_str_list(self, table_name, column_name, item_id):
         rows = self._get_list(table_name, item_id, [column_name])
@@ -307,11 +323,16 @@ class ReadWalker(qvarn.ItemWalker):
         return result
 
     def visit_main_dict_list(self, item, field, column_names):
-        table_name = qvarn.table_name(
-            resource_type=self._item_type, list_field=field)
-        item[field] = self._get_list(table_name, self._item_id, column_names)
+        if self._main_field_ok(field):
+            table_name = qvarn.table_name(
+                resource_type=self._item_type, list_field=field)
+            item[field] = self._get_list(
+                table_name, self._item_id, column_names)
 
     def visit_dict_in_list_str_list(self, item, field, pos, str_list_field):
+        if not self._main_field_ok(field):  # pragma: no cover
+            return
+
         table_name = qvarn.table_name(
             resource_type=self._item_type,
             list_field=field,
@@ -331,6 +352,9 @@ class ReadWalker(qvarn.ItemWalker):
 
     def visit_inner_dict_list(self, item, outer_field, inner_field,
                               column_names):
+        if not self._main_field_ok(outer_field):  # pragma: no cover
+            return
+
         table_name = qvarn.table_name(
             resource_type=self._item_type,
             list_field=outer_field,

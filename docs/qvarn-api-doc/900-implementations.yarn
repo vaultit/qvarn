@@ -276,6 +276,12 @@ Any references to saved values are expanded in the pattern.
     "$SRCDIR/jsonmatch" whole \
         "$(expand_values "$MATCH_1")" < "$DATADIR/curl.out"
 
+Test for not matching a pattern.
+
+    IMPLEMENTS THEN result doesn't match (.*)
+    ! "$SRCDIR/jsonmatch" whole \
+        "$(expand_values "$MATCH_1")" < "$DATADIR/curl.out"
+
 Sometimes we want to check if a result has a list which contains a
 specific value, rather than a specific set of values. This is true,
 for example, for requests of the type of `GET /foos`, when run against

@@ -66,9 +66,9 @@ class ItemWalker(object):
     def walk_item(self, item, proto_item):
         '''Walk every part of an item.'''
         self._walk_main_dict(item, proto_item)
-        for field in self._get_str_lists(proto_item):
+        for field in self._get_main_str_lists(proto_item):
             self.visit_main_str_list(item, field)
-        for field in self._get_dict_lists(proto_item):
+        for field in self._get_main_dict_lists(proto_item):
             self._walk_dict_list(item, field, proto_item[field][0])
 
     def _walk_main_dict(self, item, proto):
@@ -79,6 +79,14 @@ class ItemWalker(object):
         def is_simple(proto_value):
             return isinstance(proto_value, qvarn.column_types)
         return sorted(x for x in proto if is_simple(proto[x]))
+
+    def _get_main_str_lists(self, proto):
+        # This is overridden by ReadWalker.
+        return self._get_str_lists(proto)
+
+    def _get_main_dict_lists(self, proto):
+        # This is overridden by ReadWalker.
+        return self._get_dict_lists(proto)
 
     def _get_str_lists(self, proto):
         def is_str_list(v):
