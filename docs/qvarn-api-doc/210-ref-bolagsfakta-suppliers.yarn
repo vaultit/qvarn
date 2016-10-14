@@ -41,7 +41,7 @@ Errors:
 
 Example result for a supplier:
 
-    EXAMPLE An example of a bolagsfakta supplier entity
+    EXAMPLE
     {
         "type": "bolagsfakta_supplier",
         "id": "12345",
@@ -73,3 +73,147 @@ Fields in the result:
     - `linked` --- Supplier is fully linked to other suppliers in the tree
     - `unlinked` --- Supplier links to other suppliers not known
 
+
+### Tests
+
+Create a new bolagsfakta_supplier entry, update it and delete it
+
+    SCENARIO manage bolagsfakta supplier
+
+CLient has access rights to bolagsfakta_suppliers resource
+
+    GIVEN client has access to scopes
+    ... "uapi_bolagsfakta_suppliers_get uapi_bolagsfakta_suppliers_id_delete
+    ...  uapi_bolagsfakta_suppliers_id_get uapi_bolagsfakta_suppliers_id_put
+    ...  uapi_bolagsfakta_suppliers_post uapi_bolagsfakta_suppliers_search_id_get"
+
+Attempt to create a new bolagsfakta supplier with invlaid fields.
+
+    WHEN client POSTs /bolagsfakta_suppliers with {"some_field": 100}
+    THEN HTTP status code is 400
+
+Create a new bolagsfakta supplier.
+
+    WHEN client POSTs /bolagsfakta_suppliers with
+    ... {
+    ...     "type": "bolagsfakta_supplier",
+    ...     "bolagsfakta_status": "ok",
+    ...     "contract_start_date": 2016-06-01",
+    ...     "contract_end_date": "2016-12-31",
+    ...     "materialized_path": [
+    ...         "23456",
+    ...         "34567",
+    ...         "45678"
+    ...     ],
+    ...     "parent_org_id": "34567",
+    ...     "parent_supplier_id": "34567",
+    ...     "project_resource_id": "123456",
+    ...     "supplier_org_id": "45678",
+    ...     "supplier_type": "linked"
+    ... }
+    THEN HTTP status code is 201
+    AND result matches
+    ... {
+    ...     "type": "bolagsfakta_supplier",
+    ...     "bolagsfakta_status": "ok",
+    ...     "contract_start_date": 2016-06-01",
+    ...     "contract_end_date": "2016-12-31",
+    ...     "materialized_path": [
+    ...         "23456",
+    ...         "34567",
+    ...         "45678"
+    ...     ],
+    ...     "parent_org_id": "34567",
+    ...     "parent_supplier_id": "34567",
+    ...     "project_resource_id": "123456",
+    ...     "supplier_org_id": "45678",
+    ...     "supplier_type": "linked"
+    ... }
+    AND result has key "id" containing a string, saved as $ID1
+    AND result has key "revision" containing a string, saved as $REV1
+
+Check that the bolagsfakta supplier exists.
+
+    WHEN client GETs /bolagsfakta_suppliers
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+
+    WHEN client GETs /bolagsfakta_suppliers/$ID1
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "type": "bolagsfakta_supplier",
+    ...     "bolagsfakta_status": "ok",
+    ...     "contract_start_date": 2016-06-01",
+    ...     "contract_end_date": "2016-12-31",
+    ...     "materialized_path": [
+    ...         "23456",
+    ...         "34567",
+    ...         "45678"
+    ...     ],
+    ...     "parent_org_id": "34567",
+    ...     "parent_supplier_id": "34567",
+    ...     "project_resource_id": "123456",
+    ...     "supplier_org_id": "45678",
+    ...     "supplier_type": "linked"
+    ... }
+    AND result has key "id" containing a string, saved as $ID2
+    AND values "$ID1" and "$ID2" are identical
+    AND result has key "revision" containing a string, saved as $REV2
+    AND values "$REV1" and "$REV2" are identical
+
+Update the supplier record.
+
+    WHEN client PUTs /bolagsfakta_suppliers/$ID1 with
+    ... {
+    ...     "revision": "$REV1",
+    ...     "type": "bolagsfakta_supplier",
+    ...     "bolagsfakta_status": "stop",
+    ...     "contract_start_date": 2016-06-01",
+    ...     "contract_end_date": "2016-12-31",
+    ...     "materialized_path": [
+    ...         "23456",
+    ...         "34567",
+    ...         "45678"
+    ...     ],
+    ...     "parent_org_id": "34567",
+    ...     "parent_supplier_id": "34567",
+    ...     "project_resource_id": "123456",
+    ...     "supplier_org_id": "45678",
+    ...     "supplier_type": "linked"
+    ... }
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "type": "bolagsfakta_supplier",
+    ...     "bolagsfakta_status": "stop",
+    ...     "contract_start_date": 2016-06-01",
+    ...     "contract_end_date": "2016-12-31",
+    ...     "materialized_path": [
+    ...         "23456",
+    ...         "34567",
+    ...         "45678"
+    ...     ],
+    ...     "parent_org_id": "34567",
+    ...     "parent_supplier_id": "34567",
+    ...     "project_resource_id": "123456",
+    ...     "supplier_org_id": "45678",
+    ...     "supplier_type": "linked"
+    ... }
+    AND result has key "id" containing a string, saved as $ID3
+    AND values "$ID1" and "$ID3" are identical
+    AND result has key "revision" containing a string, saved as $REV3
+
+Search for descendant suppliers via materialized_path.
+
+
+    WHEN client GETs /bolagsfakta_suppliers/search/exact/materialized_path/34567
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+
+Finally delete the supplier.
+
+    WHEN client DELETEs /bolagsfakta_suppliers/$ID1
+    THEN HTTP status code is 200
+    WHEN client GETs /bolagsfakta_suppliers/$ID1
+    THEN HTTP status code is 404
