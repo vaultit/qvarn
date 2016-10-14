@@ -46,7 +46,7 @@ Example result for a supplier:
         "type": "bolagsfakta_supplier",
         "id": "12345",
         "bolagsfakta_status": "ok",
-        "contract_start_date": 2016-06-01",
+        "contract_start_date": "2016-06-01",
         "contract_end_date": "2016-12-31",
         "materialized_path": [
             "23456",
@@ -98,7 +98,7 @@ Create a new bolagsfakta supplier.
     ... {
     ...     "type": "bolagsfakta_supplier",
     ...     "bolagsfakta_status": "ok",
-    ...     "contract_start_date": 2016-06-01",
+    ...     "contract_start_date": "2016-06-01",
     ...     "contract_end_date": "2016-12-31",
     ...     "materialized_path": [
     ...         "23456",
@@ -116,7 +116,7 @@ Create a new bolagsfakta supplier.
     ... {
     ...     "type": "bolagsfakta_supplier",
     ...     "bolagsfakta_status": "ok",
-    ...     "contract_start_date": 2016-06-01",
+    ...     "contract_start_date": "2016-06-01",
     ...     "contract_end_date": "2016-12-31",
     ...     "materialized_path": [
     ...         "23456",
@@ -144,7 +144,7 @@ Check that the bolagsfakta supplier exists.
     ... {
     ...     "type": "bolagsfakta_supplier",
     ...     "bolagsfakta_status": "ok",
-    ...     "contract_start_date": 2016-06-01",
+    ...     "contract_start_date": "2016-06-01",
     ...     "contract_end_date": "2016-12-31",
     ...     "materialized_path": [
     ...         "23456",
@@ -169,7 +169,7 @@ Update the supplier record.
     ...     "revision": "$REV1",
     ...     "type": "bolagsfakta_supplier",
     ...     "bolagsfakta_status": "stop",
-    ...     "contract_start_date": 2016-06-01",
+    ...     "contract_start_date": "2016-06-01",
     ...     "contract_end_date": "2016-12-31",
     ...     "materialized_path": [
     ...         "23456",
@@ -187,7 +187,7 @@ Update the supplier record.
     ... {
     ...     "type": "bolagsfakta_supplier",
     ...     "bolagsfakta_status": "stop",
-    ...     "contract_start_date": 2016-06-01",
+    ...     "contract_start_date": "2016-06-01",
     ...     "contract_end_date": "2016-12-31",
     ...     "materialized_path": [
     ...         "23456",
