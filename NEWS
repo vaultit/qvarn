@@ -7,6 +7,9 @@ Version 0.75+git, not yet released
 * Fix /show so it only shows those fields that are specified (plus
   `id`).
 
+* Validation of field values for `ID06_cards` contract types have been
+  removed, in order to simplify ID06 application development.
+
 Version 0.75, released 2016-10-12
 ----------------------------------
 
