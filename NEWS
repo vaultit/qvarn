@@ -1,7 +1,7 @@
 NEWS for Qvarn
 ==============
 
-Version 0.75+git, not yet released
+Version 0.76, released 2016-10-17
 ----------------------------------
 
 * Fix /show so it only shows those fields that are specified (plus
