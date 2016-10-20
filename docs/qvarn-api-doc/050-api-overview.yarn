@@ -732,8 +732,6 @@ be included in the result:
 * `/le/KEY/VALUE` --- like `gt`, but the value must be less than or
   equal(<=) to `VALUE`.
 
-FIXME: `startswith` and `contains` clauses are currently not implemented.
-
 For details on matching, see below.
 
 Note: We'll add more conditions as they're needed, but we'll try to
@@ -744,8 +742,6 @@ The clause may also include the following to modify the result:
 
 * `/show/KEY` --- include the top level field `KEY` in the result.
 * `/show_all` --- include the whole the resource in the result.
-
-FIXME: The `show` clause is currently not implemented
 
 The result is a JSON object that looks like the following:
 
