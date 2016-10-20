@@ -174,7 +174,9 @@ class CannotAddWithRevision(qvarn.BadRequest):
 
 class WrongRevision(qvarn.Conflict):
 
-    msg = "Update revision does not match the revision of object being updated"
+    msg = ('Updating resource {item_id} failed: '
+           ' resource currently has revision {current}, '
+           'update wants to update {update}')
 
 
 class WriteWalker(qvarn.ItemWalker):
