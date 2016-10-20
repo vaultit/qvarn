@@ -7,6 +7,9 @@ Version 0.76+git, not yet released
 * Added the `bolagsfakta_supplier` resource type, from Programmers of
   Vilnius.
 
+* Fixed bug in Qvarn related to handling deep JSON prototypes,
+  reported by Ville Niskala (Tilaajavastuu).
+
 Version 0.76, released 2016-10-17
 ----------------------------------
 

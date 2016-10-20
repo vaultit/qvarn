@@ -123,7 +123,7 @@ class ItemWalker(object):
                 column_names = self._get_simple_columns(
                     proto_dict[inner_field][0])
                 for j in range(len(inner_list)):
-                    inner_dict = proto_dict[inner_field][j]
+                    inner_dict = proto_dict[inner_field][0]
                     if self._get_dict_lists(inner_dict):
                         raise TooDeeplyNestedPrototype(prototype=proto_dict)
                     self.visit_dict_in_inner_list(
