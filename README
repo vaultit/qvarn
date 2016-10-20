@@ -91,14 +91,16 @@ the Qvarn instance that runs (not the associated Gluu instance). The
 client id and secret are set up in the Gluu instance associated with
 the API instance.
 
-The integration tests are run like this:
+The integration tests are run using the `yarn` tool, like this:
 
     cd docs/qvarn-api-doc
     ./test-api https://qvarn.example.com
 
 where `qvarn.example.com` is the Qvarn API instance being tested.
 
-See the documentation for `yarn` for more options.
+See the documentation for `yarn` for more options. `yarn` is part of
+the `cmdtest` package (see [home page](http://liw.fi/cmdtest/)). You
+need at least version 0.27.
 
 
 Writing unit tests
