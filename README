@@ -155,25 +155,6 @@ values, MUST be Unicode strings. That means literals should be in the
 form of `u'this is Unicode'`, with the leading `u`.
 
 
-Continuous integration and delivery pipeline
---------------------------------------------
-
-A continuous integration and delivery pipeline has been developed and
-using it to develop this backend is almost certainly a good idea. See
-the "Continuous Delivery Pipeline" (`cd-pipeline`) document in the
-`dev-team-docs.git` repository for details.
-
-Running things through the CI/CD pipeline takes time, and failures can
-be harder to debug. As much as possible, changes should be developed
-and tested in the development environment first, running things
-manually. This keeps the inner loop of development short, and does not
-require gaining access to the pipeline's test machines.
-
-The current pipeline instance is at
-<http://qvarncd-master.tilaajavastuu.io/>, and is only accessible from
-the Tilaajavastuu office.
-
-
 Implementation architecture
 ---------------------------
 
