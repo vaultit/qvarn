@@ -1,7 +1,7 @@
 NEWS for Qvarn
 ==============
 
-Version 0.76+git, not yet released
+Version 0.77, released 2016-10-24
 ----------------------------------
 
 * Added the `bolagsfakta_supplier` resource type, from Programmers of
