@@ -1,0 +1,120 @@
+<!--
+Copyright 2016 Suomen Tilaajavastuu Oy
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+
+`/data_cache`
+-------------
+
+This resource acts as a temporary cache for applications. It is a
+fairly generic key-value store.
+
+Synopsis:
+
+* `GET /data_cache` --- get a list of all the stored cache entries
+* `POST /data_cache` --- add a new cache entry
+* `GET /data_cache/<id>` --- get the specific cache entry
+* `DELETE /data_cache/<id>` --- remove a cache entry
+
+Errors:
+
+* There are no errors that are specific to this resource.
+
+Example of a cache entry:
+
+    EXAMPLE
+    {
+        "type": "data_cache",
+        "id": "54353",
+        "cache_name": "My shopping list",
+        "key": "price",
+        "value": "$5.98"
+        "expires_at": "2016-12-24T08:00:00+0200"
+    }
+
+Fields in the result:
+
+* `cache_name` --- name given to the cache this entry is part of
+* `key` --- name of this cache entry
+* `value` --- value of this cache entry
+* `expires_at` --- timestamp when this cache entry is last valid
+
+### Tests
+
+We create a new data cache entry, search for it and delete it.
+
+    SCENARIO manage a data cache entry
+
+Client has needed access rights for data cache.
+
+    GIVEN client has access to scopes
+    ... "uapi_data_cache_post uapi_data_cache_get
+    ...  uapi_data_cache_search_id_get
+    ...  uapi_data_cache_id_get
+    ...  uapi_data_cache_id_delete"
+
+Create a data cache entry.
+
+    WHEN client POSTs /data_cache with
+    ... {
+    ...     "cache_name": "My list",
+    ...     "key": "Name",
+    ...     "value": "Sherlock",
+    ...     "expires_at": "2020-01-03T07:56:30+0200"
+    ... }
+    THEN HTTP status code is 201
+    AND result matches
+    ... {
+    ...     "cache_name": "My list",
+    ...     "key": "Name",
+    ...     "value": "Sherlock",
+    ...     "expires_at": "2020-01-03T07:56:30+0200"
+    ... }
+    AND result has key "id" containing a string, saved as $ID1
+    AND HTTP Location header is API_URL/data_cache/$ID1
+    AND result has key "revision" containing a string, saved as $REV1
+
+Check that the record is there.
+
+    WHEN client GETs /data_cache/$ID1
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "cache_name": "My list",
+    ...     "key": "Name",
+    ...     "value": "Sherlock",
+    ...     "expires_at": "2020-01-03T07:56:30+0200"
+    ... }
+    AND result has key "id" containing a string, saved as $ID2
+    AND values "$ID1" and "$ID2" are identical
+    AND result has key "revision" containing a string, saved as $REV2
+    AND values "$REV1" and "$REV2" are identical
+
+Make a search by key for the created entry.
+
+    WHEN client GETs /data_cache/search/exact/key/Name
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+
+We delete the created data cache entry.
+
+    WHEN client DELETEs /data_cache/$ID1
+    THEN HTTP status code is 200
+
+    WHEN client GETs /data_cache/$ID1
+    THEN HTTP status code is 404
+
+
