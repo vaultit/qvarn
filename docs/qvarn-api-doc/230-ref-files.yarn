@@ -58,7 +58,7 @@ We create a new file, update them, and delete them.
 Client has needed access rights for files resource.
 
     GIVEN client has access to scopes
-    ... "uapi_files_post uapi_files_get uapi_files_id_get 
+    ... "uapi_files_post uapi_files_get uapi_files_id_get
     ... uapi_files_id_put uapi_files_id_delete
     ... uapi_files_id_file_put api_files_id_file_get"
 
