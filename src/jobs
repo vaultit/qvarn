@@ -1,0 +1,67 @@
+#!/usr/bin/env python2
+#
+# src/jobs - implement the /jobs resource
+#
+# Copyright 2015, 2016 Suomen Tilaajavastuu Oy
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+import qvarn
+
+
+job_prototype_v0 = {
+    u'type': u'',
+    u'id': u'',
+    u'revision': u'',
+}
+
+
+job_prototype_current = job_prototype_v1 = {
+    u'type': u'',
+    u'id': u'',
+    u'revision': u'',
+    u'job_type': u'',
+    u'person_id': u'',
+    u'org_id': u'',
+    u'submitted_at': u'',
+    u'started_at': u'',
+    u'done_at': u'',
+    u'status': u'',
+    u'reserved_until': u'',
+    u'parameters': [
+        {
+            u'key': u'',
+            u'value': u'',
+        }
+    ],
+}
+
+
+resource_type_spec = {
+    u'path': u'/jobs',
+    u'type': u'job',
+    u'versions': [
+        {
+            u'version': u'v0',
+            u'prototype': job_prototype_v0,
+        },
+        {
+            u'version': u'v1',
+            u'prototype': job_prototype_v1,
+        },
+    ],
+}
+
+application = qvarn.create_resource_server(resource_type_spec)

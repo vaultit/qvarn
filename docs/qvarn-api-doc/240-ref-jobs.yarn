@@ -1,0 +1,173 @@
+<!--
+Copyright 2016 Suomen Tilaajavastuu Oy
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+
+`/jobs`
+-------------
+
+This resource manages job queues from external sources.
+
+Synopsis:
+
+* `GET /jobs` --- get a list of ids of all jobs
+* `GET /jobs/<id>` --- get the information about a specific job
+* `POST /jobs` --- add a new job
+* `PUT /jobs/<id>` --- updates a specific job
+* `DELETE /jobs/<id>` --- removes a job
+
+Errors:
+
+* There are no errors that are specific to this resource.
+
+Example result:
+
+    EXAMPLE information about a job
+    {
+        "type": "job",
+	"id": "j0b8",
+	"job_type": "endless_wheel",
+	"person_id": "4trytr6",
+	"org_id": "123",
+	"submitted_at": "1323-08-12T16:04:23+0200",
+	"started_at": "1323-08-12T16:05:00+0200",
+	"done_at": "2016-11-02T13:40:38+0200",
+	"status": "done",
+	"reserved_until": "2016-11-01T00:00:00+0200",
+	"parameters": [
+	    {
+	        "key": "is_this_fun?",
+		"value": "yes"
+	    }
+	]
+    }
+
+Fields in the result:
+
+* `job_type` --- name of the job type, can be an application or
+  a source or such
+* `person_id` --- resource id of the originator or sender of the job
+* `org_id` --- resource id of the organisation that this job belongs
+  to
+* `submitted_at` --- timestamp when this job was submitted
+* `started_at` --- timestamp when the processing of this job started
+* `done_at` --- timestamp when the processing of this job completed
+* `status` --- current status of this job
+* `reserved_until` --- timestamp of the time this job is reserved for
+  its primary handler only
+* `parameters` --- a list of parameters to be processed by this job,
+  containing pairs of the following:
+   - `key` --- name of this parameter
+   - `value` --- value of this parameter
+
+### Tests
+
+We create a new job, update them, and delete them.
+
+    SCENARIO manage a job
+
+Client has needed access rights for files resource.
+
+    GIVEN client has access to scopes
+    ... "uapi_jobs_post uapi_jobs_get uapi_jobs_id_get 
+    ... uapi_jobs_id_put uapi_jobs_id_delete"
+
+Create a new job.
+
+    WHEN client POSTs /jobs with
+    ... {
+    ...     "job_type": "gotta_do_this",
+    ...     "person_id": "34567",
+    ...     "org_id": "098123",
+    ...     "submitted_at": "2016-09-01T02:36:45+0300",
+    ...     "started_at": "2016-09-01T03:00:00+0300",
+    ...     "done_at": "2016-11-02T14:00:00+0200",
+    ...     "status": "almost_done",
+    ...     "reserved_until": "2016-11-02T13:00:00+0200",
+    ...     "parameters": [
+    ...         {
+    ...             "key": "my_key",
+    ...             "value": "54676yq"
+    ...         },
+    ...         {
+    ...             "key": "your_key",
+    ...             "value": "347564t"
+    ...         }
+    ...     ]
+    ... }
+    THEN HTTP status code is 201
+    AND result matches
+    ... {
+    ...     "job_type": "gotta_do_this",
+    ...     "person_id": "34567",
+    ...     "org_id": "098123",
+    ...     "submitted_at": "2016-09-01T02:36:45+0300",
+    ...     "started_at": "2016-09-01T03:00:00+0300",
+    ...     "done_at": "2016-11-02T14:00:00+0200",
+    ...     "status": "almost_done",
+    ...     "reserved_until": "2016-11-02T13:00:00+0200",
+    ...     "parameters": [
+    ...         {
+    ...             "key": "my_key",
+    ...             "value": "54676yq"
+    ...         },
+    ...         {
+    ...             "key": "your_key",
+    ...             "value": "347564t"
+    ...         }
+    ...     ]
+    ... }
+    AND result has key "id" containing a string, saved as $ID1
+    AND HTTP Location header is API_URL/jobs/$ID1
+    AND result has key "revision" containing a string, saved as $REV1
+
+Check that the record is there.
+
+    WHEN client GETs /jobs/$ID1
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "job_type": "gotta_do_this",
+    ...     "person_id": "34567",
+    ...     "org_id": "098123",
+    ...     "submitted_at": "2016-09-01T02:36:45+0300",
+    ...     "started_at": "2016-09-01T03:00:00+0300",
+    ...     "done_at": "2016-11-02T14:00:00+0200",
+    ...     "status": "almost_done",
+    ...     "reserved_until": "2016-11-02T13:00:00+0200",
+    ...     "parameters": [
+    ...         {
+    ...             "key": "my_key",
+    ...             "value": "54676yq"
+    ...         },
+    ...         {
+    ...             "key": "your_key",
+    ...             "value": "347564t"
+    ...         }
+    ...     ]
+    ... }
+    AND result has key "id" containing a string, saved as $ID2
+    AND values "$ID1" and "$ID2" are identical
+    AND result has key "revision" containing a string, saved as $REV2
+    AND values "$REV1" and "$REV2" are identical
+
+Delete the job.
+
+    WHEN client DELETEs /jobs/$ID1
+    THEN HTTP status code is 200
+
+    WHEN client GETs /jobs/$ID1
+    THEN HTTP status code is 404
