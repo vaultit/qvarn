@@ -21,9 +21,6 @@
 import qvarn
 
 
-resource_type = u'file'
-
-
 file_prototype_v0 = {
     u'type': u'',
     u'id': u'',

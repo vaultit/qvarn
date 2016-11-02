@@ -40,8 +40,8 @@ Example result:
     EXAMPLE information about a file
     {
         "type": "file",
-	"id": "34rf",
-	"filename": "my_secret_diary.odt"
+        "id": "34rf",
+        "filename": "my_secret_diary.odt"
     }
 
 Fields in the result:
@@ -55,7 +55,7 @@ We create a new file, update them, and delete them.
 
     SCENARIO manage a file
 
-Cliet has needed access rights for files resource.
+Client has needed access rights for files resource.
 
     GIVEN client has access to scopes
     ... "uapi_files_post uapi_files_get uapi_files_id_get 
