@@ -1,0 +1,70 @@
+#!/usr/bin/env python2
+#
+# src/files - implement the /files resource
+#
+# Copyright 2015, 2016 Suomen Tilaajavastuu Oy
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+import qvarn
+
+
+resource_type = u'file'
+
+
+file_prototype_v0 = {
+    u'type': u'',
+    u'id': u'',
+    u'revision': u'',
+}
+
+file_file_prototype = {
+    u'body': buffer(''),
+    u'content_type': u'',
+}
+
+
+file_prototype_current = file_prototype_v1 = {
+    u'type': u'',
+    u'id': u'',
+    u'revision': u'',
+    u'filename': u'',
+}
+
+
+resource_type_spec = {
+    u'path': u'/files',
+    u'type': u'file',
+    u'versions': [
+        {
+            u'version': u'v0',
+            u'prototype': file_prototype_v0,
+        },
+        {
+            u'version': u'v1',
+            u'prototype': file_prototype_v1,
+            u'subpaths': {
+                u'file': {
+                    u'prototype': file_file_prototype,
+                },
+            },
+            u'files': [
+                u'file',
+            ],
+        },
+    ],
+}
+
+application = qvarn.create_resource_server(resource_type_spec)

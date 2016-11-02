@@ -1,0 +1,113 @@
+<!--
+Copyright 2016 Suomen Tilaajavastuu Oy
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+
+`/files`
+-------------
+
+This resource manages various kind of binary files.
+
+Synopsis:
+
+* `GET /files` --- get a list of ids of all files
+* `GET /files/<id>` --- get the information about a specific file
+* `POST /files` --- add a new file
+* `PUT /files/<id>` --- replace the information about a specific file
+* `GET /files/<id>/file` --- get the contents of the file
+* `PUT /files/<id>/file` --- set the contents of the file
+* `DELETE /files/<id>` --- remove a file
+
+Errors:
+
+* There are no errors that are specific to this resource.
+
+Example result:
+
+    EXAMPLE information about a file
+    {
+        "type": "file",
+	"id": "34rf",
+	"filename": "my_secret_diary.odt"
+    }
+
+Fields in the result:
+
+* `filename` --- name of the stored file
+
+
+### Tests
+
+We create a new file, update them, and delete them.
+
+    SCENARIO manage a file
+
+Cliet has needed access rights for files resource.
+
+    GIVEN client has access to scopes
+    ... "uapi_files_post uapi_files_get uapi_files_id_get 
+    ... uapi_files_id_put uapi_files_id_delete
+    ... uapi_files_id_file_put api_files_id_file_get"
+
+Create a new file.
+
+    WHEN client POSTs /files with
+    ... {
+    ...     "filename": "my_very_own_file.txt"
+    ... }
+    THEN HTTP status code is 201
+    AND result matches
+    ... {
+    ...     "filename": "my_very_own_file.txt"
+    ... }
+    AND result has key "id" containing a string, saved as $ID1
+    AND HTTP Location header is API_URL/files/$ID1
+    AND result has key "revision" containing a string, saved as $REV1
+
+Check that the record is there.
+
+    WHEN client GETs /files/$ID1
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "filename": "my_very_own_file.txt"
+    ... }
+    AND result has key "id" containing a string, saved as $ID2
+    AND values "$ID1" and "$ID2" are identical
+    AND result has key "revision" containing a string, saved as $REV2
+    AND values "$REV1" and "$REV2" are identical
+
+Send the contents of the created file.
+
+    GIVEN file my_very_own_file.txt containing "This is my text."
+
+    WHEN client PUTs file my_very_own_file.txt with content type
+    ...  text/plain and revision $REV2 to /files/$ID1/file
+    THEN HTTP status code is 200
+
+    WHEN client GETs /files/$ID1/file
+    THEN HTTP status code is 200
+    AND HTTP header Content-Type is text/plain
+    AND HTTP header Revision exists
+    AND result body matches file my_very_own_file.txt
+
+Delete the file.
+
+    WHEN client DELETEs /files/$ID1
+    THEN HTTP status code is 200
+
+    WHEN client GETs /files/$ID1
+    THEN HTTP status code is 404
