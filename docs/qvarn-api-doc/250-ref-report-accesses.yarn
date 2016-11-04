@@ -1,0 +1,130 @@
+<!--
+Copyright 2016 Suomen Tilaajavastuu Oy
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+
+`/report_accesses`
+------------------
+
+This resource acts as a log of report access events. This is done
+because earlier allowed access to a certain report allows later
+accesses to the same report even after the access privileges have
+otherwise been revoked. This resource takes into account that some
+of the requests will come through partner APIs that do not pass
+enough information for Qvarn maintainer to actually identify the
+actual accessor. However, the partner (identified by `client_id`)
+must be able to identify the accessor using the stored `customer_id`.
+
+Synopsis:
+
+* `GET /report_accesses` --- get a list of ids of all the report
+  accesses
+* `GET /report_accesses/<id>` --- get the information about a specific
+  report access
+* `POST /report_accesses` --- add a new report access
+
+Notes:
+
+As this resource is basically a log that is accessed through the API
+updating and removing items should never be allowed.
+
+Example result:
+
+    EXAMPLE report access information
+    {
+        "type": "report_access",
+        "id": "378iu",
+        "client_id": "qwerty-23456-zxcvb",
+        "customer_id": "that_strange_customer",
+        "org_id": "345",
+        "report_id": "234eg4",
+        "arkisto_id": "201104231235345",
+        "access_time": "2011-04-23T12:35:45+0200"
+    }
+
+Fields in the result:
+
+* `client_id` --- id of the client making the access request
+* `customer_id` --- id of the accessing customer in the client's
+  maintainer's system
+* `org_id` --- id of the organisation in the report
+* `report_id` --- id of the report
+* `arkisto_id` --- id of the report in Suomen Tilaajavastuu's
+  pre-Qvarn Arkisto system
+* `access_time` --- timestamp when this report access was done
+
+### Tests
+
+We create a new report access item, update, and remove it.
+
+    SCENARIO manage report access log
+
+Client has needed access rights for report access resource.
+
+    GIVEN client has access to scopes
+    ... "uapi_report_accesses_port uapi_report_accesses_get
+    ... uapi_report_accesses_id_get uapi_report_accesses_id_delete"
+
+Create a new report access event.
+
+    WHEN client POSTs /report_accesses with
+    ... {
+    ...     "client_id": "2345678",
+    ...     "customer_id": "good_customer",
+    ...     "org_id": "qwerty1",
+    ...     "report_id": "6868686868",
+    ...     "arkisto_id" "20142345246678",
+    ...     "access_time": "2016-05-03T12:45:38+0300"
+    ... }
+    THEN HTTP status code is 201
+    AND result matches
+    ... {
+    ...     "client_id": "2345678",
+    ...     "customer_id": "good_customer",
+    ...     "org_id": "qwerty1",
+    ...     "report_id": "6868686868",
+    ...     "arkisto_id" "20142345246678",
+    ...     "access_time": "2016-05-03T12:45:38+0300"
+    ... }
+    AND result has key "id" containing a string, saved as $ID1
+    AND HTTP Location header is API_URL/report_accesses/$ID1
+    AND result has key "revision" containing a string, saved as $REV1
+
+Check that the record is there.
+
+    WHEN client GETs /report_accesses/$ID1
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "client_id": "2345678",
+    ...     "customer_id": "good_customer",
+    ...     "org_id": "qwerty1",
+    ...     "report_id": "6868686868",
+    ...     "arkisto_id" "20142345246678",
+    ...     "access_time": "2016-05-03T12:45:38+0300"
+    ... }
+    AND result has key "id" containing a string, saved as $ID2
+    AND values "$ID1" and "$ID2" are identical
+    AND result has key "revision" containing a string, saved as $REV2
+    AND values "$REV1" and "$REV2" are identical
+
+Delete the report access event.
+
+    WHEN client DELETEs /report_accesses/$ID1
+    THEN HTTP status code is 200
+
+    WHEN client GETs /report_accesses/$ID1
+    THEN HTTP status code is 404
