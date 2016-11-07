@@ -38,21 +38,21 @@ Example result:
     EXAMPLE information about a job
     {
         "type": "job",
-	"id": "j0b8",
-	"job_type": "endless_wheel",
-	"person_id": "4trytr6",
-	"org_id": "123",
-	"submitted_at": "1323-08-12T16:04:23+0200",
-	"started_at": "1323-08-12T16:05:00+0200",
-	"done_at": "2016-11-02T13:40:38+0200",
-	"status": "done",
-	"reserved_until": "2016-11-01T00:00:00+0200",
-	"parameters": [
-	    {
-	        "key": "is_this_fun?",
-		"value": "yes"
-	    }
-	]
+        "id": "j0b8",
+        "job_type": "endless_wheel",
+        "person_id": "4trytr6",
+        "org_id": "123",
+        "submitted_at": "1323-08-12T16:04:23+0200",
+        "started_at": "1323-08-12T16:05:00+0200",
+        "done_at": "2016-11-02T13:40:38+0200",
+        "status": "done",
+        "reserved_until": "2016-11-01T00:00:00+0200",
+        "parameters": [
+            {
+                "key": "is_this_fun?",
+                "value": "yes"
+            }
+        ]
     }
 
 Fields in the result:
@@ -82,7 +82,7 @@ We create a new job, update them, and delete them.
 Client has needed access rights for files resource.
 
     GIVEN client has access to scopes
-    ... "uapi_jobs_post uapi_jobs_get uapi_jobs_id_get 
+    ... "uapi_jobs_post uapi_jobs_get uapi_jobs_id_get
     ... uapi_jobs_id_put uapi_jobs_id_delete"
 
 Create a new job.
