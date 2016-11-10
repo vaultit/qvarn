@@ -75,7 +75,7 @@ We create a new report access item, update, and remove it.
 Client has needed access rights for report access resource.
 
     GIVEN client has access to scopes
-    ... "uapi_report_accesses_port uapi_report_accesses_get
+    ... "uapi_report_accesses_post uapi_report_accesses_get
     ... uapi_report_accesses_id_get uapi_report_accesses_id_delete"
 
 Create a new report access event.
