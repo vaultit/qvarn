@@ -86,7 +86,7 @@ Create a new report access event.
     ...     "customer_id": "good_customer",
     ...     "org_id": "qwerty1",
     ...     "report_id": "6868686868",
-    ...     "arkisto_id" "20142345246678",
+    ...     "arkisto_id": "20142345246678",
     ...     "access_time": "2016-05-03T12:45:38+0300"
     ... }
     THEN HTTP status code is 201
@@ -96,7 +96,7 @@ Create a new report access event.
     ...     "customer_id": "good_customer",
     ...     "org_id": "qwerty1",
     ...     "report_id": "6868686868",
-    ...     "arkisto_id" "20142345246678",
+    ...     "arkisto_id": "20142345246678",
     ...     "access_time": "2016-05-03T12:45:38+0300"
     ... }
     AND result has key "id" containing a string, saved as $ID1
@@ -113,7 +113,7 @@ Check that the record is there.
     ...     "customer_id": "good_customer",
     ...     "org_id": "qwerty1",
     ...     "report_id": "6868686868",
-    ...     "arkisto_id" "20142345246678",
+    ...     "arkisto_id": "20142345246678",
     ...     "access_time": "2016-05-03T12:45:38+0300"
     ... }
     AND result has key "id" containing a string, saved as $ID2
