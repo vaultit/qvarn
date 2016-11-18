@@ -4,6 +4,8 @@ NEWS for Qvarn
 Version 0.77+git, not yet released
 ----------------------------------
 
+* Ville Niskala added new resource types: `data_cache`, `files`,
+  `jobs`, `resource_accesses`.
 
 Version 0.77, released 2016-10-24
 ----------------------------------
