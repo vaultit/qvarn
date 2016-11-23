@@ -37,6 +37,8 @@ def has_error_status(msgs):
             return True
         if msg['msg_type'] == 'http-response' and msg['status'] >= 400:
             return True
+        if '_traceback' in msg:
+            return True
     return False
 
 
