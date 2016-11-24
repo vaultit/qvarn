@@ -110,10 +110,15 @@ class BackendApplication(object):
 
         try:
             self.run_helper()
+        except qvarn.QvarnException as e:
+            log.log('error', exc_info=True, msg_text=str(e))
+            sys.stderr.write('ERROR: {}\n'.format(str(e)))
+            sys.exit(1)
         except SystemExit as e:
             sys.exit(e.code if isinstance(e.code, int) else 1)
         except BaseException as e:
             log.log('error', exc_info=True, msg_text=str(e))
+            sys.stderr.write('ERROR: {}\n'.format(str(e)))
             sys.exit(1)
         else:
             return self._app
@@ -164,7 +169,9 @@ class BackendApplication(object):
         args = parser.parse_args()
 
         config = ConfigParser.RawConfigParser()
-        config.read(args.config)
+        files_read = config.read(args.config)
+        if files_read != [args.config]:
+            raise MissingConfigFileError(filename=args.config)
         return config, args
 
     def _connect_to_storage(self, conf):
@@ -262,3 +269,8 @@ class MissingAuthorizationError(qvarn.QvarnException):
     msg = (u'Configuration is missing authentication fields: '
            u'token_validation_key is set to {validation_key!r}, '
            u'token_issuer is set to {issuer!r}.')
+
+
+class MissingConfigFileError(qvarn.QvarnException):
+
+    msg = u"Couldn't read configuration file {filename}"
