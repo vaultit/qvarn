@@ -362,21 +362,32 @@ Client has needed access rights for cards resource.
     ...  uapi_cards_id_issuer_logo_put"
 
 Try to create a new card, but with invalid data. These must all fail.
+
+<!--
+
+Commented  out because there's no type-spefic validation in Qvarn now.
+
 First, an empty record:
 
     WHEN client POSTs /cards with {}
     THEN HTTP status code is 400
+
+-->
 
 Only specific fields are allowed. Test with an invalid field.
 
     WHEN client POSTs /cards with {"invalid_field": true}
     THEN HTTP status code is 400
 
+<!--
+
 The only mandatory field is `card_type`. Records without that field
 must fail.
 
     WHEN client POSTs /cards with {"issued_date": "2015-04-20"}
     THEN HTTP status code is 400
+
+-->
 
 Create a new card.
 

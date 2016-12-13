@@ -81,15 +81,24 @@ Client has needed access rights for events resource.
     ...  uapi_events_id_delete"
 
 Try to create a new event, but with invalid data. These must all fail.
+
+<!--
+
+Commented out since Qvarn doens't do these validations now.
+
 First, an empty record:
 
     WHEN client POSTs /events with {}
     THEN HTTP status code is 400
 
+-->
+
 Then, attempt with non-existent fields:
 
     WHEN client POSTs /events with {"non-existent": []}
     THEN HTTP status code is 400
+
+<!--
 
 The `generated_timestamp` field is mandatory. It can't be empty.
 
@@ -103,6 +112,8 @@ Another mandatory field is `event_type`. It must be specified, too.
     ...     "generated_timestamp": "2015-04-01T12:00:00+0200"
     ... }
     THEN HTTP status code is 400
+
+-->
 
 Create a new event with all the mandatory fields filled.
 

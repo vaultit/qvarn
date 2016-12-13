@@ -151,16 +151,27 @@ Client has needed access rights for persons resource.
     ...  uapi_persons_id_photo_get uapi_persons_id_photo_put"
 
 Try to create a new person, but with invalid data. These must all
-fail, of course. First, an empty record:
+fail, of course. 
+
+
+<!--
+
+Commented out for now becausee type-specific validation code is gone.
+
+First, an empty record:
 
     WHEN client POSTs /persons with {}
     THEN HTTP status code is 400
+
+-->
 
 Only specific fields are allowed. The API does not accept arbitrary
 data from the client.
 
     WHEN client POSTs /persons with {"invalid_field": true}
     THEN HTTP status code is 400
+
+<!--
 
 The only mandatory field is `names`, but it can't be empty.
 
@@ -182,6 +193,8 @@ The full name must not be empty.
 
     WHEN client POSTs /persons with {"names": [{"full_name": ""}]}
     THEN HTTP status code is 400
+
+-->
 
 Extra fields for a name are not allowed.
 
