@@ -18,68 +18,28 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import os
+import yaml
+
 import qvarn
 
 
-RESOURCE_TYPE = u'bolagsfakta_supplier'
-SUPPLIER_TYPES = ('linked', 'unlinked')
+# We want to load strings as unicode, not str.
+# From http://stackoverflow.com/questions/2890146/
+# It seems this will be unnecessary in Python 3.
+def construct_yaml_str(self, node):
+    # Override the default string handling function
+    # to always return unicode objects
+    if node.value == 'blob':
+        return buffer('')
+    return self.construct_scalar(node)
 
 
-class NoProjectResourceIdProvided(qvarn.ValidationError):
-    msg = u'Supplier {id} has no project ID.'
+yaml.SafeLoader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
 
 
-class NoSupplierOrgIdProvided(qvarn.ValidationError):
-    msg = u'Supplier {id} has no organisation ID provided'
-
-
-class NoSupplierTypeProvided(qvarn.ValidationError):
-    msg = u'Supplier {id} has no supplier type provided'
-
-
-class InvalidSupplierType(qvarn.ValidationError):
-    msg = u'Invalid supplier type provided'
-
-
-def validate_supplier(obj):
-    if not obj['project_resource_id']:
-        raise NoProjectResourceIdProvided(
-            id=obj.get(u'id', u'(no id provided)')
-        )
-    if not obj['supplier_org_id']:
-        raise NoSupplierOrgIdProvided(id=obj.get(u'id', u'(no id provided)'))
-    if not obj['supplier_type']:
-        raise NoSupplierTypeProvided(id=obj.get(u'id', u'(no id provided)'))
-    elif obj['supplier_type'] not in SUPPLIER_TYPES:
-        raise InvalidSupplierType(id=obj.get(u'id', u'(no id provided)'))
-
-
-supplier_prototype_current = supplier_prototype_v0 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-    u'project_resource_id': u'',
-    u'supplier_type': u'',
-    u'parent_supplier_id': u'',
-    u'parent_org_id': u'',
-    u'supplier_org_id': u'',
-    u'contract_start_date': u'',
-    u'contract_end_date': u'',
-    u'materialized_path': [u''],
-    u'bolagsfakta_status': u'',
-}
-
-
-resource_type_spec = {
-    u'path': u'/bolagsfakta_suppliers',
-    u'type': RESOURCE_TYPE,
-    u'versions': [
-        {
-            u'version': u'v0',
-            u'prototype': supplier_prototype_v0,
-            u'validator': validate_supplier,
-        },
-    ],
-}
-
+name = 'bolagsfakta_suppliers'
+path = '/etc/qvarn'
+with open(os.path.join(path, name + '.yaml')) as f:
+    resource_type_spec = yaml.safe_load(f)
 application = qvarn.create_resource_server(resource_type_spec)

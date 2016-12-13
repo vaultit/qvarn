@@ -1,0 +1,8 @@
+path: /data_cache
+type: data_cache
+versions:
+- prototype: {id: '', revision: '', type: ''}
+  version: v0
+- prototype: {cache_name: '', expires_at: '', id: '', key: '', revision: '', type: '',
+    value: ''}
+  version: v1

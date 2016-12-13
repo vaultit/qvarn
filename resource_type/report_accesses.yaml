@@ -1,0 +1,8 @@
+path: /report_accesses
+type: report_access
+versions:
+- prototype: {id: '', revision: '', type: ''}
+  version: v0
+- prototype: {access_time: '', arkisto_id: '', client_id: '', customer_id: '', id: '',
+    org_id: '', report_id: '', revision: '', type: ''}
+  version: v1

@@ -1,0 +1,416 @@
+path: /contracts
+type: contract
+versions:
+
+- version: v0
+  prototype:
+   id: ''
+   revision: ''
+   type: ''
+
+- version: v1
+  prototype:
+    contract_parties:
+    - contacts:
+      - address_lines: ['']
+        contact_source: ''
+        contact_timestamp: ''
+        contact_type: ''
+        country: ''
+        email_address: ''
+        full_address: ''
+        phone_number: ''
+        post_area: ''
+        post_code: ''
+      resource_id: ''
+      role: ''
+      type: ''
+      user_role: ''
+      username: ''
+    contract_state: ''
+    contract_state_history:
+    - modification_timestamp: ''
+      modified_by: ''
+      state: ''
+    contract_type: ''
+    date_created: ''
+    date_updated: ''
+    end_date: ''
+    id: ''
+    id06_contact_email: ''
+    id06_contact_name: ''
+    id06_issuer_requires_bankid: false
+    preferred_language: ''
+    revision: ''
+    right_to_work_based_on: ''
+    signers:
+    - signer: ''
+      signing_request_message: ''
+      signing_request_timestamp: ''
+      signing_timestamp: ''
+    start_date: ''
+    type: ''
+  subpaths:
+    document:
+      prototype:
+        body: blob
+        content_type: ''
+    sync:
+      prototype:
+        sync_revision: ''
+        sync_sources:
+        - sync_id: ''
+          sync_source: ''
+  files:
+  - document
+
+- version: v2
+  prototype:
+    contract_parties:
+    - contacts:
+      - address_lines: ['']
+        contact_roles: ''
+        contact_source: ''
+        contact_timestamp: ''
+        contact_type: ''
+        country: ''
+        email_address: ''
+        full_address: ''
+        phone_number: ''
+        post_area: ''
+        post_code: ''
+      resource_id: ''
+      role: ''
+      type: ''
+      user_role: ''
+      username: ''
+    contract_state: ''
+    contract_state_history:
+    - modification_timestamp: ''
+      modified_by: ''
+      state: ''
+    contract_type: ''
+    date_created: ''
+    date_updated: ''
+    end_date: ''
+    id: ''
+    id06_contact_email: ''
+    id06_contact_name: ''
+    id06_issuer_requires_bankid: false
+    preferred_language: ''
+    revision: ''
+    right_to_work_based_on: ''
+    signers:
+    - signer: ''
+      signing_request_message: ''
+      signing_request_timestamp: ''
+      signing_timestamp: ''
+    start_date: ''
+    type: ''
+  subpaths:
+    document:
+      prototype:
+        body: blob
+        content_type: ''
+    sync:
+      prototype:
+        sync_revision: ''
+        sync_sources:
+        - sync_id: ''
+          sync_source: ''
+  files:
+    - document
+
+- version: v3
+  prototype:
+    contract_parties:
+    - resource_id: ''
+      role: ''
+      type: ''
+      user_role: ''
+      username: ''
+    contract_state: ''
+    contract_state_history:
+    - modification_timestamp: ''
+      modified_by: ''
+      state: ''
+    contract_type: ''
+    date_created: ''
+    date_updated: ''
+    end_date: ''
+    id: ''
+    id06_contact_email: ''
+    id06_contact_name: ''
+    id06_issuer_requires_bankid: false
+    preferred_language: ''
+    revision: ''
+    right_to_work_based_on: ''
+    signers:
+    - signer: ''
+      signing_request_message: ''
+      signing_request_timestamp: ''
+      signing_timestamp: ''
+    start_date: ''
+    type: ''
+  subpaths:
+    document:
+      prototype:
+        body: blob
+        content_type: ''
+    sync:
+      prototype:
+        sync_revision: ''
+        sync_sources:
+        - sync_id: ''
+          sync_source: ''
+  files:
+    - document
+
+- version: v4
+  prototype:
+    contract_parties:
+    - contacts:
+      - address_lines: ['']
+        contact_roles: ''
+        contact_source: ''
+        contact_timestamp: ''
+        contact_type: ''
+        country: ''
+        email_address: ''
+        full_address: ''
+        phone_number: ''
+        post_area: ''
+        post_code: ''
+      resource_id: ''
+      role: ''
+      type: ''
+      user_role: ''
+      username: ''
+    contract_state: ''
+    contract_state_history:
+    - modification_timestamp: ''
+      modified_by: ''
+      state: ''
+    contract_type: ''
+    date_created: ''
+    date_updated: ''
+    end_date: ''
+    id: ''
+    id06_contact_email: ''
+    id06_contact_name: ''
+    id06_issuer_requires_bankid: false
+    preferred_language: ''
+    revision: ''
+    right_to_work_based_on: ''
+    signers:
+    - signer: ''
+      signing_request_message: ''
+      signing_request_timestamp: ''
+      signing_timestamp: ''
+    start_date: ''
+    type: ''
+  subpaths:
+    document:
+      prototype:
+        body: blob
+        content_type: ''
+    sync:
+      prototype:
+        sync_revision: ''
+        sync_sources:
+        - sync_id: ''
+          sync_source: ''
+  files:
+    - document
+
+- version: v5
+  prototype:
+    contract_parties:
+    - contacts:
+      - address_lines: ['']
+        contact_roles: ''
+        contact_source: ''
+        contact_timestamp: ''
+        contact_type: ''
+        country: ''
+        email_address: ''
+        full_address: ''
+        phone_number: ''
+        post_area: ''
+        post_code: ''
+      global_permissions:
+      - permission_name: ''
+      permissions:
+      - permission_name: ''
+      resource_id: ''
+      role: ''
+      type: ''
+      user_role: ''
+      username: ''
+    contract_state: ''
+    contract_state_history:
+    - modification_timestamp: ''
+      modified_by: ''
+      state: ''
+    contract_type: ''
+    date_created: ''
+    date_updated: ''
+    end_date: ''
+    id: ''
+    id06_contact_email: ''
+    id06_contact_name: ''
+    id06_issuer_requires_bankid: false
+    preferred_language: ''
+    revision: ''
+    right_to_work_based_on: ''
+    signers:
+    - signer: ''
+      signing_request_message: ''
+      signing_request_timestamp: ''
+      signing_timestamp: ''
+    start_date: ''
+    type: ''
+  subpaths:
+    document:
+      prototype:
+        body: blob
+        content_type: ''
+    sync:
+      prototype:
+        sync_revision: ''
+        sync_sources:
+        - sync_id: ''
+          sync_source: ''
+  files:
+    - document
+
+- version: v6
+  prototype:
+    contract_parties:
+    - contacts:
+      - address_lines: ['']
+        contact_roles: ''
+        contact_source: ''
+        contact_timestamp: ''
+        contact_type: ''
+        country: ''
+        email_address: ''
+        full_address: ''
+        phone_number: ''
+        post_area: ''
+        post_code: ''
+      global_permissions:
+      - permission_name: ''
+      permissions:
+      - permission_name: ''
+      resource_id: ''
+      role: ''
+      type: ''
+      user_role: ''
+      username: ''
+    contract_state: ''
+    contract_state_history:
+    - modification_timestamp: ''
+      modified_by: ''
+      state: ''
+    contract_type: ''
+    date_created: ''
+    date_updated: ''
+    end_date: ''
+    id: ''
+    id06_contact_email: ''
+    id06_contact_name: ''
+    id06_issuer_requires_bankid: false
+    preferred_language: ''
+    revision: ''
+    right_to_work_based_on: ''
+    signers:
+    - signer: ''
+      signing_request_message: ''
+      signing_request_timestamp: ''
+      signing_timestamp: ''
+    start_date: ''
+    terms_of_service:
+    - acceptance_time: ''
+      accepter_person_id: ''
+      terms_of_service_version: ''
+    type: ''
+  subpaths:
+    document:
+      prototype:
+        body: blob
+        content_type: ''
+    sync:
+      prototype:
+        sync_revision: ''
+        sync_sources:
+        - sync_id: ''
+          sync_source: ''
+  files:
+    - document
+
+- version: v7
+  prototype:
+    contract_parties:
+    - contacts:
+      - address_lines: ['']
+        contact_roles: ''
+        contact_source: ''
+        contact_timestamp: ''
+        contact_type: ''
+        country: ''
+        email_address: ''
+        full_address: ''
+        phone_number: ''
+        post_area: ''
+        post_code: ''
+      global_permissions:
+      - permission_name: ''
+      permissions:
+      - permission_name: ''
+      resource_id: ''
+      role: ''
+      type: ''
+      user_role: ''
+      username: ''
+    contract_state: ''
+    contract_state_history:
+    - modification_timestamp: ''
+      modified_by: ''
+      state: ''
+    contract_type: ''
+    date_created: ''
+    date_updated: ''
+    end_date: ''
+    id: ''
+    id06_contact_email: ''
+    id06_contact_name: ''
+    id06_issuer_requires_bankid: false
+    preferred_language: ''
+    revision: ''
+    right_to_work_based_on: ''
+    signers:
+    - signer: ''
+      signing_request_message: ''
+      signing_request_timestamp: ''
+      signing_timestamp: ''
+    start_date: ''
+    terms_of_service:
+    - acceptance_time: ''
+      accepter_person_id: ''
+      terms_of_service_language: ''
+      terms_of_service_version: ''
+    type: ''
+  subpaths:
+    document:
+      prototype:
+        body: blob
+        content_type: ''
+    sync:
+      prototype:
+        sync_revision: ''
+        sync_sources:
+        - sync_id: ''
+          sync_source: ''
+  files:
+    - document

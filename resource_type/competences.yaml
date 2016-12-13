@@ -1,0 +1,47 @@
+path: /competences
+type: competence
+versions:
+- prototype: {id: '', revision: '', type: ''}
+  version: v0
+- prototype:
+    competence_card_holder_names:
+    - full_name: ''
+      given_names: ['']
+      sort_key: ''
+      surnames: ['']
+    competence_card_id: ''
+    competence_type_id: ''
+    employee_person_id: ''
+    employer_org_id: ''
+    id: ''
+    revision: ''
+    type: ''
+    valid_from_date: ''
+    valid_until_date: ''
+  subpaths:
+    sync:
+      prototype: &id001 {sync_id: '', sync_revision: ''}
+  version: v1
+- prototype:
+    competence_card_holder_names:
+    - full_name: ''
+      given_names: ['']
+      sort_key: ''
+      surnames: ['']
+    competence_card_id: ''
+    competence_registry_id: ''
+    competence_trainer: ''
+    competence_type_id: ''
+    employee_person_id: ''
+    employer_org_id: ''
+    granted_by_org_id: ''
+    id: ''
+    revision: ''
+    type: ''
+    valid_from_date: ''
+    valid_until_date: ''
+    validation_status: ''
+  subpaths:
+    sync:
+      prototype: *id001
+  version: v2

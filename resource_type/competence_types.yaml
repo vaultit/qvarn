@@ -1,0 +1,107 @@
+path: /competence_types
+type: competence_type
+versions:
+- prototype: {id: '', revision: '', type: ''}
+  version: v0
+- prototype: &id001
+    competence_type_id: ''
+    descriptions:
+    - {description: '', locale: ''}
+    id: ''
+    names:
+    - {locale: '', name: ''}
+    revision: ''
+    type: ''
+  version: v1
+- files: [card_front, card_back, registry_logo]
+  prototype: *id001
+  subpaths:
+    card_back:
+      prototype: &id002 {body: blob, content_type: ''}
+    card_front:
+      prototype: &id003 {body: blob, content_type: ''}
+    registry_logo:
+      prototype: &id004 {body: blob, content_type: ''}
+  version: v2
+- files: [card_front, card_back, registry_logo]
+  prototype:
+    competence_type_id: ''
+    customer_org_ids: ['']
+    descriptions:
+    - {description: '', locale: ''}
+    id: ''
+    names:
+    - {locale: '', name: ''}
+    revision: ''
+    type: ''
+  subpaths:
+    card_back:
+      prototype: *id002
+    card_front:
+      prototype: *id003
+    registry_logo:
+      prototype: *id004
+  version: v3
+- files: [card_front, card_back, registry_logo]
+  prototype:
+    competence_type_id: ''
+    customer_org_ids: ['']
+    descriptions:
+    - {description: '', locale: ''}
+    id: ''
+    master_register_name: ''
+    master_register_org_id: ''
+    names:
+    - {locale: '', name: ''}
+    revision: ''
+    type: ''
+  subpaths:
+    card_back:
+      prototype: *id002
+    card_front:
+      prototype: *id003
+    registry_logo:
+      prototype: *id004
+  version: v4
+- files: [card_front, card_back, registry_logo]
+  prototype:
+    competence_type_id: ''
+    customer_org_ids: ['']
+    descriptions:
+    - {description: '', locale: ''}
+    id: ''
+    is_verified: false
+    names:
+    - {locale: '', name: ''}
+    revision: ''
+    type: ''
+  subpaths:
+    card_back:
+      prototype: *id002
+    card_front:
+      prototype: *id003
+    registry_logo:
+      prototype: *id004
+  version: v5
+- files: [card_front, card_back, registry_logo]
+  prototype:
+    attribute_validation:
+    - {attribute: '', regex: '', required: false}
+    competence_type_id: ''
+    customer_org_ids: ['']
+    descriptions:
+    - {description: '', locale: ''}
+    id: ''
+    is_verified: false
+    names:
+    - {locale: '', name: ''}
+    revision: ''
+    type: ''
+  subpaths:
+    card_back:
+      prototype: *id002
+    card_front:
+      prototype: *id003
+    registry_logo:
+      prototype: *id004
+  version: v6

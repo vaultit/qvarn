@@ -18,223 +18,28 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import os
+import yaml
+
 import qvarn
 
 
-person_prototype_v0 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-}
+# We want to load strings as unicode, not str.
+# From http://stackoverflow.com/questions/2890146/
+# It seems this will be unnecessary in Python 3.
+def construct_yaml_str(self, node):
+    # Override the default string handling function
+    # to always return unicode objects
+    if node.value == 'blob':
+        return buffer('')
+    return self.construct_scalar(node)
 
 
-person_prototype_v1 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-    u'names': [
-        {
-            u'full_name': u'',
-            u'sort_key': u'',
-            u'titles': [u''],
-            u'given_names': [u''],
-            u'surnames': [u''],
-        },
-    ],
-}
+yaml.SafeLoader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
 
 
-person_prototype_current = person_prototype_v2 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-    u'names': [
-        {
-            u'full_name': u'',
-            u'sort_key': u'',
-            u'titles': [u''],
-            u'given_names': [u''],
-            u'surnames': [u''],
-        },
-    ],
-    u'gluu_user_id': u'',
-}
-
-
-person_photo_prototype = {
-    u'body': buffer(''),
-    u'content_type': u'',
-}
-
-
-person_private_prototype = {
-    u'date_of_birth': u'',
-    u'gov_ids': [
-        {
-            u'country': u'',
-            u'id_type': u'',
-            u'gov_id': u'',
-        },
-    ],
-    u'contacts': [
-        {
-            u'contact_type': u'',
-            u'contact_source': u'',
-            u'contact_timestamp': u'',
-            u'phone_number': u'',
-            u'email_address': u'',
-            u'full_address': u'',
-            u'country': u'',
-            u'address_lines': [u''],
-            u'post_code': u'',
-            u'post_area': u'',
-            u'verification_code': u'',
-            u'verification_code_expiration_date': u'',
-            u'email_verification_timestamp': u'',
-        },
-    ],
-    u'nationalities': [u''],
-    u'residences': [
-        {
-            u'country': u'',
-            u'location': u'',
-        },
-    ],
-}
-
-
-person_private_prototype_current = person_private_prototype_v2 = {
-    u'date_of_birth': u'',
-    u'gov_ids': [
-        {
-            u'country': u'',
-            u'id_type': u'',
-            u'gov_id': u'',
-        },
-    ],
-    u'contacts': [
-        {
-            u'contact_type': u'',
-            u'contact_roles': [u''],
-            u'contact_source': u'',
-            u'contact_timestamp': u'',
-            u'phone_number': u'',
-            u'email_address': u'',
-            u'full_address': u'',
-            u'country': u'',
-            u'address_lines': [u''],
-            u'post_code': u'',
-            u'post_area': u'',
-            u'verification_code': u'',
-            u'verification_code_expiration_date': u'',
-            u'email_verification_timestamp': u'',
-        },
-    ],
-    u'nationalities': [u''],
-    u'residences': [
-        {
-            u'country': u'',
-            u'location': u'',
-        },
-    ],
-}
-
-
-person_sync_prototype = {
-    u'sync_sources': [
-        {
-            u'sync_source': u'',
-            u'sync_id': u'',
-        },
-    ],
-    u'sync_revision': u'',
-}
-
-
-class NamelessPerson(qvarn.ValidationError):
-
-    msg = u'Person {id} does not have any names'
-
-
-class PersonWithoutFullName(qvarn.ValidationError):
-
-    msg = u'Person {id} does not have a full name'
-
-
-def validate_person(obj):
-    if not obj[u'names']:
-        raise NamelessPerson(id=obj.get(u'id', u'(no id provided)'))
-    for name_dict in obj[u'names']:
-        if not name_dict[u'full_name']:
-            raise PersonWithoutFullName(id=obj.get(u'id', u'(no id provided)'))
-
-
-resource_type_spec = {
-    u'path': u'/persons',
-    u'type': u'person',
-    u'versions': [
-        {
-            u'version': 'v0',
-            u'prototype': person_prototype_v0,
-        },
-        {
-            u'version': 'v1',
-            u'prototype': person_prototype_v1,
-            u'subpaths': {
-                u'photo': {
-                    u'prototype': person_photo_prototype,
-                },
-                u'private': {
-                    u'prototype': person_private_prototype,
-                },
-                u'sync': {
-                    u'prototype': person_sync_prototype,
-                },
-            },
-            u'files': [
-                u'photo',
-            ],
-        },
-        {
-            u'version': 'v2',
-            u'prototype': person_prototype_v1,
-            u'subpaths': {
-                u'photo': {
-                    u'prototype': person_photo_prototype,
-                },
-                u'private': {
-                    u'prototype': person_private_prototype_v2,
-                },
-                u'sync': {
-                    u'prototype': person_sync_prototype,
-                },
-            },
-            u'files': [
-                u'photo',
-            ],
-            u'validator': validate_person,
-        },
-        {
-            u'version': 'v3',
-            u'prototype': person_prototype_v2,
-            u'subpaths': {
-                u'photo': {
-                    u'prototype': person_photo_prototype,
-                },
-                u'private': {
-                    u'prototype': person_private_prototype_v2,
-                },
-                u'sync': {
-                    u'prototype': person_sync_prototype,
-                },
-            },
-            u'files': [
-                u'photo',
-            ],
-            u'validator': validate_person,
-        },
-    ],
-}
-
-
+name = 'persons'
+path = '/etc/qvarn'
+with open(os.path.join(path, name + '.yaml')) as f:
+    resource_type_spec = yaml.safe_load(f)
 application = qvarn.create_resource_server(resource_type_spec)

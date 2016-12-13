@@ -18,81 +18,28 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import os
+import yaml
+
 import qvarn
 
 
-resource_type = u'event'
+# We want to load strings as unicode, not str.
+# From http://stackoverflow.com/questions/2890146/
+# It seems this will be unnecessary in Python 3.
+def construct_yaml_str(self, node):
+    # Override the default string handling function
+    # to always return unicode objects
+    if node.value == 'blob':
+        return buffer('')
+    return self.construct_scalar(node)
 
 
-event_prototype_v0 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-}
+yaml.SafeLoader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
 
 
-event_prototype_current = event_prototype_v1 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-    u'event_type': u'',
-    u'generated_timestamp': u'',
-    u'person': u'',
-    u'org': u'',
-    u'project': u'',
-    u'card': u'',
-    u'card_event_type': u'',
-}
-
-
-event_sync_prototype = {
-    u'sync_sources': [
-        {
-            u'sync_source': u'',
-            u'sync_id': u'',
-        },
-    ],
-    u'sync_revision': u'',
-}
-
-
-class TypelessEvent(qvarn.ValidationError):
-
-    msg = u'Event {id} does not have a type'
-
-
-class TimelessEvent(qvarn.ValidationError):
-
-    msg = u'Event {id} does not have a timestamp'
-
-
-def validate_event(obj):
-    if not obj[u'event_type']:
-        raise TypelessEvent(id=obj.get(u'id', u'(no id provided)'))
-    if not obj[u'generated_timestamp']:
-        raise TimelessEvent(id=obj.get(u'id', u'(no id provided)'))
-
-
-resource_type_spec = {
-    u'path': u'/events',
-    u'type': u'event',
-    u'versions': [
-        {
-            u'version': u'v0',
-            u'prototype': event_prototype_v0,
-        },
-        {
-            u'version': u'v1',
-            u'prototype': event_prototype_v1,
-            u'subpaths': {
-                u'sync': {
-                    u'prototype': event_sync_prototype,
-                },
-            },
-            u'validator': validate_event,
-        },
-    ],
-}
-
-
+name = 'events'
+path = '/etc/qvarn'
+with open(os.path.join(path, name + '.yaml')) as f:
+    resource_type_spec = yaml.safe_load(f)
 application = qvarn.create_resource_server(resource_type_spec)

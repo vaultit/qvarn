@@ -18,266 +18,28 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import os
+import yaml
+
 import qvarn
 
 
-resource_type = u'competence_type'
+# We want to load strings as unicode, not str.
+# From http://stackoverflow.com/questions/2890146/
+# It seems this will be unnecessary in Python 3.
+def construct_yaml_str(self, node):
+    # Override the default string handling function
+    # to always return unicode objects
+    if node.value == 'blob':
+        return buffer('')
+    return self.construct_scalar(node)
 
 
-competence_type_prototype_v0 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-}
+yaml.SafeLoader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
 
 
-competence_type_prototype_v1 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-    u'competence_type_id': u'',
-    u'names': [
-        {
-            u'locale': u'',
-            u'name': u''
-        }
-    ],
-    u'descriptions': [
-        {
-            u'locale': u'',
-            u'description': u''
-        }
-    ]
-}
-
-
-competence_type_prototype_v2 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-    u'competence_type_id': u'',
-    u'names': [
-        {
-            u'locale': u'',
-            u'name': u''
-        }
-    ],
-    u'customer_org_ids': [u''],
-    u'descriptions': [
-        {
-            u'locale': u'',
-            u'description': u''
-        }
-    ]
-}
-
-
-competence_type_prototype_v3 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-    u'competence_type_id': u'',
-    u'names': [
-        {
-            u'locale': u'',
-            u'name': u''
-        }
-    ],
-    u'customer_org_ids': [u''],
-    u'master_register_name': u'',
-    u'master_register_org_id': u'',
-    u'descriptions': [
-        {
-            u'locale': u'',
-            u'description': u''
-        }
-    ]
-}
-
-
-competence_type_prototype_v4 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-    u'competence_type_id': u'',
-    u'names': [
-        {
-            u'locale': u'',
-            u'name': u''
-        }
-    ],
-    u'customer_org_ids': [u''],
-    u'is_verified': False,
-    u'descriptions': [
-        {
-            u'locale': u'',
-            u'description': u''
-        }
-    ]
-}
-
-
-competence_type_prototype_current = competence_type_prototype_v5 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-    u'competence_type_id': u'',
-    u'names': [
-        {
-            u'locale': u'',
-            u'name': u''
-        }
-    ],
-    u'customer_org_ids': [u''],
-    u'is_verified': False,
-    u'attribute_validation': [
-        {
-            u'attribute': u'',
-            u'required': False,
-            u'regex': u''
-        }
-    ],
-    u'descriptions': [
-        {
-            u'locale': u'',
-            u'description': u''
-        }
-    ]
-}
-
-
-card_front_prototype = {
-    u'body': buffer(''),
-    u'content_type': u'',
-}
-
-
-card_back_prototype = {
-    u'body': buffer(''),
-    u'content_type': u'',
-}
-
-
-registry_logo_prototype = {
-    u'body': buffer(''),
-    u'content_type': u'',
-}
-
-
-resource_type_spec = {
-    u'path': u'/competence_types',
-    u'type': u'competence_type',
-    u'versions': [
-        {
-            u'version': u'v0',
-            u'prototype': competence_type_prototype_v0,
-        },
-        {
-            u'version': u'v1',
-            u'prototype': competence_type_prototype_v1,
-        },
-        {
-            u'version': u'v2',
-            u'prototype': competence_type_prototype_v1,
-            u'subpaths': {
-                u'card_front': {
-                    u'prototype': card_front_prototype,
-                },
-                u'card_back': {
-                    u'prototype': card_back_prototype,
-                },
-                u'registry_logo': {
-                    u'prototype': registry_logo_prototype,
-                },
-            },
-            u'files': [
-                u'card_front',
-                u'card_back',
-                u'registry_logo',
-            ],
-        },
-        {
-            u'version': u'v3',
-            u'prototype': competence_type_prototype_v2,
-            u'subpaths': {
-                u'card_front': {
-                    u'prototype': card_front_prototype,
-                },
-                u'card_back': {
-                    u'prototype': card_back_prototype,
-                },
-                u'registry_logo': {
-                    u'prototype': registry_logo_prototype,
-                },
-            },
-            u'files': [
-                u'card_front',
-                u'card_back',
-                u'registry_logo',
-            ],
-        },
-        {
-            u'version': u'v4',
-            u'prototype': competence_type_prototype_v3,
-            u'subpaths': {
-                u'card_front': {
-                    u'prototype': card_front_prototype,
-                },
-                u'card_back': {
-                    u'prototype': card_back_prototype,
-                },
-                u'registry_logo': {
-                    u'prototype': registry_logo_prototype,
-                },
-            },
-            u'files': [
-                u'card_front',
-                u'card_back',
-                u'registry_logo',
-            ],
-        },
-        {
-            u'version': u'v5',
-            u'prototype': competence_type_prototype_v4,
-            u'subpaths': {
-                u'card_front': {
-                    u'prototype': card_front_prototype,
-                },
-                u'card_back': {
-                    u'prototype': card_back_prototype,
-                },
-                u'registry_logo': {
-                    u'prototype': registry_logo_prototype,
-                },
-            },
-            u'files': [
-                u'card_front',
-                u'card_back',
-                u'registry_logo',
-            ],
-        },
-        {
-            u'version': u'v6',
-            u'prototype': competence_type_prototype_v5,
-            u'subpaths': {
-                u'card_front': {
-                    u'prototype': card_front_prototype,
-                },
-                u'card_back': {
-                    u'prototype': card_back_prototype,
-                },
-                u'registry_logo': {
-                    u'prototype': registry_logo_prototype,
-                },
-            },
-            u'files': [
-                u'card_front',
-                u'card_back',
-                u'registry_logo',
-            ],
-        },
-    ],
-}
-
-
+name = 'competence_types'
+path = '/etc/qvarn'
+with open(os.path.join(path, name + '.yaml')) as f:
+    resource_type_spec = yaml.safe_load(f)
 application = qvarn.create_resource_server(resource_type_spec)

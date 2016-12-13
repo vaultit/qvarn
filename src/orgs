@@ -18,229 +18,26 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import os
+import yaml
+
 import qvarn
 
 
-resource_type = u'org'
+# We want to load strings as unicode, not str.
+# From http://stackoverflow.com/questions/2890146/
+# It seems this will be unnecessary in Python 3.
+def construct_yaml_str(self, node):
+    # Override the default string handling function
+    # to always return unicode objects
+    return self.construct_scalar(node)
 
 
-org_prototype_v0 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-}
+yaml.SafeLoader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
 
 
-org_prototype_v1 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-    u'country': u'',
-    u'names': [u''],
-    u'gov_org_ids': [
-        {
-            u'country': u'',
-            u'org_id_type': u'',
-            u'gov_org_id': u'',
-        },
-    ],
-    u'contacts': [
-        {
-            u'contact_type': u'',
-            u'contact_source': u'',
-            u'contact_timestamp': u'',
-            u'phone_number': u'',
-            u'email_address': u'',
-            u'full_address': u'',
-            u'country': u'',
-            u'address_lines': [u''],
-            u'post_code': u'',
-            u'post_area': u'',
-        },
-    ],
-    u'is_luotettava_kumppani_member': False,
-}
-
-
-org_prototype_v2 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-    u'country': u'',
-    u'names': [u''],
-    u'gov_org_ids': [
-        {
-            u'country': u'',
-            u'org_id_type': u'',
-            u'gov_org_id': u'',
-        },
-    ],
-    u'contacts': [
-        {
-            u'contact_type': u'',
-            u'contact_roles': [u''],
-            u'contact_source': u'',
-            u'contact_timestamp': u'',
-            u'phone_number': u'',
-            u'email_address': u'',
-            u'full_address': u'',
-            u'country': u'',
-            u'address_lines': [u''],
-            u'post_code': u'',
-            u'post_area': u'',
-        },
-    ],
-    u'is_luotettava_kumppani_member': False,
-}
-
-
-org_prototype_v3 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-    u'country': u'',
-    u'names': [u''],
-    u'gov_org_ids': [
-        {
-            u'country': u'',
-            u'org_id_type': u'',
-            u'gov_org_id': u'',
-        },
-    ],
-    u'contacts': [
-        {
-            u'contact_type': u'',
-            u'contact_roles': [u''],
-            u'contact_source': u'',
-            u'contact_timestamp': u'',
-            u'phone_number': u'',
-            u'email_address': u'',
-            u'full_address': u'',
-            u'country': u'',
-            u'address_lines': [u''],
-            u'post_code': u'',
-            u'post_area': u'',
-            u'einvoice_operator': u'',
-            u'einvoice_address': u'',
-        },
-    ],
-}
-
-
-org_prototype_current = org_prototype_v4 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-    u'country': u'',
-    u'names': [u''],
-    u'gov_org_ids': [
-        {
-            u'country': u'',
-            u'org_id_type': u'',
-            u'gov_org_id': u'',
-        },
-    ],
-    u'contacts': [
-        {
-            u'contact_type': u'',
-            u'contact_roles': [u''],
-            u'contact_source': u'',
-            u'contact_timestamp': u'',
-            u'phone_number': u'',
-            u'email_address': u'',
-            u'full_address': u'',
-            u'country': u'',
-            u'address_lines': [u''],
-            u'post_code': u'',
-            u'post_area': u'',
-            u'einvoice_operator': u'',
-            u'einvoice_address': u'',
-        },
-    ],
-    u'is_luotettava_kumppani_member': False,
-}
-
-
-org_sync_prototype = {
-    u'sync_sources': [
-        {
-            u'sync_source': u'',
-            u'sync_id': u'',
-        },
-    ],
-    u'sync_revision': u'',
-}
-
-
-class NamelessOrg(qvarn.ValidationError):
-
-    msg = u'Organisation {id} does not have any names'
-
-
-class InvalidContactRole(qvarn.ValidationError):
-
-    msg = u'Organisation {id} contact role is invalid'
-
-
-def validate_org(obj):
-    if not obj[u'names']:
-        raise NamelessOrg(id=obj[u'id'])
-    allowed_contact_roles = [
-        u'billing'
-    ]
-    if u'contact_roles' in obj:
-        for contact_role in obj[u'contact_roles']:
-            if contact_role not in allowed_contact_roles:
-                raise InvalidContactRole(id=obj[u'id'])
-
-
-resource_type_spec = {
-    u'path': u'/orgs',
-    u'type': u'org',
-    u'versions': [
-        {
-            u'version': u'v0',
-            u'prototype': org_prototype_v0,
-        },
-        {
-            u'version': u'v1',
-            u'prototype': org_prototype_v1,
-            u'subpaths': {
-                u'sync': {
-                    u'prototype': org_sync_prototype,
-                },
-            },
-        },
-        {
-            u'version': u'v2',
-            u'prototype': org_prototype_v2,
-            u'subpaths': {
-                u'sync': {
-                    u'prototype': org_sync_prototype,
-                },
-            },
-        },
-        {
-            u'version': u'v3',
-            u'prototype': org_prototype_v3,
-            u'subpaths': {
-                u'sync': {
-                    u'prototype': org_sync_prototype,
-                },
-            },
-        },
-        {
-            u'version': u'v4',
-            u'prototype': org_prototype_v4,
-            u'subpaths': {
-                u'sync': {
-                    u'prototype': org_sync_prototype,
-                },
-            },
-            u'validator': validate_org,
-        },
-    ],
-}
-
-
+name = 'orgs'
+path = '/etc/qvarn'
+with open(os.path.join(path, name + '.yaml')) as f:
+    resource_type_spec = yaml.safe_load(f)
 application = qvarn.create_resource_server(resource_type_spec)

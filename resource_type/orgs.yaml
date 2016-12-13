@@ -1,0 +1,140 @@
+type: org
+path: /orgs
+versions:
+
+- version: v0
+  prototype:
+    type: ""
+    id: ""
+    revision: ""
+
+- version: v1
+  prototype:
+    type: ""
+    id: ""
+    revision: ""
+    country: ""
+    names: [""]
+    gov_org_ids:
+    - country: ""
+      org_id_type: ""
+      gov_org_id: ""
+    contacts:
+    - contact_type: ""
+      contact_source: ""
+      contact_timestamp: ""
+      phone_number: ""
+      email_address: ""
+      full_address: ""
+      country: ""
+      address_lines: [""]
+      post_code: ""
+      post_area: ""
+    is_luotettava_kumppani_member: False
+  subpaths:
+    sync:
+      prototype:
+        sync_sources:
+        - sync_source: ""
+          sync_id: ""
+        sync_revision: ""
+
+- version: v2
+  prototype:
+    type: ""
+    id: ""
+    revision: ""
+    country: ""
+    names: [""]
+    gov_org_ids:
+    - country: ""
+      org_id_type: ""
+      gov_org_id: ""
+    contacts:
+    - contact_type: ""
+      contact_roles: [""]
+      contact_source: ""
+      contact_timestamp: ""
+      phone_number: ""
+      email_address: ""
+      full_address: ""
+      country: ""
+      address_lines: [""]
+      post_code: ""
+      post_area: ""
+    is_luotettava_kumppani_member: False
+  subpaths:
+    sync:
+      prototype:
+        sync_sources:
+        - sync_source: ""
+          sync_id: ""
+        sync_revision: ""
+
+- version: v3
+  prototype:
+    type: ""
+    id: ""
+    revision: ""
+    country: ""
+    names: [""]
+    gov_org_ids:
+    - country: ""
+      org_id_type: ""
+      gov_org_id: ""
+    contacts:
+    - contact_type: ""
+      contact_roles: [""]
+      contact_source: ""
+      contact_timestamp: ""
+      phone_number: ""
+      email_address: ""
+      full_address: ""
+      country: ""
+      address_lines: [""]
+      post_code: ""
+      post_area: ""
+      einvoice_operator: ""
+      einvoice_address: ""
+    is_luotettava_kumppani_member: False
+  subpaths:
+    sync:
+      prototype:
+        sync_sources:
+        - sync_source: ""
+          sync_id: ""
+        sync_revision: ""
+
+- version: v4
+  prototype:
+    type: ""
+    id: ""
+    revision: ""
+    country: ""
+    names: [""]
+    gov_org_ids:
+    - country: ""
+      org_id_type: ""
+      gov_org_id: ""
+    contacts:
+    - contact_type: ""
+      contact_roles: [""]
+      contact_source: ""
+      contact_timestamp: ""
+      phone_number: ""
+      email_address: ""
+      full_address: ""
+      country: ""
+      address_lines: [""]
+      post_code: ""
+      post_area: ""
+      einvoice_operator: ""
+      einvoice_address: ""
+    is_luotettava_kumppani_member: False
+  subpaths:
+    sync:
+      prototype:
+        sync_sources:
+        - sync_source: ""
+          sync_id: ""
+        sync_revision: ""

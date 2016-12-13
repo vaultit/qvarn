@@ -18,42 +18,28 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import os
+import yaml
+
 import qvarn
 
 
-report_access_prototype_v0 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-}
+# We want to load strings as unicode, not str.
+# From http://stackoverflow.com/questions/2890146/
+# It seems this will be unnecessary in Python 3.
+def construct_yaml_str(self, node):
+    # Override the default string handling function
+    # to always return unicode objects
+    if node.value == 'blob':
+        return buffer('')
+    return self.construct_scalar(node)
 
 
-report_access_prototype_current = report_access_prototype_v1 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-    u'client_id': u'',
-    u'customer_id': u'',
-    u'org_id': u'',
-    u'report_id': u'',
-    u'arkisto_id': u'',
-    u'access_time': u'',
-}
+yaml.SafeLoader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
 
 
-resource_type_spec = {
-    u'path': u'/report_accesses',
-    u'type': u'report_access',
-    u'versions': [
-        {
-            u'version': u'v0',
-            u'prototype': report_access_prototype_v0,
-        },
-        {
-            u'version': u'v1',
-            u'prototype': report_access_prototype_v1,
-        },
-    ],
-}
-
+name = 'report_accesses'
+path = '/etc/qvarn'
+with open(os.path.join(path, name + '.yaml')) as f:
+    resource_type_spec = yaml.safe_load(f)
 application = qvarn.create_resource_server(resource_type_spec)

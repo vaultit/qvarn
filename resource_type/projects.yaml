@@ -1,0 +1,21 @@
+path: /projects
+type: project
+versions:
+- prototype: {id: '', revision: '', type: ''}
+  version: v0
+- prototype:
+    id: ''
+    names: ['']
+    project_ids:
+    - {project_id: '', project_id_type: ''}
+    project_responsible_org: ''
+    project_responsible_person: ''
+    revision: ''
+    type: ''
+  subpaths:
+    sync:
+      prototype:
+        sync_revision: ''
+        sync_sources:
+        - {sync_id: '', sync_source: ''}
+  version: v1

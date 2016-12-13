@@ -1,0 +1,14 @@
+path: /events
+type: event
+versions:
+- prototype: {id: '', revision: '', type: ''}
+  version: v0
+- prototype: {card: '', card_event_type: '', event_type: '', generated_timestamp: '',
+    id: '', org: '', person: '', project: '', revision: '', type: ''}
+  subpaths:
+    sync:
+      prototype:
+        sync_revision: ''
+        sync_sources:
+        - {sync_id: '', sync_source: ''}
+  version: v1

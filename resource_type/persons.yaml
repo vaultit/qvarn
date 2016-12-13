@@ -1,0 +1,111 @@
+type: person
+path: /persons
+versions:
+
+- version: v0
+  prototype:
+    type: ""
+    id: ""
+    revision: ""
+
+- version: v1
+  prototype:
+    type: ""
+    id: ""
+    revision: ""
+    names:
+    - full_name: ""
+      sort_key: ""
+      titles: [""]
+      given_names: [""]
+      surnames: [""]
+  subpaths:
+    photo:
+      prototype:
+        body: blob
+        content_type: ""
+    private:
+      prototype:
+        date_of_birth: ""
+        gov_ids:
+        - country: ""
+          id_type: ""
+          gov_id: ""
+        contacts:
+        - contact_type: ""
+          contact_source: ""
+          contact_timestamp: ""
+          phone_number: ""
+          email_address: ""
+          full_address: ""
+          country: ""
+          address_lines: [""]
+          post_code: ""
+          post_area: ""
+          verification_code: ""
+          verification_code_expiration_date: ""
+          email_verification_timestamp: ""
+        nationalities: [""]
+        residences:
+        - country: ""
+          location: ""
+    sync:
+      prototype:
+        sync_sources:
+        - sync_source: ""
+          sync_id: ""
+        sync_revision: ""
+  files:
+  - photo
+
+- version: v2
+  prototype:
+    type: ""
+    id: ""
+    revision: ""
+    names:
+    - full_name: ""
+      sort_key: ""
+      titles: [""]
+      given_names: [""]
+      surnames: [""]
+  subpaths:
+    photo:
+      prototype:
+        body: blob
+        content_type: ""
+    private:
+      prototype:
+        date_of_birth: ""
+        gov_ids:
+        - country: ""
+          id_type: ""
+          gov_id: ""
+        contacts:
+        - contact_type: ""
+          contact_roles: [""]
+          contact_source: ""
+          contact_timestamp: ""
+          phone_number: ""
+          email_address: ""
+          full_address: ""
+          country: ""
+          address_lines: [""]
+
+          post_code: ""
+          post_area: ""
+          verification_code: ""
+          verification_code_expiration_date: ""
+          email_verification_timestamp: ""
+        nationalities: [""]
+        residences:
+        - country: ""
+          location: ""
+    sync:
+      prototype:
+        sync_sources:
+        - sync_source: ""
+          sync_id: ""
+        sync_revision: ""
+  files:
+  - photo

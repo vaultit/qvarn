@@ -1,0 +1,17 @@
+path: /bolagsfakta_suppliers
+type: bolagsfakta_supplier
+versions:
+- prototype:
+    bolagsfakta_status: ''
+    contract_end_date: ''
+    contract_start_date: ''
+    id: ''
+    materialized_path: ['']
+    parent_org_id: ''
+    parent_supplier_id: ''
+    project_resource_id: ''
+    revision: ''
+    supplier_org_id: ''
+    supplier_type: ''
+    type: ''
+  version: v0

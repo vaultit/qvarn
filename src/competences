@@ -18,96 +18,28 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import os
+import yaml
+
 import qvarn
 
 
-competence_prototype_v0 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-}
+# We want to load strings as unicode, not str.
+# From http://stackoverflow.com/questions/2890146/
+# It seems this will be unnecessary in Python 3.
+def construct_yaml_str(self, node):
+    # Override the default string handling function
+    # to always return unicode objects
+    if node.value == 'blob':
+        return buffer('')
+    return self.construct_scalar(node)
 
 
-competence_prototype_v1 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-    u'employee_person_id': u'',
-    u'employer_org_id': u'',
-    u'valid_from_date': u'',
-    u'valid_until_date': u'',
-    u'competence_type_id': u'',
-    u'competence_card_id': u'',
-    u'competence_card_holder_names': [
-        {
-            u'full_name': u'',
-            u'sort_key': u'',
-            u'given_names': [u''],
-            u'surnames': [u''],
-        },
-    ],
-}
+yaml.SafeLoader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
 
 
-competence_prototype_current = competence_prototype_v2 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-    u'employee_person_id': u'',
-    u'employer_org_id': u'',
-    u'valid_from_date': u'',
-    u'valid_until_date': u'',
-    u'competence_type_id': u'',
-    u'granted_by_org_id': u'',
-    u'competence_registry_id': u'',
-    u'competence_card_id': u'',
-    u'competence_card_holder_names': [
-        {
-            u'full_name': u'',
-            u'sort_key': u'',
-            u'given_names': [u''],
-            u'surnames': [u''],
-        },
-    ],
-    u'competence_trainer': u'',
-    u'validation_status': u'',
-}
-
-
-competence_sync_prototype = {
-    u'sync_id': u'',
-    u'sync_revision': u'',
-}
-
-
-resource_type_spec = {
-    u'path': u'/competences',
-    u'type': u'competence',
-    u'versions': [
-        {
-            u'version': u'v0',
-            u'prototype': competence_prototype_v0,
-        },
-        {
-            u'version': u'v1',
-            u'prototype': competence_prototype_v1,
-            u'subpaths': {
-                u'sync': {
-                    u'prototype': competence_sync_prototype,
-                },
-            },
-        },
-        {
-            u'version': u'v2',
-            u'prototype': competence_prototype_v2,
-            u'subpaths': {
-                u'sync': {
-                    u'prototype': competence_sync_prototype,
-                },
-            },
-        },
-    ],
-}
-
-
+name = 'competences'
+path = '/etc/qvarn'
+with open(os.path.join(path, name + '.yaml')) as f:
+    resource_type_spec = yaml.safe_load(f)
 application = qvarn.create_resource_server(resource_type_spec)

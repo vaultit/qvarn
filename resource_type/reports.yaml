@@ -1,0 +1,17 @@
+path: /reports
+type: report
+versions:
+- prototype: {id: '', revision: '', type: ''}
+  version: v0
+- files: [pdf]
+  prototype: {generated_timestamp: '', id: '', org: '', report_type: '', revision: '',
+    tilaajavastuu_status: '', type: ''}
+  subpaths:
+    pdf:
+      prototype: {body: blob, content_type: ''}
+    sync:
+      prototype:
+        sync_revision: ''
+        sync_sources:
+        - {sync_id: '', sync_source: ''}
+  version: v1

@@ -18,149 +18,28 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import os
+import yaml
+
 import qvarn
 
 
-card_prototype_v0 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-}
+# We want to load strings as unicode, not str.
+# From http://stackoverflow.com/questions/2890146/
+# It seems this will be unnecessary in Python 3.
+def construct_yaml_str(self, node):
+    # Override the default string handling function
+    # to always return unicode objects
+    if node.value == 'blob':
+        return buffer('')
+    return self.construct_scalar(node)
 
 
-card_prototype_current = card_prototype_v1 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-    u'card_type': u'',
-    u'card_ids': [
-        {
-            u'card_id_type': u'',
-            u'card_id': u'',
-        },
-    ],
-    u'issued_date': u'',
-    u'created_date': u'',
-    u'valid_from_date': u'',
-    u'valid_until_date': u'',
-    u'expiration_date': u'',
-    u'card_status_history': [
-        {
-            u'card_status': u'',
-            u'modified_by': u'',
-            u'modified_timestamp': u'',
-            u'modification_reason': u'',
-            u'modification_description': u'',
-        },
-    ],
-    u'current_status': u'',
-    u'org': u'',
-    u'issuer_name': u'',
-    u'issuer_gov_org_ids': [
-        {
-            u'country': u'',
-            u'org_id_type': u'',
-            u'gov_org_id': u'',
-        },
-    ],
-    u'person': u'',
-    u'holder_gov_ids': [
-        {
-            u'country': u'',
-            u'id_type': u'',
-            u'gov_id': u'',
-        },
-    ],
-    u'holder_nationalities': [u''],
-    u'holder_names': [
-        {
-            u'full_name': u'',
-            u'sort_key': u'',
-            u'titles': [u''],
-            u'given_names': [u''],
-            u'surnames': [u''],
-        },
-    ],
-    u'id06_taxation_country': u'',
-    u'id06_virtual_devices': [u''],
-    u'id06_virtual_enabled': False,
-    u'id06_virtual_bankid_required': False,
-    u'id06_virtual_valid_from': u'',
-    u'id06_virtual_valid_until': u'',
-    u'id06_virtual_history': [
-        {
-            u'full_name': u'',
-            u'date': u'',
-            u'enabled': False,
-        },
-    ],
-    u'id06_supplier_full_name': u'',
-}
+yaml.SafeLoader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
 
 
-card_holder_photo_prototype = {
-    u'body': buffer(''),
-    u'content_type': u'',
-}
-
-
-card_issuer_logo_prototype = {
-    u'body': buffer(''),
-    u'content_type': u'',
-}
-
-
-card_sync_prototype = {
-    u'sync_sources': [
-        {
-            u'sync_source': u'',
-            u'sync_id': u'',
-        },
-    ],
-    u'sync_revision': u'',
-}
-
-
-class TypelessCard(qvarn.ValidationError):
-
-    msg = u'Card {id} does not have a type'
-
-
-def validate_card(obj):
-    if not obj[u'card_type']:
-        raise TypelessCard(id=obj.get(u'id', u'(no id provided)'))
-
-
-resource_type_spec = {
-    u'path': u'/cards',
-    u'type': u'card',
-    u'versions': [
-        {
-            u'version': u'v0',
-            u'prototype': card_prototype_v0,
-        },
-        {
-            u'version': u'v1',
-            u'prototype': card_prototype_v1,
-            u'subpaths': {
-                u'holder_photo': {
-                    u'prototype': card_holder_photo_prototype,
-                },
-                u'issuer_logo': {
-                    u'prototype': card_issuer_logo_prototype,
-                },
-                u'sync': {
-                    u'prototype': card_sync_prototype,
-                },
-            },
-            u'files': [
-                u'holder_photo',
-                u'issuer_logo',
-            ],
-            u'validator': validate_card,
-        },
-    ],
-}
-
-
+name = 'cards'
+path = '/etc/qvarn'
+with open(os.path.join(path, name + '.yaml')) as f:
+    resource_type_spec = yaml.safe_load(f)
 application = qvarn.create_resource_server(resource_type_spec)

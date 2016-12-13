@@ -1,0 +1,11 @@
+path: /files
+type: file
+versions:
+- prototype: {id: '', revision: '', type: ''}
+  version: v0
+- files: [file]
+  prototype: {filename: '', id: '', revision: '', type: ''}
+  subpaths:
+    file:
+      prototype: {body: blob, content_type: ''}
+  version: v1

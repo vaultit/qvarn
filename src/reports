@@ -18,72 +18,28 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import os
+import yaml
+
 import qvarn
 
 
-resource_type = u'report'
+# We want to load strings as unicode, not str.
+# From http://stackoverflow.com/questions/2890146/
+# It seems this will be unnecessary in Python 3.
+def construct_yaml_str(self, node):
+    # Override the default string handling function
+    # to always return unicode objects
+    if node.value == 'blob':
+        return buffer('')
+    return self.construct_scalar(node)
 
 
-report_prototype_v0 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-}
+yaml.SafeLoader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
 
 
-report_prototype_current = report_prototype_v1 = {
-    u'type': u'',
-    u'id': u'',
-    u'revision': u'',
-    u'org': u'',
-    u'report_type': u'',
-    u'generated_timestamp': u'',
-    u'tilaajavastuu_status': u'',
-}
-
-
-report_pdf_prototype = {
-    u'body': buffer(''),
-    u'content_type': u'',
-}
-
-
-report_sync_prototype = {
-    u'sync_sources': [
-        {
-            u'sync_source': u'',
-            u'sync_id': u'',
-        },
-    ],
-    u'sync_revision': u'',
-}
-
-
-resource_type_spec = {
-    u'path': u'/reports',
-    u'type': u'report',
-    u'versions': [
-        {
-            u'version': u'v0',
-            u'prototype': report_prototype_v0,
-        },
-        {
-            u'version': u'v1',
-            u'prototype': report_prototype_v1,
-            u'subpaths': {
-                u'pdf': {
-                    u'prototype': report_pdf_prototype,
-                },
-                u'sync': {
-                    u'prototype': report_sync_prototype,
-                },
-            },
-            u'files': [
-                u'pdf',
-            ],
-        },
-    ],
-}
-
-
+name = 'reports'
+path = '/etc/qvarn'
+with open(os.path.join(path, name + '.yaml')) as f:
+    resource_type_spec = yaml.safe_load(f)
 application = qvarn.create_resource_server(resource_type_spec)

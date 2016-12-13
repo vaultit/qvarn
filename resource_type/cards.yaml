@@ -1,0 +1,56 @@
+path: /cards
+type: card
+versions:
+- prototype: {id: '', revision: '', type: ''}
+  version: v0
+- files: [holder_photo, issuer_logo]
+  prototype:
+    card_ids:
+    - {card_id: '', card_id_type: ''}
+    card_status_history:
+    - {card_status: '', modification_description: '', modification_reason: '', modified_by: '',
+      modified_timestamp: ''}
+    card_type: ''
+    created_date: ''
+    current_status: ''
+    expiration_date: ''
+    holder_gov_ids:
+    - {country: '', gov_id: '', id_type: ''}
+    holder_names:
+    - full_name: ''
+      given_names: ['']
+      sort_key: ''
+      surnames: ['']
+      titles: ['']
+    holder_nationalities: ['']
+    id: ''
+    id06_supplier_full_name: ''
+    id06_taxation_country: ''
+    id06_virtual_bankid_required: false
+    id06_virtual_devices: ['']
+    id06_virtual_enabled: false
+    id06_virtual_history:
+    - {date: '', enabled: false, full_name: ''}
+    id06_virtual_valid_from: ''
+    id06_virtual_valid_until: ''
+    issued_date: ''
+    issuer_gov_org_ids:
+    - {country: '', gov_org_id: '', org_id_type: ''}
+    issuer_name: ''
+    org: ''
+    person: ''
+    revision: ''
+    type: ''
+    valid_from_date: ''
+    valid_until_date: ''
+  subpaths:
+    holder_photo:
+      prototype: {body: blob, content_type: ''}
+    issuer_logo:
+      prototype: {body: blob, content_type: ''}
+    sync:
+      prototype:
+        sync_revision: ''
+        sync_sources:
+        - {sync_id: '', sync_source: ''}
+  version: v1

@@ -1,0 +1,20 @@
+path: /jobs
+type: job
+versions:
+- prototype: {id: '', revision: '', type: ''}
+  version: v0
+- prototype:
+    done_at: ''
+    id: ''
+    job_type: ''
+    org_id: ''
+    parameters:
+    - {key: '', value: ''}
+    person_id: ''
+    reserved_until: ''
+    revision: ''
+    started_at: ''
+    status: ''
+    submitted_at: ''
+    type: ''
+  version: v1
