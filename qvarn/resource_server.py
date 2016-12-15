@@ -26,10 +26,12 @@ class ResourceServer(object):
         self._path = None
         self._type = None
         self._latest_version = None
+        self._app = None
         self._vs = qvarn.VersionedStorage()
 
-        self._app = qvarn.BackendApplication()
-        self._app.set_versioned_storage(self._vs)
+    def set_backend_app(self, app):
+        self._app = app
+        self._app.add_versioned_storage(self._vs)
 
     def set_resource_path(self, path):
         self._path = path
@@ -106,10 +108,10 @@ class ResourceServer(object):
         return self._app.prepare_for_uwsgi()
 
 
-def create_resource_server(resource_type_spec):
+def add_resource_type_to_server(app, resource_type_spec):
     server = ResourceServer()
+    server.set_backend_app(app)
     server.set_resource_path(resource_type_spec[u'path'])
     server.set_resource_type(resource_type_spec[u'type'])
     server.add_resource_type_versions(resource_type_spec[u'versions'])
     server.create_resource()
-    return server.prepare_for_uwsgi()

@@ -20,10 +20,26 @@ import argparse
 import ConfigParser
 import os
 import sys
+import yaml
 
 import bottle
 
 import qvarn
+
+
+# We want to load strings as unicode, not str.
+# From http://stackoverflow.com/questions/2890146/
+# It seems this will be unnecessary in Python 3.
+
+def construct_yaml_str(self, node):
+    # Override the default string handling function
+    # to always return unicode objects
+    if node.value == 'blob':
+        return buffer('')
+    return self.construct_scalar(node)
+
+
+yaml.SafeLoader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
 
 
 log = qvarn.StructuredLog()
@@ -64,12 +80,12 @@ class BackendApplication(object):
         self._app.config['autojson'] = False
 
         self._dbconn = None
-        self._vs = None
+        self._vs_list = []
         self._resources = []
         self._conf = None
 
-    def set_versioned_storage(self, versioned_storage):
-        self._vs = versioned_storage
+    def add_versioned_storage(self, versioned_storage):
+        self._vs_list.append(versioned_storage)
 
     def add_resource(self, resource):
         '''Adds a resource that this application serves.
@@ -96,8 +112,11 @@ class BackendApplication(object):
         for route in routes:
             self._app.route(**route)
 
-    def prepare_for_uwsgi(self):
+    def prepare_for_uwsgi(self, specdir):
         '''Prepare the application to be run by uwsgi.
+
+        Load resource type specifications from specdir, if in prepare
+        mode.
 
         Return a Bottle application that uwsgi can use. The caller
         should assign it to a global variable called "application", or
@@ -109,7 +128,7 @@ class BackendApplication(object):
         # exceptions and handle them in some useful manner.
 
         try:
-            self.run_helper()
+            self.run_helper(specdir)
         except qvarn.QvarnException as e:
             log.log('error', exc_info=True, msg_text=str(e))
             sys.stderr.write('ERROR: {}\n'.format(str(e)))
@@ -123,7 +142,7 @@ class BackendApplication(object):
         else:
             return self._app
 
-    def run_helper(self):
+    def run_helper(self, specdir):
         self._conf, args = self._parse_config()
 
         if args.prepare_storage:
@@ -131,6 +150,8 @@ class BackendApplication(object):
             self._configure_logging(self._conf)
             qvarn.log.set_context('prepare-storage')
             self._connect_to_storage(self._conf)
+            specs = self._load_specs_from_files(specdir)
+            self._add_resource_types_from_specs(specs)
             self._prepare_storage(self._conf)
         else:
             # Logging should be the first plugin (outermost wrapper)
@@ -139,6 +160,8 @@ class BackendApplication(object):
             self._install_logging_plugin()
             # Error catching should also be as high as possible to catch all
             self._app.install(qvarn.ErrorTransformPlugin())
+            specs = self._load_specs_from_files(specdir)
+            self._add_resource_types_from_specs(specs)
             self._setup_auth(self._conf)
             self._app.install(qvarn.StringToUnicodePlugin())
             # Import is here to not fail tests and is only used on uWSGI
@@ -195,11 +218,31 @@ class BackendApplication(object):
         self._dbconn = qvarn.DatabaseConnection()
         self._dbconn.set_sql(sql)
 
+    def _load_specs_from_files(self, specdir):
+        specs = []
+        yamlfiles = self._find_yaml_files(specdir)
+        for yamlfile in yamlfiles:
+            with open(yamlfile) as f:
+                spec = yaml.safe_load(f)
+            specs.append(spec)
+        return specs
+
+    def _find_yaml_files(self, specdir):
+        basenames = os.listdir(specdir)
+        return [
+            os.path.join(specdir, x) for x in basenames if x.endswith('.yaml')
+        ]
+
+    def _add_resource_types_from_specs(self, specs):
+        for spec in specs:
+            qvarn.add_resource_type_to_server(self, spec)
+
     def _prepare_storage(self, conf):
         '''Prepare the database for use.'''
         if not conf.getboolean('database', 'readonly'):
             with self._dbconn.transaction() as t:
-                self._vs.prepare_storage(t)
+                for vs in self._vs_list:
+                    vs.prepare_storage(t)
 
     def _configure_logging(self, conf):
         if conf.has_option('main', 'log'):

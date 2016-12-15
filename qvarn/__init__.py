@@ -169,5 +169,5 @@ from .versioned_storage import (
 
 from .resource_server import (
     ResourceServer,
-    create_resource_server,
+    add_resource_type_to_server,
 )
