@@ -2,9 +2,3 @@
 
 %:
 	dh $@ --with python2
-
-override_dh_auto_install:
-	dh_auto_install
-	install -d -o root -g root -m 0755 debian/qvarn/usr/lib/qvarn
-	install src/*  debian/qvarn/usr/lib/qvarn
-	sed -i 's:^#!.*:#!usr/bin/python:' debian/qvarn/usr/lib/qvarn/*

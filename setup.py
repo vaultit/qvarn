@@ -30,5 +30,5 @@ setup(
     author='Suomen Tilaajavastuu Oy',
     author_email='tilaajavastuu.hifi@tilaajavastuu.fi',
     packages=['qvarn'],
-    scripts=['slog-pretty', 'slog-errors', 'qvarn-prepare-db'],
+    scripts=['slog-pretty', 'slog-errors', 'qvarn-backend'],
 )

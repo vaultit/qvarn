@@ -37,7 +37,7 @@ rm -f .coverage
 # PEP8 specification. See https://www.python.org/dev/peps/pep-0008/ for
 # details.
 
-pep8 qvarn/*.py src/*
+pep8 qvarn/*.py
 
 
 # Use pylint to find errors and more style issues. Note that pylint
@@ -117,4 +117,4 @@ pylint --rcfile /dev/null \
        --disable redefined-variable-type \
        --disable too-many-statements \
        \
-       qvarn src/*
+       qvarn

@@ -1,6 +1,8 @@
 qvarn (0.80+git-1) UNRELEASED; urgency=medium
 
   * New upstream version.
+  * Fix packaging so that it dosn't try to install src/* since that's
+    now gone.
 
  -- Lars Wirzenius <liw@qvarnlabs.com>  Fri, 17 Feb 2017 20:02:31 +0200
 
