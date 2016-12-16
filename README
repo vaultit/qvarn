@@ -2,9 +2,10 @@ README for Qvarn
 ================
 
 This source tree contains an implementation of the Qvarn RESTful
-HTTPS+JSON backend for the services provided by Suomen Tilaajavastuu
-Oy. For details of the API, see the "Tilaajavastuu Qvarn
-API" document in `docs/qvarn-api-doc`.
+HTTPS+JSON backend for the services originally developed by Suomen
+Tilaajavastuu Oy and now maintained and further developed by QvarnLabs
+AB. For details of the API, see documentation in the
+`docs/qvarn-api-doc` directory.
 
 This README contains an introduction to the code, aimed at the people
 who develop and/or deploy the code.
@@ -12,7 +13,7 @@ who develop and/or deploy the code.
 Overview
 --------
 
-Qvarn stores structured data and provides secure, controlled access to
+Qvarn stores structured data annd provides secure, controlled access to
 it. A gross simplification would be that Qvarn is a database, accessed
 over a RESTful HTTP API, with a good authentication and authorization
 system.
@@ -22,10 +23,11 @@ HTTP API, with access control using OpenID Connect and OAuth2. Various
 authentication methods, including strong ones, are provided by
 [Gluu][] and these can be added and adapted for local needs.
 
-The resource types Qvarn knows about are configurable, making Qvarn
-suitable to various application domains. Applications may be written
-in any language, using any framework, as long as they can use HTTP
-over TLS.
+The resource types Qvarn knows about are configurable (via YAML files
+in `resource_type/*.yaml` and installed as `/etc/qvarn/*.yaml`),
+making Qvarn suitable to various application domains. Applications may
+be written in any language, using any framework, as long as they can
+use HTTP over TLS.
 
 [Gluu]: https://www.gluu.org/
 
@@ -141,6 +143,9 @@ coverage never drops.
 Coding style
 ------------
 
+Qvarn is written in Python 2, until all its dependencies are available
+for Python 3 and available for a Debian stable release.
+
 Code must be formatted according to [PEP8][]. The `./check` script
 runs a tool to check for many formatting and other style details.
 
@@ -160,17 +165,13 @@ form of `u'this is Unicode'`, with the leading `u`.
 Implementation architecture
 ---------------------------
 
-The backend is structured as several independent backend applications,
-one per top level resource in the API: `/version`, `/persons`,
-`/orgs`, etc. Each backend application is a separate web service.
-
-The various applications share as much code as possible, via the
-`qvarn` Python library. The library provides the following major
-classes:
+The backend consists of the `qvarn-backend` program. It handles all
+resource types. Most of the code is in a Python library `qvarn`,
+containing the following major classes:
 
 * `BackendApplication` --- the main program of the application:
   command line parsing, starting of the HTTP server. This class is
-  parameterised, not subclassed. The main parameters are the resource
+  parameterised, not subclassed. The main parameters are the resources
   to serve, and the the routes that the resource provides.
 
 * `ListResource`, `SimpleResource` --- classes to provide the two
@@ -222,21 +223,16 @@ On databases
 We have a simple approach to databases. They are used as stupid
 storage with lookup. We do not use constraints, triggers, stored
 functions, or other database smarts, because such things are harder to
-understand and to verify than real code. We also don't do complicated
-lookups with SELECT statements: no joins, for example. The `Database`
-class reflects this, as does the overall system architecture, which
-has been designed to not need much intelligence from the database
-layer.
+understand and to verify than real code. The `Database` class reflects
+this, as does the overall system architecture, which has been designed
+to not need much intelligence from the database layer.
 
 
 Source code layout
 ------------------
 
 Most of the code is in the `qvarn` library. This library is unit
-tested. The backend applications are in the `src` directory. The
-application files are kept as small as possible, putting as much code
-into the library as possible so that as much code as possible has unit
-tests.
+tested.
 
 The `debian` directory has the files needed to build Debian (`.dsc`
 and `.deb`) packages.
@@ -261,8 +257,8 @@ the following packages installed:
 the list.)
 
 Make sure the `DEBEMAIL` environment variable holds your e-mail
-address (`foo.bar@tilaajavastuu.fi`). Set it in your `.bashrc` or
-other suitable place.
+address (`foo.bar@example.com`). Set it in your `.bashrc` or other
+suitable place.
 
 To prepare and build Debian packages:
 
@@ -285,11 +281,10 @@ this:
 * The Python library `qvarn` is installed in the usual location
   for such, in Debian: `/usr/lib/python2.7/dist-packages/qvarn`.
 
-* The backend applications are installed in `/usr/lib/qvarn`.
+* The backend application is installed in `/usr/bin`.
 
-* The backend applications are started by the `uwsgi`, which is
-  configured via `/etc/uwsgi`. It should start each backend
-  application on a different port.
+* The backend application is started by `uwsgi`, which is configured
+  via `/etc/uwsgi`.
 
 * The `haproxy` load balancer is used to direct HTTP requests from the
   external network interface to the right localhost port. The
@@ -298,8 +293,8 @@ this:
 * There are several log files involved:
 
     - `/var/log/haproxy.log`
-    - `/var/log/lighttpd/error.log`
-    - `/var/log/qvarn/foo.log` for backend application `foo`
+    - `/var/log/uwsgi/*/*`
+    - `/var/log/qvarn/qvarn.log*`
 
 * All services run as the `www-data` user and `www-data` group.
 
@@ -313,6 +308,7 @@ While Qvarn itself is under the AGPL3+ license (see below), this
 license does NOT apply to clients of the HTTP API Qvarn provides.
 
 Copyright 2015, 2016 Suomen Tilaajavastuu Oy
+Copyright 2015, 2016 QvarnLabs AB
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
