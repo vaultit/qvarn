@@ -6,6 +6,32 @@ Version 0.80+git, not yet released
 
 * Mantas added sorting of results to searches.
 
+* Lars Wirzenius has changed Qvarn to consist of a single backend
+  process (`qvarn-backend`), which serves all resource types. Also,
+  Qvarn now reads the resource type specifications from YAML files
+  (`/etc/qvarn/*.yaml`; previously `src/*` Python scripts), and a
+  single configuration file (`/etc/qvarn/qvarn.conf`). Qvarn no longer
+  supports resource type specific validation code. Such functionality
+  may return later by making the resource type specification language
+  have a stronger type system.
+
+  Note that resource types may not yet be managed via the API. That
+  will come in the future (trouble with Gluu and limitations of its
+  API prevented this from being finished; some of API code is already
+  in Qvarn, but is not to be used).
+
+  All previously existing resource types are still included with
+  Qvarn. Some of the application specific ones may be dropped in the
+  future, but not in this release.
+
+  Note that deployment/provisioning needs to adapt to the above. For
+  example, the qvarn-prepare systemd unit needs to use
+  `/usr/bin/qvarn-backend` instead of the now-deleted
+  `/usr/bin/qvarn-prepare`. Also only one config file should be
+  created. uwsgi should only run one program (with a suitable number
+  of threads). haproxy should only have one Qvarn backend. See
+  qvarn-prov.git for an example.
+
 Version 0.80, released 2017-02-17
 ----------------------------------
 
