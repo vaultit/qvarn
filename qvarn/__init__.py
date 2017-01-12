@@ -99,6 +99,10 @@ from .read_only import (
     FieldNotInResource,
 )
 
+from .restype_storage import (
+    ResourceTypeStorage,
+)
+
 from .backend_app import (
     BackendApplication,
     log,

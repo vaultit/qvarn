@@ -21,6 +21,8 @@
 
 import re
 
+import yaml
+
 import qvarn
 
 
@@ -206,3 +208,25 @@ def create_tables_from_schema(transaction, schema):  # pragma: no cover
 
     for table in tables:
         transaction.create_table(table, tables[table])
+
+
+# We want to load strings as unicode, not str.
+# From http://stackoverflow.com/questions/2890146/
+# It seems this will be unnecessary in Python 3.
+
+def set_up_yaml_loader_constructors():  # pragma: no cover
+
+    def construct_yaml_str(self, node):
+        # Override the default string handling function
+        # to always return unicode objects. Except if the
+        # resource type field is the string "blob" in which
+        # case we use a buffer().
+        if node.value == 'blob':
+            return buffer('')
+        return self.construct_scalar(node)
+
+    yaml.SafeLoader.add_constructor(
+        u'tag:yaml.org,2002:str', construct_yaml_str)
+
+
+set_up_yaml_loader_constructors()

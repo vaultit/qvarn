@@ -27,21 +27,6 @@ import bottle
 import qvarn
 
 
-# We want to load strings as unicode, not str.
-# From http://stackoverflow.com/questions/2890146/
-# It seems this will be unnecessary in Python 3.
-
-def construct_yaml_str(self, node):
-    # Override the default string handling function
-    # to always return unicode objects
-    if node.value == 'blob':
-        return buffer('')
-    return self.construct_scalar(node)
-
-
-yaml.SafeLoader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
-
-
 log = qvarn.StructuredLog()
 log.set_log_writer(qvarn.NullSlogWriter())
 qvarn.hijack_logging(log)
@@ -150,8 +135,10 @@ class BackendApplication(object):
             self._configure_logging(self._conf)
             qvarn.log.set_context('prepare-storage')
             self._connect_to_storage(self._conf)
-            specs = self._load_specs_from_files(specdir)
-            self._add_resource_types_from_specs(specs)
+            specs_and_texts = self._load_specs_from_files(specdir)
+            self._store_resource_types(specs_and_texts)
+            specs = self._load_specs_from_db()
+            self._add_resource_types_from_specs(s for s in specs)
             self._prepare_storage(self._conf)
         else:
             # Logging should be the first plugin (outermost wrapper)
@@ -160,10 +147,7 @@ class BackendApplication(object):
             self._install_logging_plugin()
             # Error catching should also be as high as possible to catch all
             self._app.install(qvarn.ErrorTransformPlugin())
-            specs = self._load_specs_from_files(specdir)
-            self._add_resource_types_from_specs(specs)
             self._setup_auth(self._conf)
-            self._app.install(qvarn.StringToUnicodePlugin())
             # Import is here to not fail tests and is only used on uWSGI
             import uwsgidecorators
             uwsgidecorators.postfork(self._uwsgi_postfork_setup)
@@ -176,6 +160,12 @@ class BackendApplication(object):
 
         '''
         self._connect_to_storage(self._conf)
+
+        specs = self._load_specs_from_db()
+        self._add_resource_types_from_specs(specs)
+        self._setup_auth(self._conf)
+        self._app.install(qvarn.StringToUnicodePlugin())
+
         routes = self._prepare_resources()
         self.add_routes(routes)
 
@@ -219,12 +209,29 @@ class BackendApplication(object):
         self._dbconn.set_sql(sql)
 
     def _load_specs_from_files(self, specdir):
+        qvarn.log.log(
+            'debug', msg_text='Loading specs from {!r}'.format(specdir))
         specs = []
         yamlfiles = self._find_yaml_files(specdir)
         for yamlfile in yamlfiles:
+            qvarn.log.log('debug', msg_text='Loading {!r}'.format(yamlfile))
             with open(yamlfile) as f:
-                spec = yaml.safe_load(f)
-            specs.append(spec)
+                spec_text = f.read()
+            spec = yaml.safe_load(spec_text)
+            specs.append((spec, spec_text))
+        return specs
+
+    def _load_specs_from_db(self):
+        qvarn.log.log('debug', msg_text='Loading specs from database')
+        specs = []
+        rst = qvarn.ResourceTypeStorage()
+        with self._dbconn.transaction() as t:
+            type_names = rst.get_types(t)
+            for type_name in type_names:
+                qvarn.log.log(
+                    'debug', msg_text='Loading {!r}'.format(type_name))
+                spec = rst.get_spec(t, type_name)
+                specs.append(spec)
         return specs
 
     def _find_yaml_files(self, specdir):
@@ -305,6 +312,16 @@ class BackendApplication(object):
         for resource in self._resources:
             routes += resource.prepare_resource(self._dbconn)
         return routes
+
+    def _store_resource_types(self, specs_and_texts):
+        qvarn.log.log('debug', msg_text='Storing specs in database')
+        rst = qvarn.ResourceTypeStorage()
+        with self._dbconn.transaction() as t:
+            rst.prepare_tables(t)
+            for spec, text in specs_and_texts:
+                qvarn.log.log(
+                    'debug', msg_text='Storing spec', spec=repr(spec))
+                rst.add_or_update_spec(t, spec, text)
 
 
 class MissingAuthorizationError(qvarn.QvarnException):
