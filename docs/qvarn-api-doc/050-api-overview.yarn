@@ -1402,6 +1402,7 @@ A **listener object** looks like this:
         "id": "abcd",
         "revision": "kuhg",
         "notify_of_new": true,
+	"listen_on_all": false,
         "listen_on": [
             "678"
         ]
@@ -1413,6 +1414,9 @@ The fields in a listener object have the following meanings:
 * `notify_of_new` --- set to `true` if the listener should be notified
   of new resources (e.g., new organisations). It will only be notified
   of new resources it can access.
+* `listen_on_all` --- set to `true` if the listener should be notified
+  of the changes in all of the resources (e.g., new organisations). It
+  will only be notified of the resources it can access.
 * `listen_on` --- a list of resources the listener is interested in.
   Note that new resources are **not added** automatically to the list:
   the client needs to add them itself. An API client may only listen
@@ -1541,6 +1545,22 @@ Client has needed access rights for orgs resource.
     AND HTTP Location header is API_URL/orgs/listeners/$LISTENID2
     AND result has key "revision" containing a string, saved as $REV1
 
+    WHEN client POSTs /orgs/listeners with
+    ... {
+    ...     "notify_of_new": false,
+    ...     "listen_on_all": true
+    ... }
+    THEN HTTP status code is 201
+    AND result matches
+    ... {
+    ...     "type": "listener",
+    ...     "notify_of_new": false,
+    ...     "listen_on_all": true,
+    ...     "listen_on": []
+    ... }
+    AND result has key "id" containing a string, saved as $LISTENID3
+    AND HTTP Location header is API_URL/orgs/listeners/$LISTENID3
+
     WHEN client GETs /orgs/listeners/$LISTENID1
     THEN HTTP status code is 200
     AND result matches
@@ -1581,7 +1601,7 @@ A listener has no notifications initially.
     THEN result has key "id" containing a string, saved as $ORGID2
 
 After adding the new organizations the first listener should be notified while
-the second should have no notifications.
+the second and third should have no notifications.
 
     WHEN client GETs /orgs/listeners/$LISTENID1/notifications
     THEN HTTP status code is 200
@@ -1613,8 +1633,16 @@ the second should have no notifications.
     ...     "resources": []
     ... }
 
+    WHEN client GETs /orgs/listeners/$LISTENID3/notifications
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "resources": []
+    ... }
+
 We update the empty listener to listen on organization changes and update the
-organization checking for the correct notification to appear.
+organization checking for the correct notification to appear. The third
+listener listening to all the changes should get the notification, too.
 
     WHEN client PUTs /orgs/listeners/$LISTENID2 with
     ... {
@@ -1650,6 +1678,19 @@ organization checking for the correct notification to appear.
     ...     "resource_change": "updated"
     ... }
 
+    WHEN client GETs /orgs/listeners/$LISTENID3/notifications
+    THEN HTTP status code is 200
+    AND result lists resources, id of index 0 saved as $MSGID4
+
+    WHEN client GETs /orgs/listeners/$LISTENID3/notifications/$MSGID4
+    THEN result matches
+    ... {
+    ...     "id": "$MSGID4",
+    ...     "type": "notification",
+    ...     "resource_id": "$ORGID1",
+    ...     "resource_change": "updated"
+    ... }
+
 The first listener gets no additional notifications.
 
     WHEN client GETs /orgs/listeners/$LISTENID1/notifications
@@ -1668,12 +1709,26 @@ We delete the organization and check for the correct notification to appear.
 
     WHEN client GETs /orgs/listeners/$LISTENID2/notifications
     THEN HTTP status code is 200
-    AND result lists resources, id of index 1 saved as $MSGID4
+    AND result lists resources, id of index 1 saved as $MSGID5
 
-    WHEN client GETs /orgs/listeners/$LISTENID2/notifications/$MSGID4
+    WHEN client GETs /orgs/listeners/$LISTENID2/notifications/$MSGID5
     THEN result matches
     ... {
-    ...     "id": "$MSGID4",
+    ...     "id": "$MSGID5",
+    ...     "type": "notification",
+    ...     "resource_id": "$ORGID1",
+    ...     "resource_revision": null,
+    ...     "resource_change": "deleted"
+    ... }
+
+    WHEN client GETs /orgs/listeners/$LISTENID3/notifications
+    THEN HTTP status code is 200
+    AND result lists resources, id of index 1 saved as $MSGID6
+
+    WHEN client GETs /orgs/listeners/$LISTENID3/notifications/$MSGID6
+    THEN result matches
+    ... {
+    ...     "id": "$MSGID6",
     ...     "type": "notification",
     ...     "resource_id": "$ORGID1",
     ...     "resource_revision": null,
@@ -1710,5 +1765,17 @@ Notification can be deleted.
     WHEN client DELETEs /orgs/listeners/$LISTENID2/notifications/$MSGID3
     THEN HTTP status code is 200
 
-    WHEN client GETs /orgs/listeners/$LISTENID1/notifications/$MSGID3
+    WHEN client GETs /orgs/listeners/$LISTENID2/notifications/$MSGID3
     THEN HTTP status code is 404
+
+    WHEN client DELETEs /orgs/listeners/$LISTENID3/notifications/$MSGID4
+    THEN HTTP status code is 200
+
+    WHEN client GETs /orgs/listeners/$LISTENID3/notifications/$MSGID4
+    THEN HTTP status code is 404
+
+    WHEN client DELETEs /orgs/listeners/$LISTENID2/notifications/$MSGID5
+    THEN HTTP status code is 200
+
+    WHEN client DELETEs /orgs/listeners/$LISTENID3/notifications/$MSGID6
+    THEN HTTP status code is 200

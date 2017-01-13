@@ -37,6 +37,7 @@ listener_prototype = {
     u'id': u'',
     u'revision': u'',
     u'notify_of_new': False,
+    u'listen_on_all': False,
     u'listen_on': [u'']
 }
 
@@ -322,10 +323,14 @@ class ListenerResource(object):
                 self._listener_table, listener_prototype)
             listener_resources = ro.search(
                 t, [(u'exact', u'listen_on', item_id)], [])
-
+            wildcard_listener_resources = ro.search(
+                t, [(u'exact', u'listen_on_all', True)], [])
+            listeners = listener_resources[u'resources']
+            listeners.extend(wildcard_listener_resources[u'resources'])
+            
             wo = self._create_resource_wo_storage(
                 self._notification_table, notification_prototype)
-            for listener in listener_resources[u'resources']:
+            for listener in listeners:
                 notification = {
                     u'type': u'notification',
                     u'listener_id': listener[u'id'],
@@ -348,10 +353,14 @@ class ListenerResource(object):
                 self._listener_table, listener_prototype)
             listener_resources = ro.search(
                 t, [(u'exact', u'listen_on', item_id)], [])
-
+            wildcard_listener_resources = ro.search(
+                t, [(u'exact', u'listen_on_all', True)], [])
+            listeners = listener_resources[u'resources']
+            listeners.extend(wildcard_listener_resources[u'resources'])
+            
             wo = self._create_resource_wo_storage(
                 self._notification_table, notification_prototype)
-            for listener in listener_resources[u'resources']:
+            for listener in listeners:
                 notification = {
                     u'type': u'notification',
                     u'listener_id': listener[u'id'],
