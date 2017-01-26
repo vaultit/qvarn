@@ -7,6 +7,8 @@ Version 0.78+git, not yet released
 * Lars Wirzenius changed `slog-errors` to treat any log messages with
   a Python traceback to be errors.
 
+* The `person` resource type has a new field `gluu_user_id`.
+
 Version 0.78, released 2016-11-18
 ----------------------------------
 
