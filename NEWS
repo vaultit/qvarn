@@ -1,7 +1,7 @@
 NEWS for Qvarn
 ==============
 
-Version 0.78+git, not yet released
+Version 0.79, released 2017-01-26
 ----------------------------------
 
 * Lars Wirzenius changed `slog-errors` to treat any log messages with
