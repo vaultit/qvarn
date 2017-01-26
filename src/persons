@@ -28,7 +28,7 @@ person_prototype_v0 = {
 }
 
 
-person_prototype_current = person_prototype_v1 = {
+person_prototype_v1 = {
     u'type': u'',
     u'id': u'',
     u'revision': u'',
@@ -41,6 +41,23 @@ person_prototype_current = person_prototype_v1 = {
             u'surnames': [u''],
         },
     ],
+}
+
+
+person_prototype_current = person_prototype_v2 = {
+    u'type': u'',
+    u'id': u'',
+    u'revision': u'',
+    u'names': [
+        {
+            u'full_name': u'',
+            u'sort_key': u'',
+            u'titles': [u''],
+            u'given_names': [u''],
+            u'surnames': [u''],
+        },
+    ],
+    u'gluu_user_id': u'',
 }
 
 
@@ -181,6 +198,25 @@ resource_type_spec = {
         {
             u'version': 'v2',
             u'prototype': person_prototype_v1,
+            u'subpaths': {
+                u'photo': {
+                    u'prototype': person_photo_prototype,
+                },
+                u'private': {
+                    u'prototype': person_private_prototype_v2,
+                },
+                u'sync': {
+                    u'prototype': person_sync_prototype,
+                },
+            },
+            u'files': [
+                u'photo',
+            ],
+            u'validator': validate_person,
+        },
+        {
+            u'version': 'v3',
+            u'prototype': person_prototype_v2,
             u'subpaths': {
                 u'photo': {
                     u'prototype': person_photo_prototype,

@@ -64,7 +64,8 @@ Example result:
                 "given_names": ["Alfred", "E."],
                 "surnames": ["Newman"]
             }
-        ]
+        ],
+        "gluu_user_id": "@!2027.861B.4505.5885!0001!200B.B5FE!0000!5DBD.0EA8"
     }
 
 Example of a person's private information:
@@ -104,6 +105,8 @@ Fields in the result:
 
 * `names` --- all names known about the person, each name specified as
   described in [Handling names of people](#handling-names-of-people).
+* `gluu_user_id` --- the Gluu user identifier (user inum)
+  corresponding to this person (not filled in by Qvarn at this time)
 
 Fields in the private information:
 
