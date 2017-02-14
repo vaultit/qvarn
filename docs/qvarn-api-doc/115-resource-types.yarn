@@ -1,0 +1,73 @@
+y<!--
+Copyright 2017  Lars Wirzenius
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+
+`/resource_types` -- resource type definitions
+=============================================================================
+
+API clients may define and manage resource types, if properly
+authorized.
+
+Synopsis:
+
+* `GET /resource_types` --- get a list of ids of all resource types.
+* `POST /resource_types` --- add a new resource type.
+* `GET /resource_types/<id>` --- get information about a specific
+  resource type.
+* `PUT /resource_types/<id>` --- update a resource type
+* `DELETE /resource_types/<id>` --- remove a resource type.
+
+Errors:
+
+* There are no errors that are specific to this resource.
+
+Example result:
+
+    EXAMPLE information about a resource type
+    {
+        "type": "resource_type",
+        "id": "12313",
+        "name": "foo",
+        "versions": [
+            {
+                "prototype": {
+                    "blerp": "",
+                    "glurp": ""
+                },
+                "version": "v0"
+            }
+        ]
+    }
+
+# Tests
+
+    SCENARIO manage resource types
+    GIVEN client has access to scopes
+    ... "uapi_resource_types_get uapi_resource_types_post"
+    WHEN client GETs /resource_types
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "resources": []
+    ... }
+    WHEN client POSTs /resource_types with
+    ... {
+    ...     "type": "resource_type",
+    ...     "name": "foo",
+    ...     "yaml": "{ type: \"foo\", path: \"/foos\", versions: [ { version: \"v0\",  prototype: { type: \"\", id: \"\", revision: \"\", foo: \"\" }} ]}"
+    ... }
+    THEN HTTP status code is 201
