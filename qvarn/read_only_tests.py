@@ -21,6 +21,38 @@ import unittest
 import qvarn
 
 
+def _build_item(baz=(u'bling', u'blang'), bool=True, bar=u'barbaz',
+                dicts_bar=(u'bong', u'Bang'), bars=(u'bar1', u'bar2'),
+                foo=u'foobar'):
+    return {
+        u'type': u'yo',
+        u'foo': foo,
+        u'bar': bar,
+        u'bars': list(bars),
+        u'dicts': [
+            {
+                u'baz': baz[0],
+                u'foobars': [],
+                u'foo': [],
+                u'bar': dicts_bar[0],
+                u'inner': [
+                    {
+                        u'inner_foo': u'inner_foo',
+                    },
+                ],
+            },
+            {
+                u'baz': baz[1],
+                u'foobars': [],
+                u'foo': [],
+                u'bar': dicts_bar[1],
+                u'inner': [],
+            },
+        ],
+        u'bool': bool,
+    }
+
+
 class ReadOnlyStorageTests(unittest.TestCase):
 
     resource_type = u'yo'
@@ -45,36 +77,10 @@ class ReadOnlyStorageTests(unittest.TestCase):
                 ],
             },
         ],
-        u'bool': False
+        u'bool': False,
     }
 
-    item = {
-        u'type': u'yo',
-        u'foo': u'foobar',
-        u'bar': u'barbaz',
-        u'bars': [u'bar1', u'bar2'],
-        u'dicts': [
-            {
-                u'baz': u'bling',
-                u'foobars': [],
-                u'foo': [],
-                u'bar': u'bong',
-                u'inner': [
-                    {
-                        u'inner_foo': u'inner_foo',
-                    },
-                ],
-            },
-            {
-                u'baz': u'blang',
-                u'foobars': [],
-                u'foo': [],
-                u'bar': u'Bang',
-                u'inner': [],
-            },
-        ],
-        u'bool': True
-    }
+    item = _build_item()
 
     subitem_name = u'secret'
 
@@ -228,3 +234,72 @@ class ReadOnlyStorageTests(unittest.TestCase):
             with self._dbconn.transaction() as t:
                 self.wo.add_item(t, self.item)
                 self.ro.search(t, [(u'exact', u'KEY', u'BANG')], [u'show_all'])
+
+    def test_search_sort_by_nested_field_in_a_list(self):
+        with self._dbconn.transaction() as t:
+            for baz in [(u'b', u'a'), (u'c', u'b'), (u'a', u'c')]:
+                self.wo.add_item(t, _build_item(baz=baz))
+            search_result = self.ro.search(t, [], [u'show_all'], [u'baz'])
+        match_list = [item[u'dicts'][0][u'baz']
+                      for item in search_result[u'resources']]
+        self.assertEqual(match_list, [u'a', u'b', u'c'])
+
+    def test_search_sort_by_bool(self):
+        with self._dbconn.transaction() as t:
+            for value in [True, False]:
+                self.wo.add_item(t, _build_item(bool=value))
+            search_result = self.ro.search(t, [], [u'show_all'], [u'bool'])
+        match_list = [item[u'bool'] for item in search_result[u'resources']]
+        self.assertEqual(match_list, [0, 1])
+
+    def test_search_sort_by_invalid_field_name(self):
+        with self._dbconn.transaction() as t:
+            self.wo.add_item(t, self.item)
+            with self.assertRaises(qvarn.FieldNotInResource):
+                search_result = self.ro.search(t, [], [], [u'invalid'])
+
+    def test_search_sort_by_dict(self):
+        with self._dbconn.transaction() as t:
+            self.wo.add_item(t, self.item)
+            with self.assertRaises(qvarn.FieldNotInResource):
+                search_result = self.ro.search(t, [], [], [u'dicts'])
+
+    def test_search_sort_by_first_instance(self):
+        # If a field with same name appears more than one time in deffered
+        # resource places, use only first instance. First means by the order of
+        # qvarn.ItemWalker.
+        with self._dbconn.transaction() as t:
+            items = [
+                {u'bar': u'a', u'dicts_bar': (u'z', u'z')},
+                {u'bar': u'c', u'dicts_bar': (u'x', u'x')},
+                {u'bar': u'b', u'dicts_bar': (u'y', u'y')},
+            ]
+            for kwargs in items:
+                self.wo.add_item(t, _build_item(**kwargs))
+            search_result = self.ro.search(t, [], ['show_all'], [u'bar'])
+        match_list = [item[u'bar'] for item in search_result[u'resources']]
+        self.assertEqual(match_list, [u'a', u'b', u'c'])
+
+    def test_search_sort_by_multiple_fields(self):
+        # If a field with same name appears more than one time in deffered
+        # resource places, use only first instance. First means by the order of
+        # qvarn.ItemWalker.
+        with self._dbconn.transaction() as t:
+            items = [
+                {u'foo': u'a', u'bar': u'x'},
+                {u'foo': u'a', u'bar': u'z'},
+                {u'foo': u'a', u'bar': u'y'},
+                {u'foo': u'b', u'bar': u'a'},
+            ]
+            for kwargs in items:
+                self.wo.add_item(t, _build_item(**kwargs))
+            search_result = self.ro.search(
+                t, [], ['show_all'], [u'foo', u'bar'])
+        match_list = [(item[u'foo'], item[u'bar'])
+                      for item in search_result[u'resources']]
+        self.assertEqual(match_list, [
+            (u'a', u'x'),
+            (u'a', u'y'),
+            (u'a', u'z'),
+            (u'b', u'a'),
+        ])

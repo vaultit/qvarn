@@ -8,3 +8,5 @@ debian/*.debhelper
 debian/*.substvars
 debian/*/
 *.log
+*.egg-info/
+tags
