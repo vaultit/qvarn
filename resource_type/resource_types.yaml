@@ -1,0 +1,11 @@
+type: resource_type
+path: /resource_types
+versions:
+
+- version: v0
+  prototype:
+    type: ""
+    id: ""
+    revision: ""
+    name: ""
+    yaml: ""
