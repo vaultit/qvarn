@@ -327,7 +327,7 @@ class ListenerResource(object):
                 t, [(u'exact', u'listen_on_all', True)], [])
             listeners = listener_resources[u'resources']
             listeners.extend(wildcard_listener_resources[u'resources'])
-            
+
             wo = self._create_resource_wo_storage(
                 self._notification_table, notification_prototype)
             for listener in listeners:
@@ -357,7 +357,7 @@ class ListenerResource(object):
                 t, [(u'exact', u'listen_on_all', True)], [])
             listeners = listener_resources[u'resources']
             listeners.extend(wildcard_listener_resources[u'resources'])
-            
+
             wo = self._create_resource_wo_storage(
                 self._notification_table, notification_prototype)
             for listener in listeners:
