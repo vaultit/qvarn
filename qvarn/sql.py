@@ -120,6 +120,13 @@ class SqlAdapter(object):
         )
         return sql
 
+    def format_add_column(self, table_name, column_name, column_type):
+        sql = u'ALTER TABLE {} ADD COLUMN {} {}'.format(
+            self.quote(table_name),
+            self.quote(column_name),
+            self.type_name[column_type])
+        return sql
+
     def format_rename_table(self, old_name, new_name):
         return u'ALTER TABLE {} RENAME TO {}'.format(
             self.quote(old_name), self.quote(new_name))

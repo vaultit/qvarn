@@ -103,8 +103,10 @@ pylint --rcfile /dev/null \
        --disable too-many-public-methods \
        --disable too-few-public-methods \
        --disable too-many-arguments \
+       --disable too-many-instance-attributes \
        --disable unused-argument \
        --disable star-args \
+       --disable broad-except \
        --disable no-self-use \
        --disable cyclic-import \
        --disable missing-docstring \

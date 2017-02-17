@@ -81,6 +81,11 @@ class Transaction(object):
             table_name, column_name_type_pairs)
         self._execute('CREATE TABLE', query, {})
 
+    def add_column(self, table_name, column_name, column_type):
+        query = self._sql.format_add_column(
+            table_name, column_name, column_type)
+        self._execute('ALTER TABLE', query, {})
+
     def rename_table(self, old_name, new_name):
         query = self._sql.format_rename_table(old_name, new_name)
         self._execute('RENAME TABLE', query, {})

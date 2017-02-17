@@ -97,9 +97,22 @@ class ListenerResource(object):
         return '_'.join(path.split('/'))
 
     def prepare_resource(self, dbconn):
-        '''Prepare the resource for action.'''
+        '''Prepare the resource for action.
+
+        Also add the listen_on_all (boolean) column. This is added
+        explicitly because we don't have an automatic migration to the
+        listener and notification tables. (FIXME: We should.)
+
+        '''
 
         self._dbconn = dbconn
+
+        # Add the listen_on_all column to the table, if missing. It
+        # might be missing if the table was created by an earlier
+        # version of Qvarn. Alas, we don't have versionin of the
+        # listner table schemas. That was a mistake. --liw
+        with dbconn.transaction() as t:
+            self._add_listen_on_all_column(t)
 
         listeners_path = self._path + '/listeners'
         listener_paths = [
@@ -158,6 +171,14 @@ class ListenerResource(object):
         ]
 
         return listener_paths + notification_paths
+
+    def _add_listen_on_all_column(self, t):
+        try:
+            t.add_column(self._listener_table, 'listen_on_all', bool)
+        except Exception as e:
+            qvarn.log.log(
+                'warning', msg_text='Ignoring exception from ALTER TABLE',
+                exception=str(e))
 
     def get_listeners(self):
         '''Serve GET /foos/listeners to list all listeners.'''

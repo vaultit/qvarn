@@ -35,6 +35,14 @@ class TransactionTests(unittest.TestCase):
             self.sql.created_tables,
             {u'foo': {u'bar': int}})
 
+    def test_adds_a_column(self):
+        with self.trans:
+            self.trans.create_table(u'foo', {u'bar': int})
+            self.trans.add_column(u'foo', u'bar2', int)
+        self.assertEqual(
+            self.sql.altered_tables,
+            {u'foo': {u'bar2': int}})
+
     def test_renames_a_table(self):
         with self.trans:
             self.trans.create_table(u'foo', {u'bar': int})
@@ -94,6 +102,7 @@ class DummyAdapter(qvarn.SqliteAdapter):
     def __init__(self):
         super(DummyAdapter, self).__init__()
         self.created_tables = {}
+        self.altered_tables = {}
         self.renamed_tables = {}
         self.dropped_tables = []
         self.selected_tables = []
@@ -106,6 +115,12 @@ class DummyAdapter(qvarn.SqliteAdapter):
         self.created_tables[table_name] = column_name_types
         return self._call(
             'format_create_table', table_name, column_name_types)
+
+    def format_add_column(self, table_name, column_name, column_type):
+        assert table_name not in self.altered_tables
+        self.altered_tables[table_name] = {column_name: column_type}
+        return self._call(
+            'format_add_column', table_name, column_name, column_type)
 
     def format_rename_table(self, old_name, new_name):
         assert old_name not in self.renamed_tables
