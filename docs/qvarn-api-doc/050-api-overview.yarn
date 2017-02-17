@@ -1402,7 +1402,7 @@ A **listener object** looks like this:
         "id": "abcd",
         "revision": "kuhg",
         "notify_of_new": true,
-	"listen_on_all": false,
+        "listen_on_all": false,
         "listen_on": [
             "678"
         ]

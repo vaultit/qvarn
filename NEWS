@@ -4,6 +4,9 @@ NEWS for Qvarn
 Version 0.79+git, not yet released
 ----------------------------------
 
+* Ville Niskala added a wildcard listener feature to allow listening
+  on all notifications for a specific resource type. See the API
+  manual for details.
 
 Version 0.79, released 2017-01-26
 ----------------------------------
