@@ -108,17 +108,16 @@ class ReadOnlyStorage(object):
                 sort_params=None):  # pragma: no cover
         sql = getattr(transaction, '_sql')
         main_table = qvarn.table_name(resource_type=self._item_type)
+        tables_used = [main_table]
 
         with self._m.new('build param conditions'):
             values = {}
-            tables_used = [main_table]
             conds = [
                 self._kludge_conds(
                     sql, schema, param, values, main_table, tables_used)
                 for param in search_params]
 
         with self._m.new('build order by fields'):
-            tables_used = [main_table]
             join_conditions = {}
             sort_params = sort_params or []
             order_by_fields = [
