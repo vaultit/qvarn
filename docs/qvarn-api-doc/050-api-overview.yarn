@@ -1330,6 +1330,113 @@ Perform searches matching different instances of the same nested element.
     ...     "resources": []
     ... }
 
+We create multiple person resources and search with sorting.
+
+    SCENARIO search with sort
+
+    GIVEN client has access to scopes
+    ... "uapi_persons_post uapi_persons_search_id_get"
+
+Create several person resources.
+
+    GIVEN unique identifier $UID
+
+    WHEN client POSTs /persons with
+    ... {
+    ...     "gluu_user_id": "$UID",
+    ...     "names": [
+    ...         {
+    ...             "full_name": "Person A",
+    ...             "sort_key": "3, Person",
+    ...             "given_names": ["Test"],
+    ...             "surnames": ["Person", "A"]
+    ...         }
+    ...     ]
+    ... }
+    THEN HTTP status code is 201
+    THEN result has key "id" containing a string, saved as $ID3
+
+    WHEN client POSTs /persons with
+    ... {
+    ...     "gluu_user_id": "$UID",
+    ...     "names": [
+    ...         {
+    ...             "full_name": "Person B",
+    ...             "sort_key": "1, Person",
+    ...             "given_names": ["Test"],
+    ...             "surnames": ["Person", "B"]
+    ...         }
+    ...     ]
+    ... }
+    THEN HTTP status code is 201
+    THEN result has key "id" containing a string, saved as $ID1
+
+    WHEN client POSTs /persons with
+    ... {
+    ...     "gluu_user_id": "$UID",
+    ...     "names": [
+    ...         {
+    ...             "full_name": "Person C",
+    ...             "sort_key": "2, Person",
+    ...             "given_names": ["Test"],
+    ...             "surnames": ["Person", "C"]
+    ...         }
+    ...     ]
+    ... }
+    THEN HTTP status code is 201
+    THEN result has key "id" containing a string, saved as $ID2
+
+Search person resources and sort results by `sort_key`.
+
+    WHEN client GETs /persons/search/exact/gluu_user_id/$UID/sort/sort_key
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "resources": [
+    ...         {"id": "$ID1"},
+    ...         {"id": "$ID2"},
+    ...         {"id": "$ID3"}
+    ...     ]
+    ... }
+
+Sort person resources using different sort key.
+
+    WHEN client GETs /persons/search/exact/gluu_user_id/$UID/sort/full_name
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "resources": [
+    ...         {"id": "$ID3"},
+    ...         {"id": "$ID1"},
+    ...         {"id": "$ID2"}
+    ...     ]
+    ... }
+
+Search person resources and sort results by two search keys, where first search
+key is a list containing more than one value. First key is `surnames`, where
+each resource has same first surname, and second key is `sort_key`. Since each
+first surname is the same, results should fall back to the second sort key.
+
+    WHEN client GETs
+    ... /persons/search/exact/gluu_user_id/$UID/sort/surnames/sort/sort_key
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "resources": [
+    ...         {"id": "$ID1"},
+    ...         {"id": "$ID2"},
+    ...         {"id": "$ID3"}
+    ...     ]
+    ... }
+
+Search with only search operator should also work, returning all available
+resource ids.
+
+    WHEN client GETs /persons/search/sort/sort_key
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+    AND result has key "resources", a list containing {"id": "$ID2"}
+    AND result has key "resources", a list containing {"id": "$ID3"}
 
 File resources
 --------------

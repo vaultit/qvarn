@@ -126,8 +126,18 @@ class ReadOnlyStorage(object):
                 for key in sort_params]
 
         with self._m.new('build full sql query'):
-            query = u'SELECT DISTINCT {1}.id FROM {0} AS {1}'.format(
-                sql.quote(main_table), u't0')
+            main_table_alias = u't0'
+            # With `SELECT DISTINCT` PostgreSQL requires all ORDER BY fields to
+            # be included in select list too.
+            select_list = [main_table_alias + u'.id'] + order_by_fields
+            query = (
+                u'SELECT DISTINCT {select_list} '
+                u'FROM {main_table} AS {main_table_alias}'
+            ).format(
+                select_list=u', '.join(select_list),
+                main_table=sql.quote(main_table),
+                main_table_alias=main_table_alias,
+            )
             for idx, table_name in enumerate(tables_used):
                 if table_name != main_table:
                     table_alias = u't' + str(idx)

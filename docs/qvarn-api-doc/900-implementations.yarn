@@ -64,6 +64,14 @@ Creates a file with text content.
     IMPLEMENTS GIVEN file (\S+) containing "(.+)"
     /usr/bin/printf "$MATCH_2" > "$DATADIR/$MATCH_1"
 
+Unique identifier
+-----------------
+
+Creates a unique identifier used to uniquely identify several resources.
+
+    IMPLEMENTS GIVEN unique identifier \$(\S+)
+    save_value "$MATCH_1" "$(uuidgen)"
+
 Requests
 --------
 
