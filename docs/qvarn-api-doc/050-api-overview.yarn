@@ -738,6 +738,14 @@ Note: We'll add more conditions as they're needed, but we'll try to
 keep the conditions few, simple, and powerful, and rely on some
 client side logic to refine the results.
 
+Results can be sorted by one or more search keys:
+
+* `/sort/KEY1/sort/KEY2`
+
+Search key may be at any level of the resource. If there are more than one
+instance of the field (e.g., the `KEY` is a list of names), the first instance
+is used.
+
 The clause may also include the following to modify the result:
 
 * `/show/KEY` --- include the top level field `KEY` in the result.
