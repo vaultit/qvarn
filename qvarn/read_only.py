@@ -217,10 +217,10 @@ class ReadOnlyStorage(object):
     def _kludge_order_by_fields(self, sql, schema, key, main_table,
                                 tables_used, join_conditions):
         columns_by_table_name = collections.defaultdict(list)
-        for table_name, column_name, column_type in schema:
+        for table_name, column_name, _ in schema:
             columns_by_table_name[table_name].append(column_name)
 
-        for table_name, column_name, column_type in schema:
+        for table_name, column_name, _ in schema:
             if column_name == key:
                 if table_name == main_table:
                     table_alias = u't0'

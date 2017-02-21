@@ -21,7 +21,8 @@ import unittest
 import qvarn
 
 
-def _build_item(baz=(u'bling', u'blang'), bool=True, bar=u'barbaz',
+# pylint: disable=blacklisted-name
+def _build_item(baz=(u'bling', u'blang'), bool_=True, bar=u'barbaz',
                 dicts_bar=(u'bong', u'Bang'), bars=(u'bar1', u'bar2'),
                 foo=u'foobar'):
     return {
@@ -49,7 +50,7 @@ def _build_item(baz=(u'bling', u'blang'), bool=True, bar=u'barbaz',
                 u'inner': [],
             },
         ],
-        u'bool': bool,
+        u'bool': bool_,
     }
 
 
@@ -247,7 +248,7 @@ class ReadOnlyStorageTests(unittest.TestCase):
     def test_search_sort_by_bool(self):
         with self._dbconn.transaction() as t:
             for value in [True, False]:
-                self.wo.add_item(t, _build_item(bool=value))
+                self.wo.add_item(t, _build_item(bool_=value))
             search_result = self.ro.search(t, [], [u'show_all'], [u'bool'])
         match_list = [item[u'bool'] for item in search_result[u'resources']]
         self.assertEqual(match_list, [0, 1])
@@ -256,13 +257,13 @@ class ReadOnlyStorageTests(unittest.TestCase):
         with self._dbconn.transaction() as t:
             self.wo.add_item(t, self.item)
             with self.assertRaises(qvarn.FieldNotInResource):
-                search_result = self.ro.search(t, [], [], [u'invalid'])
+                self.ro.search(t, [], [], [u'invalid'])
 
     def test_search_sort_by_dict(self):
         with self._dbconn.transaction() as t:
             self.wo.add_item(t, self.item)
             with self.assertRaises(qvarn.FieldNotInResource):
-                search_result = self.ro.search(t, [], [], [u'dicts'])
+                self.ro.search(t, [], [], [u'dicts'])
 
     def test_search_sort_by_first_instance(self):
         # If a field with same name appears more than one time in deffered
