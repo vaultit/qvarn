@@ -70,7 +70,7 @@ Unique identifier
 Creates a unique identifier used to uniquely identify several resources.
 
     IMPLEMENTS GIVEN unique identifier \$(\S+)
-    save_value "$MATCH_1" "$(uuidgen)"
+    save_value "$MATCH_1" "$(python -c 'import uuid; print(uuid.uuid4())')"
 
 Requests
 --------
