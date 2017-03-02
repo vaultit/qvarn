@@ -58,7 +58,7 @@ class ListResource(object):
         self._listener = None
         self._dbconn = None
 
-    def _no_validator(self, item):
+    def _no_validator(self, item):  # pragma: no cover
         return
 
     def set_path(self, path):
@@ -73,7 +73,7 @@ class ListResource(object):
         '''Set the prototype for each sub-item.'''
         self._item_prototype = item_prototype
 
-    def set_item_validator(self, item_validator):
+    def set_item_validator(self, item_validator):  # pragma: no cover
         '''Set function to provide item-specific validation.
 
         Note that ``item_validator`` does not need to do generic
@@ -84,7 +84,8 @@ class ListResource(object):
 
         self._item_validator = item_validator or self._no_validator
 
-    def set_subitem_prototype(self, subitem_name, prototype):
+    def set_subitem_prototype(
+            self, subitem_name, prototype):  # pragma: no cover
         '''Set prototype for a subitem.'''
         self._subitem_prototypes.add(self._item_type, subitem_name, prototype)
 
@@ -97,7 +98,7 @@ class ListResource(object):
         '''
         self._listener = listener
 
-    def prepare_resource(self, dbconn):
+    def prepare_resource(self, dbconn):  # pragma: no cover
         '''Prepare the resource for action.'''
 
         self._dbconn = dbconn
@@ -160,7 +161,7 @@ class ListResource(object):
 
         return item_paths + subitem_paths
 
-    def get_items(self):
+    def get_items(self):  # pragma: no cover
         '''Serve GET /foos to list all items.'''
         ro = self._create_ro_storage()
         with self._dbconn.transaction() as t:
@@ -170,7 +171,7 @@ class ListResource(object):
                 ],
             }
 
-    def get_matching_items(self, search_criteria):
+    def get_matching_items(self, search_criteria):  # pragma: no cover
         '''Serve GET /foos/search to list items matching search criteria.'''
 
         # We need criteria to be encoded so that when we split by slash (/),
@@ -230,7 +231,7 @@ class ListResource(object):
         with self._dbconn.transaction() as t:
             return ro.search(t, search_params, show_params, sort_params)
 
-    def post_item(self):
+    def post_item(self):  # pragma: no cover
         '''Serve POST /foos to create a new item.'''
 
         item = bottle.request.qvarn_json
@@ -261,13 +262,13 @@ class ListResource(object):
         bottle.response.status = 201
         return added
 
-    def get_item(self, item_id):
+    def get_item(self, item_id):  # pragma: no cover
         '''Serve GET /foos/123 to get an existing item.'''
         ro = self._create_ro_storage()
         with self._dbconn.transaction() as t:
             return ro.get_item(t, item_id)
 
-    def get_subitem(self, item_id, subitem_path):
+    def get_subitem(self, item_id, subitem_path):  # pragma: no cover
         '''Serve GET /foos/123/subitem.'''
         ro = self._create_ro_storage()
         with self._dbconn.transaction() as t:
@@ -277,7 +278,7 @@ class ListResource(object):
         subitem[u'revision'] = item[u'revision']
         return subitem
 
-    def put_item(self, item_id):
+    def put_item(self, item_id):  # pragma: no cover
         '''Serve PUT /foos/123 to update an item.'''
 
         item = bottle.request.qvarn_json
@@ -297,7 +298,7 @@ class ListResource(object):
         self._listener.notify_update(updated[u'id'], updated[u'revision'])
         return updated
 
-    def put_subitem(self, item_id, subitem_name):
+    def put_subitem(self, item_id, subitem_name):  # pragma: no cover
         '''Serve PUT /foos/123/subitem to update a subitem.'''
 
         subitem = bottle.request.qvarn_json
@@ -320,33 +321,35 @@ class ListResource(object):
         self._listener.notify_update(updated[u'id'], updated[u'revision'])
         return subitem
 
-    def delete_item(self, item_id):
+    def delete_item(self, item_id):  # pragma: no cover
         '''Serve DELETE /foos/123 to delete an item.'''
         wo = self._create_wo_storage()
         with self._dbconn.transaction() as t:
             wo.delete_item(t, item_id)
         self._listener.notify_delete(item_id)
 
-    def _create_ro_storage(self):
+    def _create_ro_storage(self):  # pragma: no cover
         ro = qvarn.ReadOnlyStorage()
         ro.set_item_prototype(self._item_type, self._item_prototype)
         for subitem_name, prototype in self._subitem_prototypes.get_all():
             ro.set_subitem_prototype(self._item_type, subitem_name, prototype)
         return ro
 
-    def _create_wo_storage(self):
+    def _create_wo_storage(self):  # pragma: no cover
         wo = qvarn.WriteOnlyStorage()
         wo.set_item_prototype(self._item_type, self._item_prototype)
         for subitem_name, prototype in self._subitem_prototypes.get_all():
             wo.set_subitem_prototype(self._item_type, subitem_name, prototype)
         return wo
 
-    def _create_resource_ro_storage(self, resource_name, prototype):
+    def _create_resource_ro_storage(
+            self, resource_name, prototype):  # pragma: no cover
         ro = qvarn.ReadOnlyStorage()
         ro.set_item_prototype(resource_name, prototype)
         return ro
 
-    def _create_resource_wo_storage(self, resource_name, prototype):
+    def _create_resource_wo_storage(
+            self, resource_name, prototype):  # pragma: no cover
         wo = qvarn.WriteOnlyStorage()
         wo.set_item_prototype(resource_name, prototype)
         return wo
