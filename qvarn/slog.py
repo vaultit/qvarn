@@ -1,6 +1,6 @@
 # slog.py - structured logging
 #
-# Copyright 2016  QvarnLabs Ab
+# Copyright 2016-2017  QvarnLabs Ab
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -21,10 +21,10 @@ import json
 import logging
 import math
 import os
-import syslog
 import thread
 import time
 import traceback
+import syslog
 
 import qvarn
 
