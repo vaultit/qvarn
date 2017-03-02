@@ -18,6 +18,7 @@
 
 import time
 import uuid
+import collections
 
 import qvarn
 
@@ -70,7 +71,7 @@ class ReadOnlyStorage(object):
         return subitem
 
     def search(self, transaction, search_params,
-               show_params):  # pragma: no cover
+               show_params, sort_params=None):  # pragma: no cover
         '''Do a search.
 
         ``search_params`` is a list of (matching rule, key, value)
@@ -79,13 +80,15 @@ class ReadOnlyStorage(object):
         ``show_params`` is a list containing key fields included
         in the result object. If it contains a single ``show_all``
         string, all fields are returned.
+        ``sort_params`` is a list of strings, where each string is
+        a field to sort by.
 
         '''
 
         self._m = Measurement()
         with self._m.new('build_schema'):
             schema = self._build_schema()
-        ids = self._kludge(transaction, schema, search_params)
+        ids = self._kludge(transaction, schema, search_params, sort_params)
         with self._m.new('build_search_result'):
             result = self._build_search_result(transaction, ids, show_params)
         self._m.finish()
@@ -101,29 +104,53 @@ class ReadOnlyStorage(object):
                 subproto, resource_type=self._item_type, subpath=subpath)
         return schema
 
-    def _kludge(self, transaction, schema, search_params):  # pragma: no cover
+    def _kludge(self, transaction, schema, search_params,
+                sort_params=None):  # pragma: no cover
         sql = getattr(transaction, '_sql')
         main_table = qvarn.table_name(resource_type=self._item_type)
+        tables_used = [main_table]
 
         with self._m.new('build param conditions'):
             values = {}
-            tables_used = [main_table]
             conds = [
                 self._kludge_conds(
                     sql, schema, param, values, main_table, tables_used)
                 for param in search_params]
 
+        with self._m.new('build order by fields'):
+            join_conditions = {}
+            sort_params = sort_params or []
+            order_by_fields = [
+                self._kludge_order_by_fields(
+                    sql, schema, key, main_table, tables_used, join_conditions)
+                for key in sort_params]
+
         with self._m.new('build full sql query'):
-            query = u'SELECT DISTINCT {1}.id FROM {0} AS {1}'.format(
-                sql.quote(main_table), u't0')
+            main_table_alias = u't0'
+            # With `SELECT DISTINCT` PostgreSQL requires all ORDER BY fields to
+            # be included in select list too.
+            select_list = [main_table_alias + u'.id'] + order_by_fields
+            query = (
+                u'SELECT DISTINCT {select_list} '
+                u'FROM {main_table} AS {main_table_alias}'
+            ).format(
+                select_list=u', '.join(select_list),
+                main_table=sql.quote(main_table),
+                main_table_alias=main_table_alias,
+            )
             for idx, table_name in enumerate(tables_used):
                 if table_name != main_table:
                     table_alias = u't' + str(idx)
                     query += (u' LEFT JOIN {1} AS {2} ON {0}.id = {2}.id'
                               .format(u't0', sql.quote(table_name),
                                       sql.quote(table_alias)))
-            query += u' WHERE ' + u' AND '.join(
-                u'({})'.format(c) for c in conds)
+                    if idx in join_conditions:
+                        query += ' AND ' + join_conditions[idx]
+            if conds:
+                query += u' WHERE ' + u' AND '.join(
+                    u'({})'.format(c) for c in conds)
+            if order_by_fields:
+                query += u' ORDER BY ' + u', '.join(order_by_fields)
             self._m.note(query=query, values=values)
 
         return self._kludge_execute(sql, query, values)
@@ -186,6 +213,42 @@ class ReadOnlyStorage(object):
             # key did not match column name in any table
             raise FieldNotInResource(field=key)
         return u' OR '.join(conds)
+
+    def _kludge_order_by_fields(self, sql, schema, key, main_table,
+                                tables_used, join_conditions):
+        columns_by_table_name = collections.defaultdict(list)
+        for table_name, column_name, _ in schema:
+            columns_by_table_name[table_name].append(column_name)
+
+        for table_name, column_name, _ in schema:
+            if column_name == key:
+                if table_name == main_table:
+                    table_alias = u't0'
+                else:
+                    idx = len(tables_used)
+                    table_alias = u't' + str(idx)
+                    tables_used.append(table_name)
+                    join_conds = self._kludge_first_item_join_cond(
+                        sql, table_alias, columns_by_table_name[table_name])
+                    join_conditions[idx] = join_conds
+                return sql.qualified_column(table_alias, column_name)
+        # key did not match column name in any table
+        raise FieldNotInResource(field=key)
+
+    def _kludge_first_item_join_cond(self, sql, table_alias, columns):
+        # Build extra condition JOIN conditions in order to join just first
+        # itemns in lists, whre query should consider only first item in list.
+        list_pos_names = set([
+            u'list_pos',
+            u'str_list_pos',
+            u'dict_list_pos',
+        ])
+        conds = []
+        for column_name in columns:
+            if column_name in list_pos_names:
+                qualified_name = sql.qualified_column(table_alias, column_name)
+                conds.append('{} = 0'.format(qualified_name))
+        return ' AND '.join(conds)
 
     def _cast_value(self, value):  # pragma: no cover
         magic = {

@@ -187,6 +187,7 @@ class ListResource(object):
 
         search_params = []
         show_params = []
+        sort_params = []
 
         opers = [
             u'exact',
@@ -216,14 +217,18 @@ class ListResource(object):
             elif part == u'show':
                 if i + 1 >= len(criteria):
                     raise BadSearchCondition()
-                show_params.append((part, criteria[i+1]))
+                show_params.append((part, criteria[i + 1]))
+                i += 2
+            elif part == u'sort':
+                sort_field = criteria[i + 1]
+                sort_params.append(sort_field)
                 i += 2
             else:
                 raise BadSearchCondition()
 
         ro = self._create_ro_storage()
         with self._dbconn.transaction() as t:
-            return ro.search(t, search_params, show_params)
+            return ro.search(t, search_params, show_params, sort_params)
 
     def post_item(self):
         '''Serve POST /foos to create a new item.'''
