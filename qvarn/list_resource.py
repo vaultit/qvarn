@@ -189,6 +189,8 @@ class ListResource(object):
         search_params = []
         show_params = []
         sort_params = []
+        limit = None
+        offset = None
 
         opers = [
             u'exact',
@@ -224,12 +226,32 @@ class ListResource(object):
                 sort_field = criteria[i + 1]
                 sort_params.append(sort_field)
                 i += 2
+            elif part == u'limit':
+                try:
+                    limit = int(criteria[i + 1])
+                except ValueError as e:
+                    raise BadLimitValue(error=str(e))
+                if limit < 0:
+                    raise BadLimitValue(error="should be positive integer")
+                i += 2
+            elif part == u'offset':
+                try:
+                    offset = int(criteria[i + 1])
+                except ValueError as e:
+                    raise BadOffsetValue(error=str(e))
+                if offset < 0:
+                    raise BadOffsetValue(error="should be positive integer")
+                i += 2
             else:
                 raise BadSearchCondition()
 
+        if (limit is not None or offset is not None) and not sort_params:
+            raise LimitWithoutSortError()
+
         ro = self._create_ro_storage()
         with self._dbconn.transaction() as t:
-            return ro.search(t, search_params, show_params, sort_params)
+            return ro.search(t, search_params, show_params, sort_params,
+                             limit=limit, offset=offset)
 
     def post_item(self):  # pragma: no cover
         '''Serve POST /foos to create a new item.'''
@@ -358,3 +380,22 @@ class ListResource(object):
 class BadSearchCondition(qvarn.BadRequest):
 
     msg = u'Could not parse search condition'
+
+
+class LimitError(qvarn.BadRequest):
+    pass
+
+
+class LimitWithoutSortError(LimitError):
+
+    msg = u'LIMIT and OFFSET can only be used with together SORT.'
+
+
+class BadLimitValue(LimitError):
+
+    msg = u'Invalid LIMIT value: {error}.'
+
+
+class BadOffsetValue(LimitError):
+
+    msg = u'Invalid OFFSET value: {error}.'

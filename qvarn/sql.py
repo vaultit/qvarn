@@ -214,6 +214,9 @@ class SqlAdapter(object):
         return op.join(
             u'({})'.format(self._format_condition(c)) for c in conds)
 
+    def format_limit(self, limit=None, offset=None):
+        raise NotImplementedError()
+
     def format_insert(self, table_name, column_name_values):
         quoted_column_names = [self.quote(x) for x in column_name_values]
         placeholders = [
@@ -285,6 +288,16 @@ class SqliteAdapter(SqlAdapter):
     def __init__(self):
         self._conn = sqlite3.connect(u':memory:')
 
+    def format_limit(self, limit=None, offset=None):
+        query = []
+        if limit is None and offset is not None:
+            limit = -1
+        if limit is not None:
+            query.append(u'LIMIT %d' % limit)
+        if offset is not None:
+            query.append(u'OFFSET %d' % offset)
+        return u' '.join(query)
+
     def format_placeholder(self, column_name):
         return ':{}'.format(self.quote(column_name))
 
@@ -355,6 +368,16 @@ class PostgresAdapter(SqlAdapter):
         psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
         psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
         return pool
+
+    def format_limit(self, limit=None, offset=None):
+        query = []
+        if limit is None and offset is not None:
+            limit = 'ALL'
+        if limit is not None:
+            query.append(u'LIMIT %s' % limit)
+        if offset is not None:
+            query.append(u'OFFSET %d' % offset)
+        return u' '.join(query)
 
     def format_placeholder(self, column_name):
         return u'%({})s'.format(self.quote(column_name))
