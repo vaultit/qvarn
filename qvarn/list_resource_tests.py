@@ -98,8 +98,8 @@ class LimitTests(ListResourceBase):
     def setUp(self):
         super(LimitTests, self).setUp()
         with self._dbconn.transaction() as t:
-            for foo in [u'a', u'b', u'c', u'd', u'e']:
-                self.wo.add_item(t, {u'type': u'yo', u'foo': foo, u'bar': u''})
+            for x in [u'a', u'b', u'c', u'd', u'e']:
+                self.wo.add_item(t, {u'type': u'yo', u'foo': x, u'bar': u''})
 
     def _search(self, url):
         bottle.request.environ['REQUEST_URI'] = url
