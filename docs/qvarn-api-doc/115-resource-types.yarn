@@ -19,6 +19,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 `/resource_types` -- resource type definitions
 =============================================================================
 
+NOTE THAT this section is a glimpse of the future, left here by a
+confused time traveller.
+
+
 API clients may define and manage resource types, if properly
 authorized.
 
@@ -53,7 +57,10 @@ Example result:
         ]
     }
 
+<!--
+
 # Tests
+
 
     SCENARIO manage resource types
     GIVEN client has access to scopes
@@ -71,3 +78,5 @@ Example result:
     ...     "yaml": "{ type: \"foo\", path: \"/foos\", versions: [ { version: \"v0\",  prototype: { type: \"\", id: \"\", revision: \"\", foo: \"\" }} ]}"
     ... }
     THEN HTTP status code is 201
+
+-->
