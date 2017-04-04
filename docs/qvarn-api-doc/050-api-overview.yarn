@@ -1183,14 +1183,10 @@ Only get fields specifically required:
 
     WHEN client GETs /orgs/search/contains/names/Tilaajavastuu/show/country
     THEN HTTP status code is 200
-    AND result matches
+    AND search result contains match
     ... {
-    ...     "resources": [
-    ...         {
-    ...             "id": "$ID2",
-    ...             "country": "FI"
-    ...         }
-    ...     ]
+    ...     "id": "$ID2",
+    ...     "country": "FI"
     ... }
     AND result doesn't match
     ... {
