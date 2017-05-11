@@ -6,6 +6,9 @@ Version 0.81+git, not yet released
 
 * Added some documentation for resource type definition.
 
+* Mantas added the /limit and /offset operators to /search. This
+  should be useful for implemenating pagination in API clients.
+
 Version 0.81, released 2017-03-10
 ----------------------------------
 
