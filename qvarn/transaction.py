@@ -59,10 +59,14 @@ class Transaction(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         assert self._conn is not None
         assert self._measurement is not None
-        if exc_type is None:
-            self._conn.commit()
-        else:  # pragma: no cover
-            self._conn.rollback()
+        try:
+            if exc_type is None:
+                self._conn.commit()
+            else:  # pragma: no cover
+                self._conn.rollback()
+        except BaseException:  # pragma: no cover
+            self._sql.put_conn(self._conn)
+            raise
         self._sql.put_conn(self._conn)
         self._measurement.finish()
         self._measurement.log(exc_tb)

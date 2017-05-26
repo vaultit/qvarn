@@ -9,6 +9,10 @@ Version 0.81+git, not yet released
 * Mantas added the /limit and /offset operators to /search. This
   should be useful for implemenating pagination in API clients.
 
+* Made the Transaction class handle exceptions when committing or
+  rolling back a database transaction, and not leak database
+  connections. Reported by Marius Gedminas.
+
 Version 0.81, released 2017-03-10
 ----------------------------------
 
