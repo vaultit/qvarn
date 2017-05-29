@@ -70,8 +70,8 @@ class ReadOnlyStorage(object):
         rw.walk_item(subitem, prototype)
         return subitem
 
-    def search(self, transaction, search_params,
-               show_params, sort_params=None):  # pragma: no cover
+    def search(self, transaction, search_params, show_params, sort_params=None,
+               limit=None, offset=None):
         '''Do a search.
 
         ``search_params`` is a list of (matching rule, key, value)
@@ -82,13 +82,19 @@ class ReadOnlyStorage(object):
         string, all fields are returned.
         ``sort_params`` is a list of strings, where each string is
         a field to sort by.
+        ``limit`` positive integer, if given, specifies limit of
+        resources to return. If used together with ``offset``,
+        ``limit`` is applied after applying ``offset``.
+        ``offset`` positive integer, if given, skips given number
+        of rows before returning result.
 
         '''
 
         self._m = Measurement()
         with self._m.new('build_schema'):
             schema = self._build_schema()
-        ids = self._kludge(transaction, schema, search_params, sort_params)
+        ids = self._kludge(transaction, schema, search_params, sort_params,
+                           limit=limit, offset=offset)
         with self._m.new('build_search_result'):
             result = self._build_search_result(transaction, ids, show_params)
         self._m.finish()
@@ -105,7 +111,7 @@ class ReadOnlyStorage(object):
         return schema
 
     def _kludge(self, transaction, schema, search_params,
-                sort_params=None):  # pragma: no cover
+                sort_params=None, limit=None, offset=None):  # pragma: no cover
         sql = getattr(transaction, '_sql')
         main_table = qvarn.table_name(resource_type=self._item_type)
         tables_used = [main_table]
@@ -151,6 +157,8 @@ class ReadOnlyStorage(object):
                     u'({})'.format(c) for c in conds)
             if order_by_fields:
                 query += u' ORDER BY ' + u', '.join(order_by_fields)
+            if limit is not None or offset is not None:
+                query += u' ' + sql.format_limit(limit, offset)
             self._m.note(query=query, values=values)
 
         return self._kludge_execute(sql, query, values)

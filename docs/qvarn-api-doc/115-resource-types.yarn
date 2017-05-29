@@ -19,6 +19,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 `/resource_types` -- resource type definitions
 =============================================================================
 
+NOTE THAT this section is a glimpse of the future, left here by a
+confused time traveller.
+
+
 API clients may define and manage resource types, if properly
 authorized.
 
@@ -53,7 +57,10 @@ Example result:
         ]
     }
 
+<!--
+
 # Tests
+
 
     SCENARIO manage resource types
     GIVEN client has access to scopes
@@ -71,3 +78,113 @@ Example result:
     ...     "yaml": "{ type: \"foo\", path: \"/foos\", versions: [ { version: \"v0\",  prototype: { type: \"\", id: \"\", revision: \"\", foo: \"\" }} ]}"
     ... }
     THEN HTTP status code is 201
+
+-->
+
+
+
+Resource type definition using prototypes
+=============================================================================
+
+**NOTE:** This chapter documents a temporary phase in the development
+of Qvarn: one where resource types are defined by adding YAML files
+into `/etc/qvarn`. In the future, resource types will be defined via
+the Qvarn HTTP API, but that time is not yet here. Even after the API
+works, it will use the same "languaged" based on prototypes as
+described here.
+
+
+Defining resource types for Qvarn
+-----------------------------------------------------------------------------
+
+When Qvarn is run in "prepare mode", it reads resource type
+specifications from `/etc/qvarn` and inserts them into a database
+table (`resource_types`). When it's run in normal mode, Qvarn will
+only look at the database table.
+
+The resource type specifications are YAML files with the following
+structure:
+
+    EXAMPLE a resource type specification
+    type: person
+    path: /persons
+    versions:
+    - version: v0
+      prototype:
+        type: ""
+        id: ""
+        revision: ""
+    - version: v1
+      prototype:
+        type: ""
+        id: ""
+        revision: ""
+        names:
+        - full_name: ""
+          sort_key: ""
+          titles: [""]
+          given_names: [""]
+          surnames: [""]
+      subpaths:
+        photo:
+          prototype:
+            body: blob
+            content_type: ""
+        private:
+          prototype:
+            date_of_birth: ""
+      files:
+      - photo
+
+Some notes:
+
+* `type` is the name of the resource type. Any resources of that type
+  need to specify this name.
+* `path` is the path under which the resources are available on the
+  API. Note that Qvarn does **not** create the path automatically (by
+  adding an s to the end of the type).
+* `versions` is a list of resource type versions. Every version must
+  have a unique version string, which need not be in any particular
+  format. Version strings are only compared for equality and do not
+  define an order. The order in which versions occur in the `versions`
+  list defines the order.
+
+Note that if there is any change at all to a resource type, a new
+version **must** be added. Qvarn does **not** support fields being
+added or otherwise changed. Qvarn keeps track of which version (and
+thus which database schema) it is using by the version string only.
+Also, a new version **must** be done by adding a new version to the
+list, not by just changing the latest entry's version string.
+Otherwise Qvarn's automatic transition of the database schema won't
+work.
+
+Each version of a resource type consists of a "prototype", a list of
+sub-resources, and list of which sub-resources are actually files.
+The prototype defines what fields the resource has, and what types of
+value each field has. Sub-resources are defined similarly with
+prototypes.
+
+    EXAMPLE simple version
+    - version: v0
+      prototype:
+        type: ""
+        id: ""
+        revision: ""
+
+In the v0 example, the resource type has three fields: the standard
+three fields we put in every resource type. A field is specified by
+giving its name, and the type of the value. The value type is
+specified using one of the following:
+
+* `""` -- value is a Unicode string. String may be empty or null.
+* `blob` -- value is an arbitrary binary string (e.g., a JPEG). May
+  be empty or null. Cannot be part of a list.
+* `[""]` -- value is a list of Unicode strings. List may be empty.
+* A list with a dict with fields -- value is a list of dicts. List may
+  be empty. See version v1, field `names`.
+
+To define a sub-resource, add it to the `subpaths` part of a resource
+version. To make the sub-resource be a "file attachment" instead of a
+JSON object, add the name of the sub-resource to the `files` part of a
+resource version; see `photo` in the example above. A file attachment
+should have the fields `body` and `content_type` as in the example.

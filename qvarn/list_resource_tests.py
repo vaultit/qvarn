@@ -22,8 +22,12 @@ import bottle
 
 import qvarn
 
+from qvarn.list_resource import (
+    LimitWithoutSortError, BadLimitValue, BadOffsetValue
+)
 
-class ListResourceTests(unittest.TestCase):
+
+class ListResourceBase(unittest.TestCase):
 
     resource_type = u'yo'
 
@@ -63,12 +67,15 @@ class ListResourceTests(unittest.TestCase):
         # Reset bottle request.
         bottle.request = bottle.LocalRequest()
 
+
+class ListResourceTests(ListResourceBase):
+
     def test_lists_no_items_initially(self):
         with self._dbconn.transaction() as t:
             items = [
-                {u'type': u'yo', u'foo': u'a', u'bar': 'z'},
-                {u'type': u'yo', u'foo': u'c', u'bar': 'x'},
-                {u'type': u'yo', u'foo': u'b', u'bar': 'y'},
+                {u'type': u'yo', u'foo': u'a', u'bar': u'z'},
+                {u'type': u'yo', u'foo': u'c', u'bar': u'x'},
+                {u'type': u'yo', u'foo': u'b', u'bar': u'y'},
             ]
             for item in items:
                 self.wo.add_item(t, item)
@@ -86,9 +93,69 @@ class ListResourceTests(unittest.TestCase):
         self.assertEqual(match_list, [u'x', u'y', u'z'])
 
 
-# XXX: creating fake classes like this one could be avoided with mock [1].
-#
-#      [1]: https://pypi.python.org/pypi/mock/
+class LimitTests(ListResourceBase):
+
+    def setUp(self):
+        super(LimitTests, self).setUp()
+        with self._dbconn.transaction() as t:
+            for x in [u'a', u'b', u'c', u'd', u'e']:
+                self.wo.add_item(t, {u'type': u'yo', u'foo': x, u'bar': u''})
+
+    def _search(self, url):
+        bottle.request.environ['REQUEST_URI'] = url
+        search_result = self.resource.get_matching_items(None)
+        return [item[u'foo'] for item in search_result[u'resources']]
+
+    def test_limit(self):
+        result = self._search(u'/search/show_all/sort/foo/limit/2')
+        self.assertEqual(result, [u'a', u'b'])
+
+    def test_offset(self):
+        result = self._search(u'/search/show_all/sort/foo/offset/3')
+        self.assertEqual(result, [u'd', u'e'])
+
+    def test_limit_and_offset(self):
+        result = self._search(u'/search/show_all/sort/foo/offset/1/limit/2')
+        self.assertEqual(result, [u'b', u'c'])
+
+    def test_big_offset(self):
+        result = self._search(u'/search/show_all/sort/foo/offset/10')
+        self.assertEqual(result, [])
+
+    def test_limit_without_sort(self):
+        message = (
+            u"LIMIT and OFFSET can only be used with together SORT."
+        )
+        with self.assertRaises(LimitWithoutSortError, msg=message):
+            self._search(u'/search/show_all/limit/2')
+
+    def test_invalid_limit(self):
+        message = (
+            u"Invalid LIMIT value: invalid literal for int() with base 10: "
+            u"'err'."
+        )
+        with self.assertRaises(BadLimitValue, msg=message):
+            self._search(u'/search/show_all/sort/foo/limit/err')
+
+    def test_invalid_offset(self):
+        message = (
+            u"Invalid OFFSET value: invalid literal for int() with base 10: "
+            u"'err'."
+        )
+        with self.assertRaises(BadOffsetValue, msg=message):
+            self._search(u'/search/show_all/sort/foo/offset/err')
+
+    def test_negative_limit(self):
+        message = u"Invalid LIMIT value: should be positive integer."
+        with self.assertRaises(BadOffsetValue, msg=message):
+            self._search(u'/search/show_all/sort/foo/offset/-1')
+
+    def test_negative_offset(self):
+        message = u"Invalid OFFSET value: should be positive integer."
+        with self.assertRaises(BadOffsetValue, msg=message):
+            self._search(u'/search/show_all/sort/foo/offset/-1')
+
+
 class FakeListenerResource(object):
 
     def notify_create(self, item_id, item_revision):

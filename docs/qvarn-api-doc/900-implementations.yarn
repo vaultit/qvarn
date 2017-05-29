@@ -266,6 +266,27 @@ Extract the resource id of a list of resources returned by a query.
 
     save_value "$MATCH_2" "$(cat "$DATADIR/saved.tmp")"
 
+Look for a specific resource in a search result. This is so that we
+can have steps that look for known matches, but don't get confused by
+additional matches.
+
+    IMPLEMENTS THEN search result contains match (.*)
+    python -c '
+        
+    import json, sys, os
+    obj = json.load(sys.stdin)
+    wanted = json.loads(sys.argv[1])
+    print "wanted:", repr(wanted)
+    for match in obj["resources"]:
+        print "match:", repr(match)
+        for key in wanted:
+            if match.get(key) == wanted[key]:
+                sys.exit(0)
+    print "no match found"
+    sys.exit(1)
+
+    ' "$(expand_values "$MATCH_1")" < "$DATADIR/curl.out"
+
 Match the whole JSON response against a JSON value. A value matches
 according to the following rules:
 

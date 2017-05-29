@@ -54,7 +54,7 @@ def _build_item(baz=(u'bling', u'blang'), bool_=True, bar=u'barbaz',
     }
 
 
-class ReadOnlyStorageTests(unittest.TestCase):
+class ReadOnlyStorageBase(unittest.TestCase):
 
     resource_type = u'yo'
 
@@ -110,6 +110,9 @@ class ReadOnlyStorageTests(unittest.TestCase):
         self.wo.set_item_prototype(self.item[u'type'], self.prototype)
         self.wo.set_subitem_prototype(
             self.item[u'type'], self.subitem_name, self.subitem_prototype)
+
+
+class ReadOnlyStorageTests(ReadOnlyStorageBase):
 
     def test_lists_no_items_initially(self):
         with self._dbconn.transaction() as t:
@@ -304,3 +307,26 @@ class ReadOnlyStorageTests(unittest.TestCase):
             (u'a', u'z'),
             (u'b', u'a'),
         ])
+
+
+class LimitTests(ReadOnlyStorageBase):
+
+    def setUp(self):
+        super(LimitTests, self).setUp()
+        with self._dbconn.transaction() as t:
+            for foo in [u'a', u'b', u'c', u'd', u'e']:
+                self.wo.add_item(t, _build_item(foo=foo))
+
+    def _search(self, **kwargs):
+        with self._dbconn.transaction() as t:
+            result = self.ro.search(t, [], [u'show_all'], [u'foo'], **kwargs)
+        return [item[u'foo'] for item in result[u'resources']]
+
+    def test_search_limit(self):
+        self.assertEqual(self._search(limit=3), [u'a', u'b', u'c'])
+
+    def test_search_offset(self):
+        self.assertEqual(self._search(offset=2), [u'c', u'd', u'e'])
+
+    def test_search_limit_and_offset(self):
+        self.assertEqual(self._search(limit=2, offset=1), [u'b', u'c'])
