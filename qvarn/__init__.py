@@ -113,6 +113,7 @@ from .filler import (
 )
 
 from .util import (
+    get_resource_type_from_path,
     route_to_scope,
     table_name,
     ComplicatedTableNameError,

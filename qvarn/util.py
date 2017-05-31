@@ -30,6 +30,26 @@ import qvarn
 route_to_scope_re = re.compile(r'<[^>]*>')
 
 
+def get_resource_type_from_path(path):
+    '''Return the resource type path given an arbitrary API path
+
+    Given a path like /persons/search/exact/age/123, return /persons.
+    This can then be used to look up the actual resource type name
+    (which is separate from the path).
+
+    '''
+
+    if not path.startswith('/'):
+        return None
+    parts = path.split('/')
+    assert len(parts) >= 2
+    if len(parts) == 2 and parts[1] == '':
+        assert path == '/'
+        return None
+    assert parts[0] == ''
+    return '/{}'.format(parts[1])
+
+
 def route_to_scope(route_rule, request_method):
     ''' Gives an authorization scope string for a route and a HTTP method.
     '''

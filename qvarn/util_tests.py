@@ -19,6 +19,23 @@ import unittest
 import qvarn
 
 
+class ResourceTypeFromPathTests(unittest.TestCase):
+
+    def test_returns_None_for_root(self):
+        self.assertEqual(qvarn.get_resource_type_from_path('/'), None)
+
+    def test_returns_path_for_simple_case(self):
+        self.assertEqual(qvarn.get_resource_type_from_path('/foos'), '/foos')
+
+    def test_returns_path_for_complex_case(self):
+        self.assertEqual(
+            qvarn.get_resource_type_from_path('/foos/search/bada/bing/boom'),
+            '/foos')
+
+    def test_returns_None_for_relative_path(self):
+        self.assertEqual(qvarn.get_resource_type_from_path('foos'), None)
+
+
 class BasicRouteTests(unittest.TestCase):
 
     def test_basic_route_to_scope(self):
