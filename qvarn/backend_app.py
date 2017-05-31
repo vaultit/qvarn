@@ -66,23 +66,12 @@ class BackendApplication(object):
 
         self._dbconn = None
         self._vs_list = []
-        self._resources = []
         self._conf = None
 
     def add_versioned_storage(self, versioned_storage):
         self._vs_list.append(versioned_storage)
 
-    def add_resource(self, resource):
-        '''Adds a resource that this application serves.
-
-        A resource is represented by a class that has a
-        ``prepare_resource`` method.
-
-        '''
-
-        self._resources.append(resource)
-
-    def add_routes(self, routes):
+    def add_routes(self, resources):
         '''Add routes to the application.
 
         A route is the path serve (e.g., "/version"), the HTTP method
@@ -94,6 +83,7 @@ class BackendApplication(object):
 
         '''
 
+        routes = self._prepare_resources(resources)
         for route in routes:
             self._app.route(**route)
 
@@ -159,15 +149,55 @@ class BackendApplication(object):
         process to not share the pool connections between processes.
 
         '''
+
         self._connect_to_storage(self._conf)
 
-        specs = self._load_specs_from_db()
-        self._add_resource_types_from_specs(specs)
         self._setup_auth(self._conf)
+        self._app.add_hook('before_request', self._add_missing_route)
         self._app.install(qvarn.StringToUnicodePlugin())
 
-        routes = self._prepare_resources()
-        self.add_routes(routes)
+    def _add_missing_route(self):
+        # If the route already exists, do nothing. Otherwise, check if
+        # request path refers to a defined resource type, and if so,
+        # add route. Otherwise, sucks to be the API client.
+
+        qvarn.log.set_context('_add_missing_route')
+
+        try:
+            self._app.match(bottle.request.environ)
+        except bottle.HTTPError:
+            spec = self._get_spec_for_resource_type(bottle.request.path)
+            if spec is None:
+                qvarn.log.log(
+                    'error',
+                    msg_text='Requested resource type is not defined')
+                qvarn.log.reset_context()
+                raise
+            else:
+                self._add_route_for_resource_type(spec)
+
+        qvarn.log.reset_context()
+
+    def _get_spec_for_resource_type(self, path):
+        qvarn.log.log(
+            'debug', msg_text='Loading spec from database', path=path)
+        rst = qvarn.ResourceTypeStorage()
+        with self._dbconn.transaction() as t:
+            type_names = rst.get_types(t)
+            for type_name in type_names:
+                spec = rst.get_spec(t, type_name)
+                if spec[u'path'] == path:
+                    qvarn.log.log(
+                        'debug', msg_text='Found spec', path=path, spec=spec)
+                    return spec
+        qvarn.log.log('debug', msg_text='No spec found for path', path=path)
+        return None
+
+    def _add_route_for_resource_type(self, spec):
+        qvarn.log.log(
+            'debug', msg_text='Adding missing route', path=spec['path'])
+        resources = qvarn.add_resource_type_to_server(self, spec)
+        self.add_routes(resources)
 
     def _parse_config(self):
         parser = argparse.ArgumentParser()
@@ -241,8 +271,10 @@ class BackendApplication(object):
         ]
 
     def _add_resource_types_from_specs(self, specs):
+        resources = []
         for spec in specs:
-            qvarn.add_resource_type_to_server(self, spec)
+            resources += qvarn.add_resource_type_to_server(self, spec)
+        return resources
 
     def _prepare_storage(self, conf):
         '''Prepare the database for use.'''
@@ -307,10 +339,10 @@ class BackendApplication(object):
                 validation_key=validation_key,
                 issuer=issuer)
 
-    def _prepare_resources(self):
+    def _prepare_resources(self, resources):
         routes = []
-        for resource in self._resources:
-            routes += resource.prepare_resource(self._dbconn)
+        for r in resources:
+            routes += r.prepare_resource(self._dbconn)
         return routes
 
     def _store_resource_types(self, specs_and_texts):

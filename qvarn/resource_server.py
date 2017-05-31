@@ -64,13 +64,14 @@ class ResourceServer(object):
 
     def create_resource(self):
         listener = self._create_listener()
-        self._create_list_resource(listener)
-        self._create_file_resources(listener)
+        return (
+            [listener, self._create_list_resource(listener)] +
+            self._create_file_resources(listener)
+        )
 
     def _create_listener(self):
         listener = qvarn.ListenerResource()
         listener.set_top_resource_path(self._type, self._path)
-        self._app.add_resource(listener)
         return listener
 
     def _create_list_resource(self, listener):
@@ -89,11 +90,13 @@ class ResourceServer(object):
                 proto = subpaths[subpath][u'prototype']
                 resource.set_subitem_prototype(subpath, proto)
 
-        self._app.add_resource(resource)
+        return resource
 
     def _create_file_resources(self, listener):
+        resources = []
         for subpath in self._latest_version.get(u'files', []):
-            self._create_file_resource(listener, subpath)
+            resources.append(self._create_file_resource(listener, subpath))
+        return resources
 
     def _create_file_resource(self, listener, subpath):
         file_resource = qvarn.FileResource()
@@ -102,16 +105,18 @@ class ResourceServer(object):
         file_resource.set_item_type(self._type)
         file_resource.set_file_resource_name(subpath)
         file_resource.set_listener(listener)
-        self._app.add_resource(file_resource)
+        return file_resource
 
     def prepare_for_uwsgi(self):
         return self._app.prepare_for_uwsgi()
 
 
 def add_resource_type_to_server(app, resource_type_spec):
+    qvarn.log.log('debug', msg_text='Adding resource type to server',
+                  spec=resource_type_spec)
     server = ResourceServer()
     server.set_backend_app(app)
     server.set_resource_path(resource_type_spec[u'path'])
     server.set_resource_type(resource_type_spec[u'type'])
     server.add_resource_type_versions(resource_type_spec[u'versions'])
-    server.create_resource()
+    return server.create_resource()
