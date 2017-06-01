@@ -284,14 +284,14 @@ class BackendApplication(object):
                     vs.prepare_storage(t)
 
     def _configure_logging(self, conf):
-        logs = ['log', 'log2', 'log3', 'log4', 'log5']
-        for log in logs:
-            if conf.has_option('main', log):
-                name = conf.get('main', log)
+        lognames = ['log', 'log2', 'log3', 'log4', 'log5']
+        for logname in lognames:
+            if conf.has_option('main', logname):
+                name = conf.get('main', logname)
                 if name == 'syslog':
                     self._configure_logging_to_syslog()
                 else:
-                    max_bytes = self._get_max_log_bytes(conf, log)
+                    max_bytes = self._get_max_log_bytes(conf, logname)
                     self._configure_logging_to_file(name, max_bytes)
 
         qvarn.log.log(
@@ -305,16 +305,16 @@ class BackendApplication(object):
         writer = qvarn.SyslogSlogWriter()
         qvarn.log.add_log_writer(writer)
 
-    def _get_max_log_bytes(self, conf, log):
+    def _get_max_log_bytes(self, conf, logname):
         max_bytes = 10 * 1024**2
-        opt = log + '-max-bytes'
+        opt = logname + '-max-bytes'
         if conf.has_option('main', opt):
             max_bytes = conf.getint('main', opt)
         return max_bytes
 
     def _configure_logging_to_file(self, filename, max_bytes):
         writer = qvarn.FileSlogWriter()
-        writer.set_filename_prefix(filename)
+        writer.set_filename(filename)
         writer.set_max_file_size(max_bytes)
         qvarn.log.add_log_writer(writer)
 
