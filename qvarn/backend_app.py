@@ -28,7 +28,7 @@ import qvarn
 
 
 log = qvarn.StructuredLog()
-log.set_log_writer(qvarn.NullSlogWriter())
+log.add_log_writer(qvarn.NullSlogWriter())
 qvarn.hijack_logging(log)
 
 
@@ -301,7 +301,7 @@ class BackendApplication(object):
 
     def _configure_logging_to_syslog(self):
         writer = qvarn.SyslogSlogWriter()
-        qvarn.log.set_log_writer(writer)
+        qvarn.log.add_log_writer(writer)
 
     def _get_max_log_bytes(self, conf):
         max_bytes = 10 * 1024**2
@@ -313,7 +313,7 @@ class BackendApplication(object):
         writer = qvarn.FileSlogWriter()
         writer.set_filename_prefix(filename)
         writer.set_max_file_size(max_bytes)
-        qvarn.log.set_log_writer(writer)
+        qvarn.log.add_log_writer(writer)
 
     def _install_logging_plugin(self):
         logging_plugin = qvarn.LoggingPlugin()

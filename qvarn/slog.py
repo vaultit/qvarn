@@ -46,13 +46,15 @@ class StructuredLog(object):
     def __init__(self):
         self._msg_counter = qvarn.Counter()
         self._context = {}
-        self._writer = None
+        self._writers = []
 
     def close(self):
-        self._writer.close()
+        for writer in self._writers:
+            writer.close()
+        self._writers = []
 
-    def set_log_writer(self, writer):
-        self._writer = writer
+    def add_log_writer(self, writer):
+        self._writers.append(writer)
 
     def set_context(self, new_context):
         thread_id = self._get_thread_id()
@@ -72,7 +74,8 @@ class StructuredLog(object):
             log_obj[key] = self._convert_value(value)
 
         self._add_extra_fields(log_obj, exc_info)
-        self._writer.write(log_obj)
+        for writer in self._writers:
+            writer.write(log_obj)
 
     def _convert_value(self, value):
         # Convert a value into an form that's safe to write. Meaning,

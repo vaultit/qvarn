@@ -40,7 +40,7 @@ class StructuredLogTests(unittest.TestCase):
         writer.set_filename_prefix(prefix)
 
         slog = qvarn.StructuredLog()
-        slog.set_log_writer(writer)
+        slog.add_log_writer(writer)
         return slog, writer, prefix
 
     def read_log_entries(self, writer):
@@ -213,3 +213,22 @@ class StructuredLogTests(unittest.TestCase):
         objs = self.read_log_entries(writer)
         self.assertEqual(len(objs), 1)
         self.assertEqual(objs[0]['dikt'], dikt)
+
+    def test_logs_to_two_files(self):
+        prefix1 = os.path.join(self.tempdir, 'slog1')
+        writer1 = qvarn.FileSlogWriter()
+        writer1.set_filename_prefix(prefix1)
+
+        prefix2 = os.path.join(self.tempdir, 'slog2')
+        writer2 = qvarn.FileSlogWriter()
+        writer2.set_filename_prefix(prefix2)
+
+        slog = qvarn.StructuredLog()
+        slog.add_log_writer(writer1)
+        slog.add_log_writer(writer2)
+
+        slog.log('test', msg_text='hello')
+        objs1 = self.read_log_entries(writer1)
+        objs2 = self.read_log_entries(writer2)
+
+        self.assertEqual(objs1, objs2)

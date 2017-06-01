@@ -134,7 +134,7 @@ to text files and the syslog service, respectively.
     writer.set_filename_prefix('slog-demo')
 
     log = qvarn.StructuredLog()
-    log.set_log_writer(writer)
+    log.add_log_writer(writer)
 
 In other words, you first crete the writer object, configure it, and
 then you tell the log object which writer to use.

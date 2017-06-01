@@ -24,7 +24,7 @@ writer = qvarn.FileSlogWriter()
 writer.set_filename_prefix('slog-demo')
 
 log = qvarn.StructuredLog()
-log.set_log_writer(writer)
+log.add_log_writer(writer)
 log.set_context('demo')
 log.log('intro', msg_text='hello, there, this is a structured log file')
 log.log('intro', msg_text='each line is JSON')
