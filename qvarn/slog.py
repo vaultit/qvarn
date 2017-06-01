@@ -31,7 +31,7 @@ import qvarn
 
 class StructuredLog(object):
 
-    '''A structuctured logging system.
+    '''A structured logging system.
 
     A structured log is one that can be easily parsed
     programmatically. Traditional logs are free form text, usually
