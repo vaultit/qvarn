@@ -284,15 +284,17 @@ class BackendApplication(object):
                     vs.prepare_storage(t)
 
     def _configure_logging(self, conf):
-        if conf.has_option('main', 'log'):
-            name = conf.get('main', 'log')
-            if name == 'syslog':
-                self._configure_logging_to_syslog()
-            else:
-                max_bytes = self._get_max_log_bytes(conf)
-                self._configure_logging_to_file(name, max_bytes)
+        logs = ['log', 'log2', 'log3', 'log4', 'log5']
+        for log in logs:
+            if conf.has_option('main', log):
+                name = conf.get('main', log)
+                if name == 'syslog':
+                    self._configure_logging_to_syslog()
+                else:
+                    max_bytes = self._get_max_log_bytes(conf, log)
+                    self._configure_logging_to_file(name, max_bytes)
 
-        log.log(
+        qvarn.log.log(
             'startup',
             msg_text='Program starts',
             version=qvarn.__version__,
@@ -303,10 +305,11 @@ class BackendApplication(object):
         writer = qvarn.SyslogSlogWriter()
         qvarn.log.add_log_writer(writer)
 
-    def _get_max_log_bytes(self, conf):
+    def _get_max_log_bytes(self, conf, log):
         max_bytes = 10 * 1024**2
-        if conf.has_option('main', 'log-max-bytes'):
-            max_bytes = conf.getint('main', 'log-max-bytes')
+        opt = log + '-max-bytes'
+        if conf.has_option('main', opt):
+            max_bytes = conf.getint('main', opt)
         return max_bytes
 
     def _configure_logging_to_file(self, filename, max_bytes):
