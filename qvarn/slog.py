@@ -19,7 +19,6 @@
 import datetime
 import json
 import logging
-import math
 import os
 import thread
 import time
@@ -183,15 +182,10 @@ class NullSlogWriter(SlogWriter):  # pragma: no cover
 class FileSlogWriter(SlogWriter):
 
     def __init__(self):
-        self._prefix = None
         self._log_filename = None
         self._log_file = None
         self._bytes_max = None
-        self._bytes_written = 0
-
-    def set_filename_prefix(self, prefix):
-        self._prefix = prefix
-        self._open_log_file()
+        self._encoder = json.JSONEncoder(sort_keys=True)
 
     def set_max_file_size(self, bytes_max):
         self._bytes_max = bytes_max
@@ -199,34 +193,37 @@ class FileSlogWriter(SlogWriter):
     def get_filename(self):
         return self._log_filename
 
-    def _open_log_file(self):
-        self._log_filename = self._choose_new_filename()
-        self._log_file = open(self.get_filename(), 'a')
+    def get_rotated_filename(self, now=None):
+        prefix, suffix = os.path.splitext(self._log_filename)
+        if now is None:  # pragma: no cover
+            now = time.localtime()
+        else:
+            now = (list(now) + [0]*9)[:9]
+        timestamp = time.strftime('%Y%m%dT%H%M%S', now)
+        return '{}-{}{}'.format(prefix, timestamp, suffix)
 
-    def _choose_new_filename(self):
-        new_filename = self._construct_filename()
-        while new_filename == self._log_filename:
-            t = time.time()
-            fraction, _ = math.modf(t)
-            suffix = str(fraction).lstrip('0')
-            new_filename = self._construct_filename(suffix=suffix)
-        return new_filename
-
-    def _construct_filename(self, suffix=''):
-        middle = time.strftime('-%Y-%m-%dT%H%M%S')
-        return self._prefix + middle + suffix + '.log'
+    def set_filename(self, filename):
+        self._log_filename = filename
+        self._log_file = open(filename, 'a')
 
     def write(self, log_obj):
         if self._log_file:
-            encoder = json.JSONEncoder(sort_keys=True)
-            s = encoder.encode(log_obj)
-            self._log_file.write(s + '\n')
-            self._log_file.flush()
-            self._bytes_written += len(s) + 1
+            self._write_message(log_obj)
             if self._bytes_max is not None:
-                if self._bytes_written >= self._bytes_max:
-                    self._open_log_file()
-                    self._bytes_written = 0
+                self._rotate()
+
+    def _write_message(self, log_obj):
+        msg = self._encoder.encode(log_obj)
+        self._log_file.write(msg + '\n')
+        self._log_file.flush()
+
+    def _rotate(self):
+        pos = self._log_file.tell()
+        if pos >= self._bytes_max:
+            self._log_file.close()
+            rotated = self.get_rotated_filename()
+            os.rename(self._log_filename, rotated)
+            self.set_filename(self._log_filename)
 
     def close(self):
         self._log_file.close()
