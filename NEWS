@@ -17,6 +17,10 @@ Version 0.81+git, not yet released
   the log files will all get the same content, but per-file filtering
   will be added soon.
 
+* Qvarn now rotates its log files as soon as they become longer than
+  the specified limit. The current log file gets renamed to have a
+  timestamp, and a new log file is created with the specified name.
+
 Version 0.81, released 2017-03-10
 ----------------------------------
 
