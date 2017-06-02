@@ -13,9 +13,8 @@ Version 0.81+git, not yet released
   rolling back a database transaction, and not leak database
   connections. Reported by Marius Gedminas.
 
-* Qvarn can now log up to five log files simultanously. At the moment
-  the log files will all get the same content, but per-file filtering
-  will be added soon.
+* Qvarn can now log up to five log files simultanously. Each file can
+  have its own filtering rules.
 
 * Qvarn now rotates its log files as soon as they become longer than
   the specified limit. The current log file gets renamed to have a
