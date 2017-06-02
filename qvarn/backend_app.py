@@ -288,11 +288,12 @@ class BackendApplication(object):
         for logname in lognames:
             if conf.has_option('main', logname):
                 name = conf.get('main', logname)
+                rule = self._load_filter_rules(conf, logname)
                 if name == 'syslog':
-                    self._configure_logging_to_syslog()
+                    self._configure_logging_to_syslog(rule)
                 else:
                     max_bytes = self._get_max_log_bytes(conf, logname)
-                    self._configure_logging_to_file(name, max_bytes)
+                    self._configure_logging_to_file(name, max_bytes, rule)
 
         qvarn.log.log(
             'startup',
@@ -301,9 +302,19 @@ class BackendApplication(object):
             argv=sys.argv,
             env=dict(os.environ))
 
-    def _configure_logging_to_syslog(self):
+    def _load_filter_rules(self, conf, logname):
+        opt = logname + '-filter'
+        if conf.has_option('main', opt):
+            filename = conf.get('main', opt)
+            with open(filename) as f:
+                filters = yaml.safe_load(f)
+            return qvarn.construct_log_filter(filters)
+        else:
+            return qvarn.FilterAllow()
+
+    def _configure_logging_to_syslog(self, rule):
         writer = qvarn.SyslogSlogWriter()
-        qvarn.log.add_log_writer(writer)
+        qvarn.log.add_log_writer(writer, rule)
 
     def _get_max_log_bytes(self, conf, logname):
         max_bytes = 10 * 1024**2
@@ -312,11 +323,11 @@ class BackendApplication(object):
             max_bytes = conf.getint('main', opt)
         return max_bytes
 
-    def _configure_logging_to_file(self, filename, max_bytes):
+    def _configure_logging_to_file(self, filename, max_bytes, rule):
         writer = qvarn.FileSlogWriter()
         writer.set_filename(filename)
         writer.set_max_file_size(max_bytes)
-        qvarn.log.add_log_writer(writer)
+        qvarn.log.add_log_writer(writer, rule)
 
     def _install_logging_plugin(self):
         logging_plugin = qvarn.LoggingPlugin()
