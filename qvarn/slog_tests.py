@@ -40,7 +40,7 @@ class StructuredLogTests(unittest.TestCase):
         writer.set_filename(filename)
 
         slog = qvarn.StructuredLog()
-        slog.add_log_writer(writer)
+        slog.add_log_writer(writer, qvarn.FilterAllow())
         return slog, writer, filename
 
     def read_log_entries(self, writer):
@@ -205,8 +205,8 @@ class StructuredLogTests(unittest.TestCase):
         writer2.set_filename(filename2)
 
         slog = qvarn.StructuredLog()
-        slog.add_log_writer(writer1)
-        slog.add_log_writer(writer2)
+        slog.add_log_writer(writer1, qvarn.FilterAllow())
+        slog.add_log_writer(writer2, qvarn.FilterAllow())
 
         slog.log('test', msg_text='hello')
         objs1 = self.read_log_entries(writer1)

@@ -48,12 +48,12 @@ class StructuredLog(object):
         self._writers = []
 
     def close(self):
-        for writer in self._writers:
+        for writer, _ in self._writers:
             writer.close()
         self._writers = []
 
-    def add_log_writer(self, writer):
-        self._writers.append(writer)
+    def add_log_writer(self, writer, filter_rule):
+        self._writers.append((writer, filter_rule))
 
     def set_context(self, new_context):
         thread_id = self._get_thread_id()
@@ -73,8 +73,9 @@ class StructuredLog(object):
             log_obj[key] = self._convert_value(value)
 
         self._add_extra_fields(log_obj, exc_info)
-        for writer in self._writers:
-            writer.write(log_obj)
+        for writer, filter_rule in self._writers:
+            if filter_rule.allow(log_obj):
+                writer.write(log_obj)
 
     def _convert_value(self, value):
         # Convert a value into an form that's safe to write. Meaning,

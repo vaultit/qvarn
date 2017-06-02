@@ -28,7 +28,7 @@ import qvarn
 
 
 log = qvarn.StructuredLog()
-log.add_log_writer(qvarn.NullSlogWriter())
+log.add_log_writer(qvarn.NullSlogWriter(), qvarn.FilterAllow())
 qvarn.hijack_logging(log)
 
 
