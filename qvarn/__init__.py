@@ -29,6 +29,17 @@ from .slog import (
     hijack_logging,
 )
 
+from .slog_filter import (
+    FilterAllow,
+    FilterDeny,
+    FilterFieldHasValue,
+    FilterFieldValueRegexp,
+    FilterHasField,
+    FilterInclude,
+    FilterAny,
+    construct_log_filter,
+)
+
 from .exc import (
     QvarnException,
 )
