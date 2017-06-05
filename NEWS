@@ -20,6 +20,10 @@ Version 0.81+git, not yet released
   the specified limit. The current log file gets renamed to have a
   timestamp, and a new log file is created with the specified name.
 
+* Qvarn now logs when it starts using a Postgres connection or stops
+  using it. These are done with the log message types `get_conn` and
+  `put_conn` respectively.
+
 Version 0.81, released 2017-03-10
 ----------------------------------
 
