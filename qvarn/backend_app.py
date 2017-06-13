@@ -28,7 +28,7 @@ import qvarn
 
 
 log = qvarn.StructuredLog()
-log.set_log_writer(qvarn.NullSlogWriter())
+log.add_log_writer(qvarn.NullSlogWriter(), qvarn.FilterAllow())
 qvarn.hijack_logging(log)
 
 
@@ -66,23 +66,12 @@ class BackendApplication(object):
 
         self._dbconn = None
         self._vs_list = []
-        self._resources = []
         self._conf = None
 
     def add_versioned_storage(self, versioned_storage):
         self._vs_list.append(versioned_storage)
 
-    def add_resource(self, resource):
-        '''Adds a resource that this application serves.
-
-        A resource is represented by a class that has a
-        ``prepare_resource`` method.
-
-        '''
-
-        self._resources.append(resource)
-
-    def add_routes(self, routes):
+    def add_routes(self, resources):
         '''Add routes to the application.
 
         A route is the path serve (e.g., "/version"), the HTTP method
@@ -94,6 +83,7 @@ class BackendApplication(object):
 
         '''
 
+        routes = self._prepare_resources(resources)
         for route in routes:
             self._app.route(**route)
 
@@ -159,15 +149,55 @@ class BackendApplication(object):
         process to not share the pool connections between processes.
 
         '''
+
         self._connect_to_storage(self._conf)
 
-        specs = self._load_specs_from_db()
-        self._add_resource_types_from_specs(specs)
         self._setup_auth(self._conf)
+        self._app.add_hook('before_request', self._add_missing_route)
         self._app.install(qvarn.StringToUnicodePlugin())
 
-        routes = self._prepare_resources()
-        self.add_routes(routes)
+    def _add_missing_route(self):
+        # If the route already exists, do nothing. Otherwise, check if
+        # request path refers to a defined resource type, and if so,
+        # add route. Otherwise, sucks to be the API client.
+
+        qvarn.log.set_context('_add_missing_route')
+
+        try:
+            self._app.match(bottle.request.environ)
+        except bottle.HTTPError:
+            spec = self._get_spec_for_resource_type(bottle.request.path)
+            if spec is None:
+                qvarn.log.log(
+                    'error',
+                    msg_text='Requested resource type is not defined')
+                qvarn.log.reset_context()
+                raise
+            else:
+                self._add_route_for_resource_type(spec)
+
+        qvarn.log.reset_context()
+
+    def _get_spec_for_resource_type(self, path):
+        qvarn.log.log(
+            'debug', msg_text='Loading spec from database', path=path)
+        rst = qvarn.ResourceTypeStorage()
+        with self._dbconn.transaction() as t:
+            type_names = rst.get_types(t)
+            for type_name in type_names:
+                spec = rst.get_spec(t, type_name)
+                if spec[u'path'] == path:
+                    qvarn.log.log(
+                        'debug', msg_text='Found spec', path=path, spec=spec)
+                    return spec
+        qvarn.log.log('debug', msg_text='No spec found for path', path=path)
+        return None
+
+    def _add_route_for_resource_type(self, spec):
+        qvarn.log.log(
+            'debug', msg_text='Adding missing route', path=spec['path'])
+        resources = qvarn.add_resource_type_to_server(self, spec)
+        self.add_routes(resources)
 
     def _parse_config(self):
         parser = argparse.ArgumentParser()
@@ -241,8 +271,10 @@ class BackendApplication(object):
         ]
 
     def _add_resource_types_from_specs(self, specs):
+        resources = []
         for spec in specs:
-            qvarn.add_resource_type_to_server(self, spec)
+            resources += qvarn.add_resource_type_to_server(self, spec)
+        return resources
 
     def _prepare_storage(self, conf):
         '''Prepare the database for use.'''
@@ -252,36 +284,50 @@ class BackendApplication(object):
                     vs.prepare_storage(t)
 
     def _configure_logging(self, conf):
-        if conf.has_option('main', 'log'):
-            name = conf.get('main', 'log')
-            if name == 'syslog':
-                self._configure_logging_to_syslog()
-            else:
-                max_bytes = self._get_max_log_bytes(conf)
-                self._configure_logging_to_file(name, max_bytes)
+        lognames = ['log', 'log2', 'log3', 'log4', 'log5']
+        for logname in lognames:
+            if conf.has_option('main', logname):
+                name = conf.get('main', logname)
+                rule = self._load_filter_rules(conf, logname)
+                if name == 'syslog':
+                    self._configure_logging_to_syslog(rule)
+                else:
+                    max_bytes = self._get_max_log_bytes(conf, logname)
+                    self._configure_logging_to_file(name, max_bytes, rule)
 
-        log.log(
+        qvarn.log.log(
             'startup',
             msg_text='Program starts',
             version=qvarn.__version__,
             argv=sys.argv,
             env=dict(os.environ))
 
-    def _configure_logging_to_syslog(self):
-        writer = qvarn.SyslogSlogWriter()
-        qvarn.log.set_log_writer(writer)
+    def _load_filter_rules(self, conf, logname):
+        opt = logname + '-filter'
+        if conf.has_option('main', opt):
+            filename = conf.get('main', opt)
+            with open(filename) as f:
+                filters = yaml.safe_load(f)
+            return qvarn.construct_log_filter(filters)
+        else:
+            return qvarn.FilterAllow()
 
-    def _get_max_log_bytes(self, conf):
+    def _configure_logging_to_syslog(self, rule):
+        writer = qvarn.SyslogSlogWriter()
+        qvarn.log.add_log_writer(writer, rule)
+
+    def _get_max_log_bytes(self, conf, logname):
         max_bytes = 10 * 1024**2
-        if conf.has_option('main', 'log-max-bytes'):
-            max_bytes = conf.getint('main', 'log-max-bytes')
+        opt = logname + '-max-bytes'
+        if conf.has_option('main', opt):
+            max_bytes = conf.getint('main', opt)
         return max_bytes
 
-    def _configure_logging_to_file(self, filename, max_bytes):
+    def _configure_logging_to_file(self, filename, max_bytes, rule):
         writer = qvarn.FileSlogWriter()
-        writer.set_filename_prefix(filename)
+        writer.set_filename(filename)
         writer.set_max_file_size(max_bytes)
-        qvarn.log.set_log_writer(writer)
+        qvarn.log.add_log_writer(writer, rule)
 
     def _install_logging_plugin(self):
         logging_plugin = qvarn.LoggingPlugin()
@@ -307,10 +353,10 @@ class BackendApplication(object):
                 validation_key=validation_key,
                 issuer=issuer)
 
-    def _prepare_resources(self):
+    def _prepare_resources(self, resources):
         routes = []
-        for resource in self._resources:
-            routes += resource.prepare_resource(self._dbconn)
+        for r in resources:
+            routes += r.prepare_resource(self._dbconn)
         return routes
 
     def _store_resource_types(self, specs_and_texts):

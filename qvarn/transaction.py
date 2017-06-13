@@ -54,6 +54,7 @@ class Transaction(object):
         assert self._measurement is None
         self._measurement = qvarn.Measurement()
         self._conn = self._sql.get_conn()
+        qvarn.log.log('get_conn', conn=repr(self._conn))
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -65,8 +66,10 @@ class Transaction(object):
             else:  # pragma: no cover
                 self._conn.rollback()
         except BaseException:  # pragma: no cover
+            qvarn.log.log('put_conn', conn=repr(self._conn))
             self._sql.put_conn(self._conn)
             raise
+        qvarn.log.log('put_conn', conn=repr(self._conn))
         self._sql.put_conn(self._conn)
         self._measurement.finish()
         self._measurement.log(exc_tb)

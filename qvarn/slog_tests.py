@@ -35,29 +35,18 @@ class StructuredLogTests(unittest.TestCase):
         shutil.rmtree(self.tempdir)
 
     def create_structured_log(self):
-        prefix = os.path.join(self.tempdir, 'slog')
+        filename = os.path.join(self.tempdir, 'slog.log')
         writer = qvarn.FileSlogWriter()
-        writer.set_filename_prefix(prefix)
+        writer.set_filename(filename)
 
         slog = qvarn.StructuredLog()
-        slog.set_log_writer(writer)
-        return slog, writer, prefix
+        slog.add_log_writer(writer, qvarn.FilterAllow())
+        return slog, writer, filename
 
     def read_log_entries(self, writer):
         filename = writer.get_filename()
         with open(filename) as f:
             return [json.loads(line) for line in f]
-
-    def test_chooses_filename_using_prefix(self):
-        _, writer, prefix = self.create_structured_log()
-        filename = writer.get_filename()
-        self.assertTrue(filename.startswith(prefix))
-        self.assertFalse(filename == prefix)
-        self.assertTrue(filename.endswith('.log'))
-
-    def test_creates_file(self):
-        _, _, prefix = self.create_structured_log()
-        self.assertTrue(glob.glob(prefix + '*.log'))
 
     def test_logs_in_json(self):
         slog, writer, _ = self.create_structured_log()
@@ -145,14 +134,6 @@ class StructuredLogTests(unittest.TestCase):
         self.assertEqual(len(objs), 1)
         self.assertIn('_traceback', objs[0])
 
-    def test_rotates_after_size_limit(self):
-        slog, writer, _ = self.create_structured_log()
-        filename_1 = writer.get_filename()
-        writer.set_max_file_size(1)
-        slog.log('testmsg')
-        filename_2 = writer.get_filename()
-        self.assertNotEqual(filename_1, filename_2)
-
     def test_logs_unicode(self):
         slog, writer, _ = self.create_structured_log()
         slog.log('testmsg', text=u'foo')
@@ -213,3 +194,71 @@ class StructuredLogTests(unittest.TestCase):
         objs = self.read_log_entries(writer)
         self.assertEqual(len(objs), 1)
         self.assertEqual(objs[0]['dikt'], dikt)
+
+    def test_logs_to_two_files(self):
+        filename1 = os.path.join(self.tempdir, 'slog1XS')
+        writer1 = qvarn.FileSlogWriter()
+        writer1.set_filename(filename1)
+
+        filename2 = os.path.join(self.tempdir, 'slog2')
+        writer2 = qvarn.FileSlogWriter()
+        writer2.set_filename(filename2)
+
+        slog = qvarn.StructuredLog()
+        slog.add_log_writer(writer1, qvarn.FilterAllow())
+        slog.add_log_writer(writer2, qvarn.FilterAllow())
+
+        slog.log('test', msg_text='hello')
+        objs1 = self.read_log_entries(writer1)
+        objs2 = self.read_log_entries(writer2)
+
+        self.assertEqual(objs1, objs2)
+
+
+class FileSlogWriterTests(unittest.TestCase):
+
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
+    def test_gets_initial_filename_right(self):
+        fw = qvarn.FileSlogWriter()
+        fw.set_filename('foo.log')
+        self.assertEqual(fw.get_filename(), 'foo.log')
+
+    def test_gets_rotated_filename_right(self):
+        fw = qvarn.FileSlogWriter()
+        fw.set_filename('foo.log')
+        self.assertEqual(
+            fw.get_rotated_filename(now=(1969, 9, 1, 14, 30, 42)),
+            'foo-19690901T143042.log'
+        )
+
+    def test_creates_file(self):
+        fw = qvarn.FileSlogWriter()
+        filename = os.path.join(self.tempdir, 'slog.log')
+        fw.set_filename(filename)
+        self.assertTrue(os.path.exists(filename))
+
+    def test_rotates_after_size_limit(self):
+        fw = qvarn.FileSlogWriter()
+        filename = os.path.join(self.tempdir, 'slog.log')
+        fw.set_filename(filename)
+        fw.set_max_file_size(1)
+        fw.write({'foo': 'bar'})
+        filenames = glob.glob(self.tempdir + '/*.log')
+        self.assertEqual(len(filenames), 2)
+        self.assertTrue(filename in filenames)
+
+        rotated_filename = [x for x in filenames if x != filename][0]
+        objs1 = self.load_log_objs(filename)
+        objs2 = self.load_log_objs(rotated_filename)
+
+        self.assertEqual(len(objs1), 0)
+        self.assertEqual(len(objs2), 1)
+
+    def load_log_objs(self, filename):
+        with open(filename) as f:
+            return [json.loads(line) for line in f]

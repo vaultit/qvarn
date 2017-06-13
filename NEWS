@@ -1,7 +1,11 @@
 NEWS for Qvarn
 ==============
 
-Version 0.81+git, not yet released
+Version 0.82+git, not yet released
+----------------------------------
+
+
+Version 0.82, released 2017-06-06
 ----------------------------------
 
 * Added some documentation for resource type definition.
@@ -12,6 +16,17 @@ Version 0.81+git, not yet released
 * Made the Transaction class handle exceptions when committing or
   rolling back a database transaction, and not leak database
   connections. Reported by Marius Gedminas.
+
+* Qvarn can now log up to five log files simultanously. Each file can
+  have its own filtering rules.
+
+* Qvarn now rotates its log files as soon as they become longer than
+  the specified limit. The current log file gets renamed to have a
+  timestamp, and a new log file is created with the specified name.
+
+* Qvarn now logs when it starts using a Postgres connection or stops
+  using it. These are done with the log message types `get_conn` and
+  `put_conn` respectively.
 
 Version 0.81, released 2017-03-10
 ----------------------------------

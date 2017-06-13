@@ -72,19 +72,22 @@ The Qvarn structured logging library is used like this:
 
     import qvarn
 
+    writer = qvarn.FileSlogWriter()
+    writer.set_filename('qvarn.log')
+
+    syslog = qvarn.SyslogSlogWriter()
+
     log = qvarn.StructuredLog()
-    log.set_writer(qvarn.NullSlogWriter())
-    log.set_filename_prefix('slog-demo')
+    log.add_log_writer(writer)
+    log.add_log_writer(syslog)
+    log.set_context('demo')
     log.log('intro', msg_text='hello, there, this is a structured log file')
     log.log('intro', msg_text='each line is JSON')
     log.close()
 
-The `qvarn.StructuredLog` class is used for the log. It writes to a
-file, whose name is derived from the prefix set with
-`set_filename_prefix`, by appending a timestamp to the prefix. The
-maximum size (in bytes written by the log) of a log file is specified
-with `set_max_file_size`. A new file is created every time the log has
-written the specified number of bytes. The default is to not rotate.
+The `qvarn.StructuredLog` class is used for the log. It writes to all
+the locations for which it is given writers. In the example above,
+that means the file `qvarn.log` and the system log.
 
 Qvarn provides a global instace of `qvarn.StructuredLog`, called
 `qvarn.log`. This is created and configured automatically by the main
@@ -120,21 +123,21 @@ That's really all there is to it. Well, except actual log files.
 
 ## Structured log writers
 
-In the example in the previous section we used `NullSlogWriter`
-without explaining it. Structured logs can be written to various
-places. `NullSlogWriter` writes them into oblivion. In other words, it
-doesn't write them anywhere.
+Structured logs can be written to several places, each provided by an
+object that is a subclass of the `SlogWriter` class. Multiple writers
+can be added at the same time.
 
-More useful are `FileSlogWriter` and `SyslogSlogWriter`, which write
-to text files and the syslog service, respectively.
+Important writers are `FileSlogWriter` and `SyslogSlogWriter`, which
+write to text files and the syslog service, respectively.
 
 `FileSlogWriter` is used like this:
 
     writer = qvarn.FileSlogWriter()
-    writer.set_filename_prefix('slog-demo')
+    writer.set_filename('slog-demo.log')
+    writer.set_max_file_bytes(1024^4)
 
     log = qvarn.StructuredLog()
-    log.set_log_writer(writer)
+    log.add_log_writer(writer)
 
 In other words, you first crete the writer object, configure it, and
 then you tell the log object which writer to use.
@@ -153,33 +156,49 @@ Most logging systems support a "log level" that can be attached to
 each message: debug, info, notify, warning, error, fatal, and critical
 are common log levels. The point is to allow filtering based on the
 severity of the message. However, the Qvarn library is of the opinion
-that this is too simplistic to be useful, and that usually when
-there's an error, you want the preceding messages, regardless of log
-level, to figure out what caused the error. Instead of log levels,
-Qvarn log messages have context and message type fields.
+that this is too simplistic to be sufficiently useful, and that
+usually when there's an error, you want the preceding messages,
+regardless of log level, to figure out what caused the error. Instead
+of log levels, Qvarn log messages have context and message type
+fields for filtering instead.
 
 # Structured logging API reference
 
-FIXME: This chapter needs to be written.
+FIXME: This chapter needs to be written. For now, check the `slog.py`
+and `slog_filter.py` source files inestad.
 
 # Using structured log files
 
 ## File format
 
-## The slog-pretty
+The file format is one line per log entry, and the line encodes a JSON
+object. That's really everything you need to know to proces the logs
+programmatically.
+
+## The slog-pretty tool
 
 A Qvarn structured log file has one message per line, and the message
-is encoded as JSON. There's no line length. The log file can be read
-directly, but it is probably not particularly easy.
+is encoded as JSON. There's no line length. The log file can be viewed
+directly, but it is probably not particularly nice for humans.
 
-The `slog-pretty` script reads one or more Qvarn log files, named on the
-command line, and outputs them in prettier JSON format.
+The `slog-pretty` tool reads one or more Qvarn log files, named on the
+command line, or from the standard input, and outputs them in YAML
+format to be easier to read.
 
 Example:
 
     slog-pretty /var/log/qvarn/*.log | less
 
 Note that a log file isn't valid JSON as such, only each line is JSON.
+
+## The slog-errors tool
+
+The `slog-errors` tool reads JSON-format log files and looks for
+errors. Errors have a message type `error`, have a traceback, or
+contain an HTTP status of at least 400. If it finds any, it collects
+all the messages in the same context and outputs them. This especially
+means all messages related to an HTTP request that has failed for any
+reason.
 
 ## Timestamps
 
@@ -188,12 +207,12 @@ and have microsecond resolution.
 
 ## Post-processing structured logs
 
-A more powerful approach is to write some code to extract useful
+A powerful approach is to write some code to extract useful
 information from a log file. For example, finding all HTTP requests
 that result in an HTTP 500 status code, and collecting all the log
 messages with the same context.
 
-FIXME: Add some example code for that.
+See the `slog-errors` script for an example.
 
 # Best practices for logging
 

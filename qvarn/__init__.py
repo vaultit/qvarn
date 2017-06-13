@@ -29,6 +29,17 @@ from .slog import (
     hijack_logging,
 )
 
+from .slog_filter import (
+    FilterAllow,
+    FilterDeny,
+    FilterFieldHasValue,
+    FilterFieldValueRegexp,
+    FilterHasField,
+    FilterInclude,
+    FilterAny,
+    construct_log_filter,
+)
+
 from .exc import (
     QvarnException,
 )
@@ -113,6 +124,7 @@ from .filler import (
 )
 
 from .util import (
+    get_resource_type_from_path,
     route_to_scope,
     table_name,
     ComplicatedTableNameError,

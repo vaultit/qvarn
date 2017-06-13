@@ -46,9 +46,10 @@ def setup_version_resource(app):
 
     resource = qvarn.SimpleResource()
     resource.set_path(u'/version', version)
-    app.add_resource(resource)
+    return resource
 
 
 app = qvarn.BackendApplication()
-setup_version_resource(app)
+resource = setup_version_resource(app)
+app.add_routes([resource])
 application = app.prepare_for_uwsgi(specdir)
