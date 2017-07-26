@@ -28,10 +28,33 @@
 
 import urllib
 import urlparse
+import collections
+import json
 
 import bottle
 
 import qvarn
+
+
+SearchParam = collections.namedtuple('SearchParam', (
+    'rule',
+    'key',
+    'value',
+    # If any is True, value is expected to be a list search parameter evaluates
+    # to true if any value in the list is true for this rule and key. For
+    # example:
+    #
+    #   /search/any/exact/foo/[1,2]
+    #
+    # Converted to SQL looks like this:
+    #
+    #   WHERE foo = 1 OR foo = 2
+    'any',
+))
+
+
+def create_search_param(rule, key, value, any=False):
+    return SearchParam(rule, key, value, any)
 
 
 class ListResource(object):
@@ -191,6 +214,7 @@ class ListResource(object):
         sort_params = []
         limit = None
         offset = None
+        search_any = False
 
         opers = [
             u'exact',
@@ -211,8 +235,20 @@ class ListResource(object):
                 matching_rule = part
                 search_field = criteria[i + 1]
                 search_value = criteria[i + 2]
-                search_param = (matching_rule, search_field, search_value)
+                if search_any:
+                    try:
+                        search_value = json.loads(search_value)
+                    except ValueError as e:
+                        raise BadAnySearchValue(error=str(e))
+                    if not isinstance(search_value, list):
+                        raise BadAnySearchValue(
+                            error=u"%r is not a list" % search_value)
+                search_param = create_search_param(
+                    matching_rule, search_field, search_value,
+                    any=search_any,
+                )
                 search_params.append(search_param)
+                search_any = False
                 i += 3
             elif part == u'show_all':
                 show_params.append(part)
@@ -242,6 +278,9 @@ class ListResource(object):
                 if offset < 0:
                     raise BadOffsetValue(error="should be positive integer")
                 i += 2
+            elif part == u'any':
+                search_any = True
+                i += 1
             else:
                 raise BadSearchCondition()
 
@@ -399,3 +438,8 @@ class BadLimitValue(LimitError):
 class BadOffsetValue(LimitError):
 
     msg = u'Invalid OFFSET value: {error}.'
+
+
+class BadAnySearchValue(qvarn.BadRequest):
+
+    msg = u"Can't parse ANY search value: {error}."

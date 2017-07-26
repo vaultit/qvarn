@@ -74,8 +74,8 @@ class ReadOnlyStorage(object):
                limit=None, offset=None):
         '''Do a search.
 
-        ``search_params`` is a list of (matching rule, key, value)
-        tuples. The returned rows are those that match all the
+        ``search_params`` is a list of qvarn.list_resource.SearchParam
+        named tuples. The returned rows are those that match all the
         conditions in the list.
         ``show_params`` is a list containing key fields included
         in the result object. If it contains a single ``show_all``
@@ -195,31 +195,38 @@ class ReadOnlyStorage(object):
             u'startswith': u'{} LIKE {} || \'%%\'',
             u'contains': u'{} LIKE \'%%\' || {} || \'%%\''
         }
-        rule, key, value = param
-        assert rule in rule_queries.keys()
+        assert param.rule in rule_queries.keys()
 
         conds = []
         for table_name, column_name, column_type in schema:
-            rand_name = unicode(uuid.uuid4())
-            if column_name == key:
+            if column_name == param.key:
                 if table_name == main_table:
                     table_alias = u't0'
                 else:
                     table_alias = u't' + str(len(tables_used))
                     tables_used.append(table_name)
+
                 qualified_name = sql.qualified_column(table_alias, column_name)
                 if column_type == unicode:
                     qualified_name = u'LOWER(' + qualified_name + u')'
-                conds.append(rule_queries[rule].format(
-                    qualified_name,
-                    sql.format_qualified_placeholder(
-                        table_name, rand_name)))
-                name = sql.format_qualified_placeholder_name(
-                    table_name, rand_name)
-                values[name] = self._cast_value(value)
+
+                if param.any:
+                    values_list = param.value
+                else:
+                    values_list = [param.value]
+
+                for value in values_list:
+                    rand_name = unicode(uuid.uuid4())
+                    conds.append(rule_queries[param.rule].format(
+                        qualified_name,
+                        sql.format_qualified_placeholder(
+                            table_name, rand_name)))
+                    name = sql.format_qualified_placeholder_name(
+                        table_name, rand_name)
+                    values[name] = self._cast_value(value)
         if not conds:
             # key did not match column name in any table
-            raise FieldNotInResource(field=key)
+            raise FieldNotInResource(field=param.key)
         return u' OR '.join(conds)
 
     def _kludge_order_by_fields(self, sql, schema, key, main_table,

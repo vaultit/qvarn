@@ -20,6 +20,8 @@ import unittest
 
 import qvarn
 
+from qvarn.list_resource import create_search_param
+
 
 # pylint: disable=blacklisted-name
 def _build_item(baz=(u'bling', u'blang'), bool_=True, bar=u'barbaz',
@@ -146,7 +148,7 @@ class ReadOnlyStorageTests(ReadOnlyStorageBase):
             added = self.wo.add_item(t, self.item)
             new_id = added[u'id']
             search_result = self.ro.search(
-                t, [(u'exact', u'foo', u'foobar')], [])
+                t, [create_search_param(u'exact', u'foo', u'foobar')], [])
         self.assertEqual(search_result, {u'resources': [{u'id': new_id}]})
 
     def dont_test_search_main_list(self):
@@ -154,7 +156,7 @@ class ReadOnlyStorageTests(ReadOnlyStorageBase):
             added = self.wo.add_item(t, self.item)
             new_id = added[u'id']
             search_result = self.ro.search(
-                t, [('exact', u'bars', u'bar1')], {})
+                t, [create_search_param('exact', u'bars', u'bar1')], {})
         self.assertIn(new_id, search_result[u'resources'][0][u'id'])
 
     def dont_test_search_multiple_conditions(self):
@@ -164,8 +166,8 @@ class ReadOnlyStorageTests(ReadOnlyStorageBase):
             search_result = self.ro.search(
                 t,
                 [
-                    (u'exact', u'foo', u'foobar'),
-                    (u'exact', u'bars', u'bar1')
+                    create_search_param(u'exact', u'foo', u'foobar'),
+                    create_search_param(u'exact', u'bars', u'bar1'),
                 ],
                 [])
         self.assertIn(new_id, search_result[u'resources'][0][u'id'])
@@ -177,8 +179,8 @@ class ReadOnlyStorageTests(ReadOnlyStorageBase):
             search_result = self.ro.search(
                 t,
                 [
-                    (u'exact', u'foo', u'foobar'),
-                    (u'exact', u'type', u'yo')
+                    create_search_param(u'exact', u'foo', u'foobar'),
+                    create_search_param(u'exact', u'type', u'yo'),
                 ],
                 [])
         self.assertIn(new_id, search_result[u'resources'][0][u'id'])
@@ -190,8 +192,8 @@ class ReadOnlyStorageTests(ReadOnlyStorageBase):
             search_result = self.ro.search(
                 t,
                 [
-                    (u'exact', u'baz', u'bling'),
-                    (u'exact', u'baz', u'blang')
+                    create_search_param(u'exact', u'baz', u'bling'),
+                    create_search_param(u'exact', u'baz', u'blang'),
                 ],
                 [])
         self.assertIn(new_id, search_result[u'resources'][0][u'id'])
@@ -201,7 +203,7 @@ class ReadOnlyStorageTests(ReadOnlyStorageBase):
             added = self.wo.add_item(t, self.item)
             new_id = added[u'id']
             search_result = self.ro.search(
-                t, [(u'exact', u'bar', u'barbaz')], [])
+                t, [create_search_param(u'exact', u'bar', u'barbaz')], [])
         match_list = search_result[u'resources']
         self.assertIsNot(0, len(match_list))
         self.assertIn(new_id, match_list[0][u'id'])
@@ -211,7 +213,8 @@ class ReadOnlyStorageTests(ReadOnlyStorageBase):
             added = self.wo.add_item(t, self.item)
             new_id = added[u'id']
             search_result = self.ro.search(
-                t, [(u'exact', u'foo', u'foobar')], [u'show_all'])
+                t, [create_search_param(u'exact', u'foo', u'foobar')],
+                [u'show_all'])
         match_list = search_result[u'resources']
         self.assertIn(new_id, match_list[0][u'id'])
         self.assertIn(u'barbaz', match_list[0][u'bar'])
@@ -220,7 +223,8 @@ class ReadOnlyStorageTests(ReadOnlyStorageBase):
         with self._dbconn.transaction() as t:
             self.wo.add_item(t, self.item)
             search_result = self.ro.search(
-                t, [(u'exact', u'bool', 'false')], [u'show_all'])
+                t, [create_search_param(u'exact', u'bool', 'false')],
+                [u'show_all'])
         match_list = search_result[u'resources']
         self.assertEqual(match_list, [])
 
@@ -229,7 +233,8 @@ class ReadOnlyStorageTests(ReadOnlyStorageBase):
             added = self.wo.add_item(t, self.item)
             new_id = added[u'id']
             search_result = self.ro.search(
-                t, [(u'exact', u'bar', u'BANG')], [u'show_all'])
+                t, [create_search_param(u'exact', u'bar', u'BANG')],
+                [u'show_all'])
         match_list = search_result[u'resources']
         self.assertIn(new_id, match_list[0][u'id'])
 
@@ -237,7 +242,9 @@ class ReadOnlyStorageTests(ReadOnlyStorageBase):
         with self.assertRaises(qvarn.FieldNotInResource):
             with self._dbconn.transaction() as t:
                 self.wo.add_item(t, self.item)
-                self.ro.search(t, [(u'exact', u'KEY', u'BANG')], [u'show_all'])
+                self.ro.search(
+                    t, [create_search_param(u'exact', u'KEY', u'BANG')],
+                    [u'show_all'])
 
     def test_search_sort_by_nested_field_in_a_list(self):
         with self._dbconn.transaction() as t:

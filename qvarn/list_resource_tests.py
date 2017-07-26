@@ -16,14 +16,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import json
 import unittest
+import urllib
 
 import bottle
 
 import qvarn
 
 from qvarn.list_resource import (
-    LimitWithoutSortError, BadLimitValue, BadOffsetValue
+    LimitWithoutSortError, BadLimitValue, BadOffsetValue, BadAnySearchValue
 )
 
 
@@ -37,7 +39,10 @@ class ListResourceBase(unittest.TestCase):
         u'revision': u'',
         u'foo': u'',
         u'bar': u'',
+        u'lst': [u''],
     }
+
+    _default_show = None
 
     def setUp(self):
         self._dbconn = qvarn.DatabaseConnection()
@@ -67,44 +72,53 @@ class ListResourceBase(unittest.TestCase):
         # Reset bottle request.
         bottle.request = bottle.LocalRequest()
 
+    def _add_item(self, foo=u'', bar=u'', lst=None):
+        with self._dbconn.transaction() as t:
+            self.wo.add_item(t, {
+                u'type': u'yo',
+                u'foo': foo,
+                u'bar': bar,
+                u'lst': lst or [],
+            })
+
+    def _search(self, url, show=None):
+        bottle.request.environ['REQUEST_URI'] = url
+        search_result = self.resource.get_matching_items(url)
+        bottle.request = bottle.LocalRequest()
+
+        show = self._default_show if show is None else show
+        if show is None:
+            return search_result[u'resources']
+        else:
+            return [x[show] for x in search_result[u'resources']]
+
 
 class ListResourceTests(ListResourceBase):
 
     def test_lists_no_items_initially(self):
-        with self._dbconn.transaction() as t:
-            items = [
-                {u'type': u'yo', u'foo': u'a', u'bar': u'z'},
-                {u'type': u'yo', u'foo': u'c', u'bar': u'x'},
-                {u'type': u'yo', u'foo': u'b', u'bar': u'y'},
-            ]
-            for item in items:
-                self.wo.add_item(t, item)
+        self._add_item(foo=u'a', bar=u'z')
+        self._add_item(foo=u'c', bar=u'x')
+        self._add_item(foo=u'b', bar=u'y')
 
         # Sort by foo.
-        bottle.request.environ['REQUEST_URI'] = '/search/sort/foo/show_all'
-        search_result = self.resource.get_matching_items(None)
-        match_list = [item[u'foo'] for item in search_result[u'resources']]
-        self.assertEqual(match_list, [u'a', u'b', u'c'])
+        result = self._search(u'/search/sort/foo/show_all', show='foo')
+        self.assertEqual(result, [u'a', u'b', u'c'])
 
         # Sort by bar.
-        bottle.request.environ['REQUEST_URI'] = '/search/sort/bar/show_all'
-        search_result = self.resource.get_matching_items(None)
-        match_list = [item[u'bar'] for item in search_result[u'resources']]
-        self.assertEqual(match_list, [u'x', u'y', u'z'])
+        result = self._search(u'/search/sort/bar/show_all', show='bar')
+        self.assertEqual(result, [u'x', u'y', u'z'])
 
 
 class LimitTests(ListResourceBase):
+    _default_show = 'foo'
 
     def setUp(self):
         super(LimitTests, self).setUp()
-        with self._dbconn.transaction() as t:
-            for x in [u'a', u'b', u'c', u'd', u'e']:
-                self.wo.add_item(t, {u'type': u'yo', u'foo': x, u'bar': u''})
-
-    def _search(self, url):
-        bottle.request.environ['REQUEST_URI'] = url
-        search_result = self.resource.get_matching_items(None)
-        return [item[u'foo'] for item in search_result[u'resources']]
+        self._add_item(foo=u'a')
+        self._add_item(foo=u'b')
+        self._add_item(foo=u'c')
+        self._add_item(foo=u'd')
+        self._add_item(foo=u'e')
 
     def test_limit(self):
         result = self._search(u'/search/show_all/sort/foo/limit/2')
@@ -123,37 +137,115 @@ class LimitTests(ListResourceBase):
         self.assertEqual(result, [])
 
     def test_limit_without_sort(self):
-        message = (
-            u"LIMIT and OFFSET can only be used with together SORT."
-        )
-        with self.assertRaises(LimitWithoutSortError, msg=message):
+        with self.assertRaises(LimitWithoutSortError) as e:
             self._search(u'/search/show_all/limit/2')
+        self.assertEqual(str(e.exception), (
+            u"LIMIT and OFFSET can only be used with together SORT."
+        ))
 
     def test_invalid_limit(self):
-        message = (
+        with self.assertRaises(BadLimitValue) as e:
+            self._search(u'/search/show_all/sort/foo/limit/err')
+        self.assertEqual(str(e.exception), (
             u"Invalid LIMIT value: invalid literal for int() with base 10: "
             u"'err'."
-        )
-        with self.assertRaises(BadLimitValue, msg=message):
-            self._search(u'/search/show_all/sort/foo/limit/err')
+        ))
 
     def test_invalid_offset(self):
-        message = (
+        with self.assertRaises(BadOffsetValue) as e:
+            self._search(u'/search/show_all/sort/foo/offset/err')
+        self.assertEqual(str(e.exception), (
             u"Invalid OFFSET value: invalid literal for int() with base 10: "
             u"'err'."
-        )
-        with self.assertRaises(BadOffsetValue, msg=message):
-            self._search(u'/search/show_all/sort/foo/offset/err')
+        ))
 
     def test_negative_limit(self):
-        message = u"Invalid LIMIT value: should be positive integer."
-        with self.assertRaises(BadOffsetValue, msg=message):
-            self._search(u'/search/show_all/sort/foo/offset/-1')
+        with self.assertRaises(BadLimitValue) as e:
+            self._search(u'/search/show_all/sort/foo/limit/-1')
+        self.assertEqual(str(e.exception), (
+            u"Invalid LIMIT value: should be positive integer."
+        ))
 
     def test_negative_offset(self):
-        message = u"Invalid OFFSET value: should be positive integer."
-        with self.assertRaises(BadOffsetValue, msg=message):
+        with self.assertRaises(BadOffsetValue) as e:
             self._search(u'/search/show_all/sort/foo/offset/-1')
+        self.assertEqual(str(e.exception), (
+            u"Invalid OFFSET value: should be positive integer."
+        ))
+
+
+class SearchAnyTests(ListResourceBase):
+
+    def test_exact_scalar(self):
+        self._add_item(foo=u'a')
+        self._add_item(foo=u'b')
+        self._add_item(foo=u'c')
+
+        value = urllib.quote(json.dumps([u'a', u'b']), safe='')
+        result = self._search(u'/search/any/exact/foo/%s/show_all' % value,
+                              show=u'foo')
+        self.assertEqual(result, [u'a', u'b'])
+
+    def test_contains_scalar(self):
+        self._add_item(foo=u'foo')
+        self._add_item(foo=u'bar')
+        self._add_item(foo=u'baz')
+        self._add_item(foo=u'xyz')
+
+        value = urllib.quote(json.dumps([u'o', u'a']), safe='')
+        result = self._search(u'/search/any/contains/foo/%s/show_all' % value,
+                              show=u'foo')
+        self.assertEqual(result, [u'foo', u'bar', u'baz'])
+
+    def test_startswith_scalar(self):
+        self._add_item(foo=u'foo')
+        self._add_item(foo=u'bar')
+        self._add_item(foo=u'baz')
+        self._add_item(foo=u'xyz')
+
+        value = urllib.quote(json.dumps([u'fo', u'ba']), safe='')
+        result = self._search(u'/search/any/startswith/foo/%s/show_all' % value,
+                              show=u'foo')
+        self.assertEqual(result, [u'foo', u'bar', u'baz'])
+
+    def test_exact_list(self):
+        self._add_item(lst=list(u'abc'))
+        self._add_item(lst=list(u'def'))
+        self._add_item(lst=list(u'ghj'))
+
+        value = urllib.quote(json.dumps([u'b', u'd']), safe='')
+        result = self._search(u'/search/any/exact/lst/%s/show_all' % value,
+                              show=u'lst')
+        self.assertEqual(result, [
+            list(u'abc'),
+            list(u'def'),
+        ])
+
+    def test_exact_list_multiple(self):
+        self._add_item(lst=list(u'abc'))
+        self._add_item(lst=list(u'def'))
+        self._add_item(lst=list(u'ghj'))
+
+        value = urllib.quote(json.dumps([u'g', u'j']), safe='')
+        result = self._search(u'/search/any/exact/lst/%s/show_all' % value,
+                              show=u'lst')
+        self.assertEqual(result, [
+            list(u'ghj'),
+        ])
+
+    def test_non_json_value(self):
+        with self.assertRaises(BadAnySearchValue) as e:
+            self._search(u'/search/any/exact/foo/bar/show_all')
+        self.assertEqual(str(e.exception), (
+            u"Can't parse ANY search value: No JSON object could be decoded."
+        ))
+
+    def test_non_list_value(self):
+        with self.assertRaises(BadAnySearchValue) as e:
+            self._search(u'/search/any/exact/foo/0/show_all')
+        self.assertEqual(str(e.exception), (
+            u"Can't parse ANY search value: 0 is not a list."
+        ))
 
 
 class FakeListenerResource(object):
