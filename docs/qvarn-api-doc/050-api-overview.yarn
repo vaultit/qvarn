@@ -702,8 +702,8 @@ pattern is as follows, assuming a resource `/foos`:
 * `GET /foos/search/CLAUSE` --- do a search for individual resources
   of type `foo`. The search clause and the result are described below.
 
-The clause contains any number of the following search conditions,
-concatented in the URL path, which must all match a resource for it to
+The `CLAUSE` contains any number of the following search conditions,
+concatenated in the URL path, which must all match a resource for it to
 be included in the result:
 
 * `/exact/KEY/VALUE` --- the resource matches if it has a field `KEY`
@@ -737,6 +737,17 @@ For details on matching, see below.
 Note: We'll add more conditions as they're needed, but we'll try to
 keep the conditions few, simple, and powerful, and rely on some
 client side logic to refine the results.
+
+Some operators listed above can be combined with `any` modifier. `any` modifier
+expects `VALUE` to be a JSON + URL encoded list with one or more values in it:
+
+* `GET /foos/search/any/CLAUSE`
+
+For example: `/foos/search/any/exact/key/[1,2,3]`. This query would look for
+resources where `key` is exactly equal to `1`, `2` or `3`.
+
+Currently `any` modifier works only with `exact`, `startswith` and `contains`
+operators. Trying to use `any` with other operators will give you an error.
 
 Results can be sorted by one or more search keys:
 
@@ -1169,6 +1180,23 @@ Not equal.
     AND result has key "resources", a list containing {"id": "$ID1"}
     AND result has key "resources", a list that does not contain {"id": "$ID2"}
     AND result has key "resources", a list containing {"id": "$ID3"}
+
+Any given value.
+
+    WHEN client GETs
+    ... /contracts/search/any/exact/start_date/%5B%222013-03-13%22%2C%222014-03-13%22%5D
+    THEN HTTP status code is 200
+    AND result has key "resources", a list containing {"id": "$ID1"}
+    AND result has key "resources", a list that does not contain {"id": "$ID2"}
+    AND result has key "resources", a list containing {"id": "$ID3"}
+
+    WHEN client GETs
+    ... /contracts/search/any/startswith/start_date/%5B%222014%22%5D
+    THEN HTTP status code is 200
+    AND result has key "resources", a list that does not contain {"id": "$ID1"}
+    AND result has key "resources", a list that does not contain {"id": "$ID2"}
+    AND result has key "resources", a list containing {"id": "$ID3"}
+
 
 We create a new organisation and do a search for that organisation.
 
