@@ -22,6 +22,27 @@ import collections
 
 import qvarn
 
+SearchParam = collections.namedtuple('SearchParam', (
+    'rule',
+    'key',
+    'value',
+    # If any is True, value is expected to be a JSON list. Search parameter
+    # evaluates to true if any value in the list is true for this rule and key.
+    # For example:
+    #
+    #   /search/any/exact/foo/[1,2]
+    #
+    # Converted to SQL looks like this:
+    #
+    #   WHERE foo = 1 OR foo = 2
+    'any',
+))
+
+
+# pylint: disable=redefined-builtin
+def create_search_param(rule, key, value, any=False):
+    return SearchParam(rule, key, value, any)
+
 
 class ReadOnlyStorage(object):
 
