@@ -40,9 +40,9 @@ SearchParam = collections.namedtuple('SearchParam', (
     'rule',
     'key',
     'value',
-    # If any is True, value is expected to be a list search parameter evaluates
-    # to true if any value in the list is true for this rule and key. For
-    # example:
+    # If any is True, value is expected to be a JSON list. Search parameter
+    # evaluates to true if any value in the list is true for this rule and key.
+    # For example:
     #
     #   /search/any/exact/foo/[1,2]
     #
@@ -216,6 +216,12 @@ class ListResource(object):
         offset = None
         search_any = False
 
+        any_opers = [
+            u'exact',
+            u'startswith',
+            u'contains',
+        ]
+
         opers = [
             u'exact',
             u'gt',
@@ -279,6 +285,13 @@ class ListResource(object):
                     raise BadOffsetValue(error="should be positive integer")
                 i += 2
             elif part == u'any':
+                if (i + 1) >= len(criteria):
+                    raise MissingAnyOperator()
+                elif criteria[i + 1] not in any_opers:
+                    raise InvalidAnyOperator(
+                        allowed_operators=', '.join(any_opers),
+                        given_operator=criteria[i + 1],
+                    )
                 search_any = True
                 i += 1
             else:
@@ -443,3 +456,16 @@ class BadOffsetValue(LimitError):
 class BadAnySearchValue(qvarn.BadRequest):
 
     msg = u"Can't parse ANY search value: {error}."
+
+
+class InvalidAnyOperator(qvarn.BadRequest):
+
+    msg = (
+        u"Only one of {allowed_operators} operators can be used with /any/, "
+        u"got /{given_operator}/."
+    )
+
+
+class MissingAnyOperator(qvarn.BadRequest):
+
+    msg = u"Operator was not provided for /any/ condition."

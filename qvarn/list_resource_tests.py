@@ -25,7 +25,8 @@ import bottle
 import qvarn
 
 from qvarn.list_resource import (
-    LimitWithoutSortError, BadLimitValue, BadOffsetValue, BadAnySearchValue
+    LimitWithoutSortError, BadLimitValue, BadOffsetValue, BadAnySearchValue,
+    InvalidAnyOperator, MissingAnyOperator,
 )
 
 
@@ -245,6 +246,21 @@ class SearchAnyTests(ListResourceBase):
             self._search(u'/search/any/exact/foo/0/show_all')
         self.assertEqual(str(e.exception), (
             u"Can't parse ANY search value: 0 is not a list."
+        ))
+
+    def test_invalid_any_operator(self):
+        with self.assertRaises(InvalidAnyOperator) as e:
+            self._search(u'/search/any/ne/foo/0/show_all')
+        self.assertEqual(str(e.exception), (
+            u"Only one of exact, startswith, contains operators can be "
+            u"used with /any/, got /ne/."
+        ))
+
+    def test_no_args_after_any(self):
+        with self.assertRaises(MissingAnyOperator) as e:
+            self._search(u'/search/any')
+        self.assertEqual(str(e.exception), (
+            u"Operator was not provided for /any/ condition."
         ))
 
 
