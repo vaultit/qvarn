@@ -53,6 +53,7 @@ SearchParam = collections.namedtuple('SearchParam', (
 ))
 
 
+# pylint: disable=redefined-builtin
 def create_search_param(rule, key, value, any=False):
     return SearchParam(rule, key, value, any)
 

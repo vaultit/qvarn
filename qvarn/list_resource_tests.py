@@ -73,6 +73,7 @@ class ListResourceBase(unittest.TestCase):
         # Reset bottle request.
         bottle.request = bottle.LocalRequest()
 
+    # pylint: disable=blacklisted-name
     def _add_item(self, foo=u'', bar=u'', lst=None):
         with self._dbconn.transaction() as t:
             self.wo.add_item(t, {
@@ -205,8 +206,8 @@ class SearchAnyTests(ListResourceBase):
         self._add_item(foo=u'xyz')
 
         value = urllib.quote(json.dumps([u'fo', u'ba']), safe='')
-        result = self._search(u'/search/any/startswith/foo/%s/show_all' % value,
-                              show=u'foo')
+        result = self._search(
+            u'/search/any/startswith/foo/%s/show_all' % value, show=u'foo')
         self.assertEqual(result, [u'foo', u'bar', u'baz'])
 
     def test_exact_list(self):
