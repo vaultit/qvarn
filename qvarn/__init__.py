@@ -108,6 +108,7 @@ from .read_only import (
     ReadOnlyStorage,
     ItemDoesNotExist,
     FieldNotInResource,
+    create_search_param,
 )
 
 from .restype_storage import (

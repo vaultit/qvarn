@@ -28,6 +28,7 @@
 
 import urllib
 import urlparse
+import json
 
 import bottle
 
@@ -191,6 +192,13 @@ class ListResource(object):
         sort_params = []
         limit = None
         offset = None
+        search_any = False
+
+        any_opers = [
+            u'exact',
+            u'startswith',
+            u'contains',
+        ]
 
         opers = [
             u'exact',
@@ -211,8 +219,20 @@ class ListResource(object):
                 matching_rule = part
                 search_field = criteria[i + 1]
                 search_value = criteria[i + 2]
-                search_param = (matching_rule, search_field, search_value)
+                if search_any:
+                    try:
+                        search_value = json.loads(search_value)
+                    except ValueError as e:
+                        raise BadAnySearchValue(error=str(e))
+                    if not isinstance(search_value, list):
+                        raise BadAnySearchValue(
+                            error=u"%r is not a list" % search_value)
+                search_param = qvarn.create_search_param(
+                    matching_rule, search_field, search_value,
+                    any=search_any,
+                )
                 search_params.append(search_param)
+                search_any = False
                 i += 3
             elif part == u'show_all':
                 show_params.append(part)
@@ -242,6 +262,16 @@ class ListResource(object):
                 if offset < 0:
                     raise BadOffsetValue(error="should be positive integer")
                 i += 2
+            elif part == u'any':
+                if (i + 1) >= len(criteria):
+                    raise MissingAnyOperator()
+                elif criteria[i + 1] not in any_opers:
+                    raise InvalidAnyOperator(
+                        allowed_operators=', '.join(any_opers),
+                        given_operator=criteria[i + 1],
+                    )
+                search_any = True
+                i += 1
             else:
                 raise BadSearchCondition()
 
@@ -399,3 +429,21 @@ class BadLimitValue(LimitError):
 class BadOffsetValue(LimitError):
 
     msg = u'Invalid OFFSET value: {error}.'
+
+
+class BadAnySearchValue(qvarn.BadRequest):
+
+    msg = u"Can't parse ANY search value: {error}."
+
+
+class InvalidAnyOperator(qvarn.BadRequest):
+
+    msg = (
+        u"Only one of {allowed_operators} operators can be used with /any/, "
+        u"got /{given_operator}/."
+    )
+
+
+class MissingAnyOperator(qvarn.BadRequest):
+
+    msg = u"Operator was not provided for /any/ condition."

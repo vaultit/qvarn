@@ -200,8 +200,10 @@ class ListenerResource(object):
             self._notification_table, notification_prototype)
         with self._dbconn.transaction() as t:
             # Horribly inefficient start
-            result = ro.search(
-                t, [(u'exact', u'listener_id', listener_id)], [u'show_all'])
+            result = ro.search(t, [
+                qvarn.create_search_param(u'exact', u'listener_id',
+                                          listener_id),
+            ], [u'show_all'])
             result[u'resources'].sort(
                 key=lambda resource: resource[u'last_modified'])
             result[u'resources'] = [
@@ -284,8 +286,10 @@ class ListenerResource(object):
 
             ro = self._create_resource_ro_storage(
                 self._notification_table, notification_prototype)
-            notification_resources = ro.search(
-                t, [(u'exact', u'listener_id', listener_id)], [])
+            notification_resources = ro.search(t, [
+                qvarn.create_search_param(u'exact', u'listener_id',
+                                          listener_id),
+            ], [])
 
             wo_notification = self._create_resource_wo_storage(
                 self._notification_table, notification_prototype)
@@ -316,8 +320,9 @@ class ListenerResource(object):
         with self._dbconn.transaction() as t:
             ro = self._create_resource_ro_storage(
                 self._listener_table, listener_prototype)
-            listener_resources = ro.search(
-                t, [(u'exact', u'notify_of_new', True)], [])
+            listener_resources = ro.search(t, [
+                qvarn.create_search_param(u'exact', u'notify_of_new', True),
+            ], [])
 
             wo = self._create_resource_wo_storage(
                 self._notification_table, notification_prototype)
@@ -342,10 +347,12 @@ class ListenerResource(object):
         with self._dbconn.transaction() as t:
             ro = self._create_resource_ro_storage(
                 self._listener_table, listener_prototype)
-            listener_resources = ro.search(
-                t, [(u'exact', u'listen_on', item_id)], [])
-            wildcard_listener_resources = ro.search(
-                t, [(u'exact', u'listen_on_all', True)], [])
+            listener_resources = ro.search(t, [
+                qvarn.create_search_param(u'exact', u'listen_on', item_id),
+            ], [])
+            wildcard_listener_resources = ro.search(t, [
+                qvarn.create_search_param(u'exact', u'listen_on_all', True),
+            ], [])
             listeners = listener_resources[u'resources']
             listeners.extend(wildcard_listener_resources[u'resources'])
 
@@ -355,7 +362,7 @@ class ListenerResource(object):
                 notification = {
                     u'type': u'notification',
                     u'listener_id': listener[u'id'],
-                    u'resource_id':  item_id,
+                    u'resource_id': item_id,
                     u'resource_revision': item_revision,
                     u'resource_change': u'updated',
                     u'last_modified': int(time.time() * 1000000)
@@ -372,10 +379,12 @@ class ListenerResource(object):
         with self._dbconn.transaction() as t:
             ro = self._create_resource_ro_storage(
                 self._listener_table, listener_prototype)
-            listener_resources = ro.search(
-                t, [(u'exact', u'listen_on', item_id)], [])
-            wildcard_listener_resources = ro.search(
-                t, [(u'exact', u'listen_on_all', True)], [])
+            listener_resources = ro.search(t, [
+                qvarn.create_search_param(u'exact', u'listen_on', item_id),
+            ], [])
+            wildcard_listener_resources = ro.search(t, [
+                qvarn.create_search_param(u'exact', u'listen_on_all', True),
+            ], [])
             listeners = listener_resources[u'resources']
             listeners.extend(wildcard_listener_resources[u'resources'])
 
