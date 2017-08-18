@@ -68,10 +68,10 @@ class BackendApplication(object):
         self._vs_list = []
         self._conf = None
 
-    def add_versioned_storage(self, versioned_storage):
+    def add_versioned_storage(self, versioned_storage):  # pragma: no cover
         self._vs_list.append(versioned_storage)
 
-    def add_routes(self, resources):
+    def add_routes(self, resources):  # pragma: no cover
         '''Add routes to the application.
 
         A route is the path serve (e.g., "/version"), the HTTP method
@@ -87,7 +87,7 @@ class BackendApplication(object):
         for route in routes:
             self._app.route(**route)
 
-    def prepare_for_uwsgi(self, specdir):
+    def prepare_for_uwsgi(self, specdir):  # pragma: no cover
         '''Prepare the application to be run by uwsgi.
 
         Load resource type specifications from specdir, if in prepare
@@ -117,7 +117,7 @@ class BackendApplication(object):
         else:
             return self._app
 
-    def run_helper(self, specdir):
+    def run_helper(self, specdir):  # pragma: no cover
         self._conf, args = self._parse_config()
 
         if args.prepare_storage:
@@ -142,7 +142,7 @@ class BackendApplication(object):
             import uwsgidecorators
             uwsgidecorators.postfork(self._uwsgi_postfork_setup)
 
-    def _uwsgi_postfork_setup(self):
+    def _uwsgi_postfork_setup(self):  # pragma: no cover
         '''Setup after uWSGI has forked the process.
 
         We create the database connection pool after uWSGI has forked the
@@ -156,7 +156,7 @@ class BackendApplication(object):
         self._app.add_hook('before_request', self._add_missing_route)
         self._app.install(qvarn.StringToUnicodePlugin())
 
-    def _add_missing_route(self):
+    def _add_missing_route(self):  # pragma: no cover
         # If the route already exists, do nothing. Otherwise, check if
         # request path refers to a defined resource type, and if so,
         # add route. Otherwise, sucks to be the API client.
@@ -186,20 +186,21 @@ class BackendApplication(object):
             type_names = rst.get_types(t)
             for type_name in type_names:
                 spec = rst.get_spec(t, type_name)
-                if spec[u'path'] == path:
+                if spec[u'path'] == path or path.startswith(spec[u'path'] +
+                                                            u'/'):
                     qvarn.log.log(
                         'debug', msg_text='Found spec', path=path, spec=spec)
                     return spec
         qvarn.log.log('debug', msg_text='No spec found for path', path=path)
         return None
 
-    def _add_route_for_resource_type(self, spec):
+    def _add_route_for_resource_type(self, spec):  # pragma: no cover
         qvarn.log.log(
             'debug', msg_text='Adding missing route', path=spec['path'])
         resources = qvarn.add_resource_type_to_server(self, spec)
         self.add_routes(resources)
 
-    def _parse_config(self):
+    def _parse_config(self):  # pragma: no cover
         parser = argparse.ArgumentParser()
         parser.add_argument(
             '--prepare-storage',
@@ -217,7 +218,7 @@ class BackendApplication(object):
             raise MissingConfigFileError(filename=args.config)
         return config, args
 
-    def _connect_to_storage(self, conf):
+    def _connect_to_storage(self, conf):  # pragma: no cover
         '''Prepare the database for use.'''
 
         args = {
@@ -238,7 +239,7 @@ class BackendApplication(object):
         self._dbconn = qvarn.DatabaseConnection()
         self._dbconn.set_sql(sql)
 
-    def _load_specs_from_files(self, specdir):
+    def _load_specs_from_files(self, specdir):  # pragma: no cover
         qvarn.log.log(
             'debug', msg_text='Loading specs from {!r}'.format(specdir))
         specs = []
@@ -251,7 +252,7 @@ class BackendApplication(object):
             specs.append((spec, spec_text))
         return specs
 
-    def _load_specs_from_db(self):
+    def _load_specs_from_db(self):  # pragma: no cover
         qvarn.log.log('debug', msg_text='Loading specs from database')
         specs = []
         rst = qvarn.ResourceTypeStorage()
@@ -264,26 +265,26 @@ class BackendApplication(object):
                 specs.append(spec)
         return specs
 
-    def _find_yaml_files(self, specdir):
+    def _find_yaml_files(self, specdir):  # pragma: no cover
         basenames = os.listdir(specdir)
         return [
             os.path.join(specdir, x) for x in basenames if x.endswith('.yaml')
         ]
 
-    def _add_resource_types_from_specs(self, specs):
+    def _add_resource_types_from_specs(self, specs):  # pragma: no cover
         resources = []
         for spec in specs:
             resources += qvarn.add_resource_type_to_server(self, spec)
         return resources
 
-    def _prepare_storage(self, conf):
+    def _prepare_storage(self, conf):  # pragma: no cover
         '''Prepare the database for use.'''
         if not conf.getboolean('database', 'readonly'):
             with self._dbconn.transaction() as t:
                 for vs in self._vs_list:
                     vs.prepare_storage(t)
 
-    def _configure_logging(self, conf):
+    def _configure_logging(self, conf):  # pragma: no cover
         lognames = ['log', 'log2', 'log3', 'log4', 'log5']
         for logname in lognames:
             if conf.has_option('main', logname):
@@ -302,7 +303,7 @@ class BackendApplication(object):
             argv=sys.argv,
             env=dict(os.environ))
 
-    def _load_filter_rules(self, conf, logname):
+    def _load_filter_rules(self, conf, logname):  # pragma: no cover
         opt = logname + '-filter'
         if conf.has_option('main', opt):
             filename = conf.get('main', opt)
@@ -312,28 +313,29 @@ class BackendApplication(object):
         else:
             return qvarn.FilterAllow()
 
-    def _configure_logging_to_syslog(self, rule):
+    def _configure_logging_to_syslog(self, rule):  # pragma: no cover
         writer = qvarn.SyslogSlogWriter()
         qvarn.log.add_log_writer(writer, rule)
 
-    def _get_max_log_bytes(self, conf, logname):
+    def _get_max_log_bytes(self, conf, logname):  # pragma: no cover
         max_bytes = 10 * 1024**2
         opt = logname + '-max-bytes'
         if conf.has_option('main', opt):
             max_bytes = conf.getint('main', opt)
         return max_bytes
 
-    def _configure_logging_to_file(self, filename, max_bytes, rule):
+    def _configure_logging_to_file(self, filename, max_bytes,
+                                   rule):  # pragma: no cover
         writer = qvarn.FileSlogWriter()
         writer.set_filename(filename)
         writer.set_max_file_size(max_bytes)
         qvarn.log.add_log_writer(writer, rule)
 
-    def _install_logging_plugin(self):
+    def _install_logging_plugin(self):  # pragma: no cover
         logging_plugin = qvarn.LoggingPlugin()
         self._app.install(logging_plugin)
 
-    def _setup_auth(self, conf):
+    def _setup_auth(self, conf):  # pragma: no cover
         validation_key = None
         issuer = None
 
@@ -353,13 +355,13 @@ class BackendApplication(object):
                 validation_key=validation_key,
                 issuer=issuer)
 
-    def _prepare_resources(self, resources):
+    def _prepare_resources(self, resources):  # pragma: no cover
         routes = []
         for r in resources:
             routes += r.prepare_resource(self._dbconn)
         return routes
 
-    def _store_resource_types(self, specs_and_texts):
+    def _store_resource_types(self, specs_and_texts):  # pragma: no cover
         qvarn.log.log('debug', msg_text='Storing specs in database')
         rst = qvarn.ResourceTypeStorage()
         with self._dbconn.transaction() as t:
