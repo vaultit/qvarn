@@ -1,6 +1,7 @@
 # backend_app.py - implement main parts of a backend application
 #
 # Copyright 2015, 2016 Suomen Tilaajavastuu Oy
+# Copyright 2017 Vaultit AB
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
