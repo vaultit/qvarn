@@ -92,7 +92,7 @@ class ListenerResource(object):
         self._notification_table = qvarn.table_name(
             resource_type=item_type, auxtable=u'notification')
 
-    def _quote(self, path):
+    def _quote(self, path):  # pragma: no cover
         path = path.lstrip('/')
         return '_'.join(path.split('/'))
 
@@ -180,7 +180,7 @@ class ListenerResource(object):
                 'warning', msg_text='Ignoring exception from ALTER TABLE',
                 exception=str(e))
 
-    def get_listeners(self):
+    def get_listeners(self):  # pragma: no cover
         '''Serve GET /foos/listeners to list all listeners.'''
         ro = self._create_resource_ro_storage(
             self._listener_table, listener_prototype)
@@ -199,17 +199,10 @@ class ListenerResource(object):
         ro = self._create_resource_ro_storage(
             self._notification_table, notification_prototype)
         with self._dbconn.transaction() as t:
-            # Horribly inefficient start
             result = ro.search(t, [
                 qvarn.create_search_param(u'exact', u'listener_id',
                                           listener_id),
-            ], [u'show_all'])
-            result[u'resources'].sort(
-                key=lambda resource: resource[u'last_modified'])
-            result[u'resources'] = [
-                {u'id': resource[u'id']} for resource in result[u'resources']
-            ]
-            # Horribly inefficient end
+            ], [], sort_params=[u'last_modified'])
         return result
 
     def post_listener(self):
@@ -258,7 +251,7 @@ class ListenerResource(object):
         with self._dbconn.transaction() as t:
             return ro.get_item(t, notification_id)
 
-    def put_listener(self, listener_id):
+    def put_listener(self, listener_id):  # pragma: no cover
         '''Serve PUT /foos/listeners/123 to update a listener.'''
 
         listener = bottle.request.qvarn_json
@@ -277,7 +270,7 @@ class ListenerResource(object):
 
         return updated
 
-    def delete_listener(self, listener_id):
+    def delete_listener(self, listener_id):  # pragma: no cover
         '''Serve DELETE /foos/listeners/123 to delete a listener.'''
         with self._dbconn.transaction() as t:
             wo_listener = self._create_resource_wo_storage(
@@ -300,7 +293,7 @@ class ListenerResource(object):
                     # Try to delete all anyway
                     pass
 
-    def delete_notification(self, notification_id):
+    def delete_notification(self, notification_id):  # pragma: no cover
         '''Serve DELETE /foos/listeners/123/notifications/123.
 
         Deletes a notification.
@@ -337,7 +330,7 @@ class ListenerResource(object):
                 }
                 wo.add_item(t, notification)
 
-    def notify_update(self, item_id, item_revision):
+    def notify_update(self, item_id, item_revision):  # pragma: no cover
         '''Adds an updated notification.
 
         Notification is added for every listener that is listening on
@@ -369,7 +362,7 @@ class ListenerResource(object):
                 }
                 wo.add_item(t, notification)
 
-    def notify_delete(self, item_id):
+    def notify_delete(self, item_id):  # pragma: no cover
         '''Adds an deleted notification.
 
         Notification is added for every listener that is listening on
