@@ -116,5 +116,7 @@ pylint --rcfile /dev/null \
        --disable locally-disabled \
        --disable redefined-variable-type \
        --disable too-many-statements \
+       --disable arguments-differ \
+       --disable no-else-return \
        \
        qvarn

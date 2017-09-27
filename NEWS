@@ -5,6 +5,20 @@ Version 0.82+git, not yet released
 ----------------------------------
 
 
+Version 0.82-3.vaultit, released 2017-09-27
+-------------------------------------------
+
+* Added /any operator.
+
+* Fixed Qvarn initialization bug, where specs where initialized from path. In
+  cases where path was not a resource type, but also cantained additional
+  components, like resource id, initialization failed.
+
+* Fixed performance issue with notifications. In order to get notifications
+  multiple database queries where executed and that made  notification listing
+  really slow.
+
+
 Version 0.82, released 2017-06-06
 ----------------------------------
 
