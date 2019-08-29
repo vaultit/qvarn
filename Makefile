@@ -39,6 +39,12 @@ requirements: env/bin/pip-compile env3/bin/pip-compile
 	env/bin/pip-compile requirements.in requirements-dev.in -o requirements-dev.txt -f vendor
 	env3/bin/pip-compile requirements.in requirements-dev.in -o requirements-dev-py3.txt -f vendor
 
+.PHONY: upgrade-requirements
+upgrade-requirements: env/bin/pip-compile env3/bin/pip-compile
+	env/bin/pip-compile --upgrade --no-index requirements.in -o requirements.txt
+	env/bin/pip-compile --upgrade --no-index requirements.in requirements-dev.in -o requirements-dev.txt
+	env3/bin/pip-compile --upgrade --no-index requirements.in requirements-dev.in -o requirements-dev-py3.txt
+
 .PHONY: test
 test: env env3
 	./check
