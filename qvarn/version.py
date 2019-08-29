@@ -1,2 +1,2 @@
-__version__ = "0.82-3.vaultit"
-__version_info__ = (0, 82, '3.vaultit')
+__version__ = "0.82+vaultit.25.git"
+__version_info__ = (0, 82, 'vaultit', 25, 'git')

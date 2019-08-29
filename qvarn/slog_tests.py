@@ -127,41 +127,79 @@ class StructuredLogTests(unittest.TestCase):
 
     def test_logs_traceback(self):
         slog, writer, _ = self.create_structured_log()
-        slog.log('testmsg', exc_info=True)
+        try:
+            raise Exception('ignore me')
+        except Exception:
+            slog.log('testmsg', exc_info=True)
         slog.close()
 
         objs = self.read_log_entries(writer)
         self.assertEqual(len(objs), 1)
         self.assertIn('_traceback', objs[0])
 
-    def test_logs_unicode(self):
+    def test_logs_int(self):
         slog, writer, _ = self.create_structured_log()
-        slog.log('testmsg', text=u'foo')
+        slog.log('testmsg', number_int=12765)
         slog.close()
 
         objs = self.read_log_entries(writer)
         self.assertEqual(len(objs), 1)
-        self.assertEqual(objs[0]['text'], u'foo')
+        obj = objs[0]
+        self.assertEqual(obj['msg_type'], 'testmsg')
+        self.assertEqual(obj['number_int'], 12765)
+
+    def test_logs_long(self):
+        slog, writer, _ = self.create_structured_log()
+        slog.log('testmsg', number_long=12345678901234567890)
+        slog.close()
+
+        objs = self.read_log_entries(writer)
+        self.assertEqual(len(objs), 1)
+        obj = objs[0]
+        self.assertEqual(obj['msg_type'], 'testmsg')
+        self.assertEqual(obj['number_long'], 12345678901234567890)
+
+    def test_logs_unicode(self):
+        slog, writer, _ = self.create_structured_log()
+        slog.log('testmsg', text=u'fo\u00F6')
+        slog.close()
+
+        objs = self.read_log_entries(writer)
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0]['text'], u'fo\u00F6')
 
     def test_logs_buffer(self):
         slog, writer, _ = self.create_structured_log()
         binary = ''.join(chr(x) for x in range(256))
-        slog.log('testmsg', text=buffer(binary))
+        if not isinstance(binary, bytes):
+            # Python 3
+            binary = binary.encode('latin-1')
+        slog.log('testmsg', text=memoryview(binary))
         slog.close()
 
         objs = self.read_log_entries(writer)
         self.assertEqual(len(objs), 1)
-        self.assertEqual(objs[0]['text'], repr(binary))
+        self.assertEqual(objs[0]['text'], repr(binary).lstrip('b'))
+
+    def test_logs_utf8(self):
+        slog, writer, _ = self.create_structured_log()
+        utf8 = b'fo\xc3\xb6'
+        slog.log('blobmsg', utf8=utf8)
+        slog.close()
+
+        objs = self.read_log_entries(writer)
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0]['utf8'], u'fo\u00F6')
 
     def test_logs_nonutf8(self):
         slog, writer, _ = self.create_structured_log()
-        notutf8 = '\x86'
+        notutf8 = b'\x86'
         slog.log('blobmsg', notutf8=notutf8)
         slog.close()
 
         objs = self.read_log_entries(writer)
         self.assertEqual(len(objs), 1)
-        self.assertEqual(objs[0]['notutf8'], repr(notutf8))
+        self.assertEqual(objs[0]['notutf8'], r"'\x86'")
 
     def test_logs_list(self):
         slog, writer, _ = self.create_structured_log()
@@ -214,6 +252,31 @@ class StructuredLogTests(unittest.TestCase):
 
         self.assertEqual(objs1, objs2)
 
+    def test_reopen_logs(self):
+        class MockWriter(qvarn.SlogWriter):
+            def __init__(self):
+                self.written = False
+                self.closed = False
+                self.reopened = False
+
+            def write(self, _):
+                self.written = True
+
+            def close(self):
+                self.closed = True
+
+            def reopen(self):
+                self.reopened = True
+
+        slog = qvarn.StructuredLog()
+        writer1, writer2 = MockWriter(), MockWriter()
+        slog.add_log_writer(writer1, qvarn.FilterAllow())
+        slog.add_log_writer(writer2, qvarn.FilterAllow())
+        slog.reopen()
+
+        self.assertTrue(writer1.reopened)
+        self.assertTrue(writer2.reopened)
+
 
 class FileSlogWriterTests(unittest.TestCase):
 
@@ -223,24 +286,32 @@ class FileSlogWriterTests(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tempdir)
 
+    def get_filename_with_pid(self, filename, pid=None):
+        prefix, suffix = os.path.splitext(filename)
+        pid = pid or os.getpid()
+        return '{}-{}{}'.format(prefix, pid, suffix)
+
     def test_gets_initial_filename_right(self):
         fw = qvarn.FileSlogWriter()
-        fw.set_filename('foo.log')
-        self.assertEqual(fw.get_filename(), 'foo.log')
+        filename = os.path.join(self.tempdir, 'foo.log')
+        fw.set_filename(filename, pid=123)
+        self.assertEqual(fw.get_filename(),
+                         self.get_filename_with_pid(filename, pid=123))
 
     def test_gets_rotated_filename_right(self):
         fw = qvarn.FileSlogWriter()
-        fw.set_filename('foo.log')
+        filename = os.path.join(self.tempdir, 'foo.log')
+        fw.set_filename(filename)
         self.assertEqual(
-            fw.get_rotated_filename(now=(1969, 9, 1, 14, 30, 42)),
-            'foo-19690901T143042.log'
+            fw.get_rotated_filename(now=(1969, 9, 1, 14, 30, 42), pid=123),
+            os.path.join(self.tempdir, 'foo-19690901T143042-123.log')
         )
 
     def test_creates_file(self):
         fw = qvarn.FileSlogWriter()
         filename = os.path.join(self.tempdir, 'slog.log')
         fw.set_filename(filename)
-        self.assertTrue(os.path.exists(filename))
+        self.assertTrue(os.path.exists(self.get_filename_with_pid(filename)))
 
     def test_rotates_after_size_limit(self):
         fw = qvarn.FileSlogWriter()
@@ -250,14 +321,27 @@ class FileSlogWriterTests(unittest.TestCase):
         fw.write({'foo': 'bar'})
         filenames = glob.glob(self.tempdir + '/*.log')
         self.assertEqual(len(filenames), 2)
-        self.assertTrue(filename in filenames)
+        filename_with_pid = self.get_filename_with_pid(filename)
+        self.assertTrue(filename_with_pid in filenames)
 
-        rotated_filename = [x for x in filenames if x != filename][0]
-        objs1 = self.load_log_objs(filename)
+        rotated_filename = [x for x in filenames if x != filename_with_pid][0]
+        objs1 = self.load_log_objs(filename_with_pid)
         objs2 = self.load_log_objs(rotated_filename)
 
         self.assertEqual(len(objs1), 0)
         self.assertEqual(len(objs2), 1)
+
+    def test_reopen_updates_pid(self):
+        fw = qvarn.FileSlogWriter()
+        filename = os.path.join(self.tempdir, 'slog.log')
+        fw.set_filename(filename, pid=123)
+        self.assertTrue(os.path.exists(
+            self.get_filename_with_pid(filename, pid=123)
+        ))
+        fw.reopen(pid=456)
+        self.assertTrue(os.path.exists(
+            self.get_filename_with_pid(filename, pid=456)
+        ))
 
     def load_log_objs(self, filename):
         with open(filename) as f:

@@ -18,6 +18,8 @@
 
 import unittest
 
+import six
+
 import qvarn
 
 
@@ -82,7 +84,7 @@ class WriteOnlyStorageTests(unittest.TestCase):
 
         vs = qvarn.VersionedStorage()
         vs.set_resource_type(self.resource_type)
-        vs.start_version(u'1', None)
+        vs.start_version(u'1')
         vs.add_prototype(self.prototype)
         vs.add_prototype(self.subitem_prototype, subpath=self.subitem_name)
         with self.dbconn.transaction() as t:
@@ -103,13 +105,13 @@ class WriteOnlyStorageTests(unittest.TestCase):
             added = self.wo.add_item(t, self.person)
 
             self.assertIn('id', added)
-            self.assertEqual(type(added[u'id']), unicode)
+            self.assertEqual(type(added[u'id']), six.text_type)
 
             self.assertIn('revision', added)
-            self.assertEqual(type(added[u'revision']), unicode)
+            self.assertEqual(type(added[u'revision']), six.text_type)
 
             self.assertEqual(
-                sorted(self.person.keys() + [u'id', u'revision']),
+                sorted(list(self.person) + [u'id', u'revision']),
                 sorted(added.keys()))
 
             self.assertEqual(

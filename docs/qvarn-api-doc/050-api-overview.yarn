@@ -751,14 +751,16 @@ operators. Trying to use `any` with other operators will give you an error.
 
 Results can be sorted by one or more search keys:
 
-* `/sort/KEY1/sort/KEY2`
+* `/sort/KEY1/rsort/KEY2`
+
+`sort` sort in ascending order, `rsort` in descending order.
 
 Search key may be at any level of the resource. If there are more than one
 instance of the field (e.g., the `KEY` is a list of names), the first instance
 is used.
 
-You can you can skip and limit resources returned by Qvarn using `offset` and
-`limit` operators:
+You can skip and limit resources returned by Qvarn using `offset` and `limit`
+operators:
 
 * `/sort/KEY/offset/40/limit/20`
 
@@ -1435,6 +1437,19 @@ Search person resources and sort results by `sort_key`.
     ...         {"id": "$ID1"},
     ...         {"id": "$ID2"},
     ...         {"id": "$ID3"}
+    ...     ]
+    ... }
+
+Search person resources and sort results by `sort_key` in reverse order.
+
+    WHEN client GETs /persons/search/exact/gluu_user_id/$UID/rsort/sort_key
+    THEN HTTP status code is 200
+    AND result matches
+    ... {
+    ...     "resources": [
+    ...         {"id": "$ID3"},
+    ...         {"id": "$ID2"},
+    ...         {"id": "$ID1"}
     ...     ]
     ... }
 

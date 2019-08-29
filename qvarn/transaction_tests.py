@@ -82,7 +82,7 @@ class TransactionTests(unittest.TestCase):
         with self.trans:
             self.trans.create_table(u'foo', {u'bar': int})
             self.trans.insert(u'foo', {u'bar': 42})
-            self.trans.update(u'foo', None, {u'bar': 007})
+            self.trans.update(u'foo', None, {u'bar': 7})
             rows = self.trans.select(u'foo', [u'bar'], None)
         self.assertEqual(self.sql.updated_tables, [u'foo'])
         self.assertEqual(rows, [{u'bar': 7}])
@@ -149,6 +149,9 @@ class DummyAdapter(qvarn.SqliteAdapter):
     def format_delete(self, table_name, select_conditions):
         self.deleted_tables.append(table_name)
         return self._call('format_delete', table_name, select_conditions)
+
+    def format_alter_column(self, table_name, column_name, old, new):
+        raise NotImplementedError("column type change is not supported")
 
     def _call(self, method_name, *args, **kwargs):
         method = getattr(super(DummyAdapter, self), method_name)

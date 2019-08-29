@@ -5,7 +5,7 @@ Section: web
 Priority: optional
 Standards-Version: 3.9.8
 Build-Depends: debhelper (>= 9), python-all (>= 2.7~),
-  python-coverage-test-runner, pep8, pylint, python-psycopg2,
+  pep8, pylint, python-psycopg2,
   python-bottle, python-jwt, python-cryptography, python-yaml
 X-Python-Version: >= 2.7
 
@@ -18,7 +18,9 @@ Depends: ${python:Depends}, ${misc:Depends},
  python-bottle,
  python-psycopg2,
  python-yaml,
- python-uwsgidecorators
+ python-uwsgidecorators,
+ python-setuptools,
+ python-sqlalchemy
 Description: web service backend for structured data storage
  This is a backend service for storing structured (JSON) and some
  associated binary data using a REST-ful HTTP API and OpenID Connect

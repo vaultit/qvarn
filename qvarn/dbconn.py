@@ -35,7 +35,20 @@ class DatabaseConnection(object):
     def set_sql(self, sql):
         self._sql = sql
 
+    def get_sqlaconn(self):
+        return SQLAlchemyConnection(
+            self._sql.get_engine(),
+            self._sql.get_metadata(),
+        )
+
     def transaction(self):
         trans = qvarn.Transaction()
         trans.set_sql(self._sql)
         return trans
+
+
+class SQLAlchemyConnection(object):
+
+    def __init__(self, engine, metadata):
+        self.engine = engine
+        self.meta = metadata

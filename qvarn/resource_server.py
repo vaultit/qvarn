@@ -47,7 +47,7 @@ class ResourceServer(object):
         self._latest_version = versions[-1]
 
     def _add_resource_type_version(self, version):
-        self._vs.start_version(version[u'version'], None)
+        self._vs.start_version(version[u'version'])
         self._vs.add_prototype(version[u'prototype'])
 
         self._add_subresources(version)

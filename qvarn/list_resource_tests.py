@@ -15,12 +15,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Sometimes Pylint is just acting strangely in ways I can't explain
+# (https://github.com/PyCQA/pylint/issues/2180)
+# pylint: disable=relative-import
+# (https://github.com/PyCQA/pylint/issues/2181)
+# pylint: disable=wrong-import-order
 
 import json
 import unittest
-import urllib
 
 import bottle
+from six.moves.urllib.parse import quote
 
 import qvarn
 
@@ -51,7 +56,7 @@ class ListResourceBase(unittest.TestCase):
 
         vs = qvarn.VersionedStorage()
         vs.set_resource_type(self.resource_type)
-        vs.start_version(u'first-version', None)
+        vs.start_version(u'first-version')
         vs.add_prototype(self.prototype)
         with self._dbconn.transaction() as t:
             vs.prepare_storage(t)
@@ -109,6 +114,14 @@ class ListResourceTests(ListResourceBase):
         # Sort by bar.
         result = self._search(u'/search/sort/bar/show_all', show='bar')
         self.assertEqual(result, [u'x', u'y', u'z'])
+
+    def test_unicode(self):
+        self._add_item(foo=u'a')
+        self._add_item(foo=u'\u00F6')
+
+        result = self._search('/search/exact/foo/%C3%B6/show_all',
+                              show=u'foo')
+        self.assertEqual(result, [u'\u00F6'])
 
 
 class LimitTests(ListResourceBase):
@@ -183,7 +196,7 @@ class SearchAnyTests(ListResourceBase):
         self._add_item(foo=u'b')
         self._add_item(foo=u'c')
 
-        value = urllib.quote(json.dumps([u'a', u'b']), safe='')
+        value = quote(json.dumps([u'a', u'b']), safe='')
         result = self._search(u'/search/any/exact/foo/%s/show_all' % value,
                               show=u'foo')
         self.assertEqual(result, [u'a', u'b'])
@@ -194,7 +207,7 @@ class SearchAnyTests(ListResourceBase):
         self._add_item(foo=u'baz')
         self._add_item(foo=u'xyz')
 
-        value = urllib.quote(json.dumps([u'o', u'a']), safe='')
+        value = quote(json.dumps([u'o', u'a']), safe='')
         result = self._search(u'/search/any/contains/foo/%s/show_all' % value,
                               show=u'foo')
         self.assertEqual(result, [u'foo', u'bar', u'baz'])
@@ -205,7 +218,7 @@ class SearchAnyTests(ListResourceBase):
         self._add_item(foo=u'baz')
         self._add_item(foo=u'xyz')
 
-        value = urllib.quote(json.dumps([u'fo', u'ba']), safe='')
+        value = quote(json.dumps([u'fo', u'ba']), safe='')
         result = self._search(
             u'/search/any/startswith/foo/%s/show_all' % value, show=u'foo')
         self.assertEqual(result, [u'foo', u'bar', u'baz'])
@@ -215,7 +228,7 @@ class SearchAnyTests(ListResourceBase):
         self._add_item(lst=list(u'def'))
         self._add_item(lst=list(u'ghj'))
 
-        value = urllib.quote(json.dumps([u'b', u'd']), safe='')
+        value = quote(json.dumps([u'b', u'd']), safe='')
         result = self._search(u'/search/any/exact/lst/%s/show_all' % value,
                               show=u'lst')
         self.assertEqual(result, [
@@ -228,7 +241,7 @@ class SearchAnyTests(ListResourceBase):
         self._add_item(lst=list(u'def'))
         self._add_item(lst=list(u'ghj'))
 
-        value = urllib.quote(json.dumps([u'g', u'j']), safe='')
+        value = quote(json.dumps([u'g', u'j']), safe='')
         result = self._search(u'/search/any/exact/lst/%s/show_all' % value,
                               show=u'lst')
         self.assertEqual(result, [
@@ -238,8 +251,8 @@ class SearchAnyTests(ListResourceBase):
     def test_non_json_value(self):
         with self.assertRaises(BadAnySearchValue) as e:
             self._search(u'/search/any/exact/foo/bar/show_all')
-        self.assertEqual(str(e.exception), (
-            u"Can't parse ANY search value: No JSON object could be decoded."
+        self.assertTrue(str(e.exception).startswith(
+            u"Can't parse ANY search value: "
         ))
 
     def test_non_list_value(self):

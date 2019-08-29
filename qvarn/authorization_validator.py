@@ -19,8 +19,9 @@
 
 import datetime
 
-import jwt
 import bottle
+import jwt
+import six
 
 import qvarn
 
@@ -89,11 +90,11 @@ class AuthorizationValidator(object):
                 # Leeway for time checks (issued at, expiration)
                 leeway=datetime.timedelta(seconds=60),
             )
-        except jwt.InvalidTokenError, e:
+        except jwt.InvalidTokenError as e:
             qvarn.log.log(
                 'error',
                 msg_text='Access token is invalid: jwt.decode')
-            raise InvalidAccessTokenError(token_error=unicode(e))
+            raise InvalidAccessTokenError(token_error=six.text_type(e))
 
     def _check_token_subject(self, payload):
         # Always require sub field (subject).

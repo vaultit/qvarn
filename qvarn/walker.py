@@ -16,6 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import six
+
 import qvarn
 
 
@@ -76,9 +78,14 @@ class ItemWalker(object):
         self.visit_main_dict(item, names)
 
     def _get_simple_columns(self, proto):
-        def is_simple(proto_value):
-            return isinstance(proto_value, qvarn.column_types)
-        return sorted(x for x in proto if is_simple(proto[x]))
+        def is_simple(name, value):
+            if isinstance(value, qvarn.column_types):
+                return True
+            elif isinstance(value, (dict, list)):
+                return False
+            else:
+                raise UnknownFieldType(name=name, type=type(value).__name__)
+        return sorted(x for x in proto if is_simple(x, proto[x]))
 
     def _get_main_str_lists(self, proto):
         # This is overridden by ReadWalker.
@@ -90,7 +97,7 @@ class ItemWalker(object):
 
     def _get_str_lists(self, proto):
         def is_str_list(v):
-            return isinstance(v, list) and isinstance(v[0], unicode)
+            return isinstance(v, list) and isinstance(v[0], six.text_type)
         return sorted(x for x in proto if is_str_list(proto[x]))
 
     def _get_dict_lists(self, proto):
@@ -169,3 +176,8 @@ class ItemWalker(object):
 class TooDeeplyNestedPrototype(qvarn.QvarnException):
 
     msg = u'Resource prototype is too deeply nested: {prototype!r}'
+
+
+class UnknownFieldType(qvarn.QvarnException):
+
+    msg = u'Unknown field type {type} for {name!r} field.'

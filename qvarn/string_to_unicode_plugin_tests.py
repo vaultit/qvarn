@@ -18,6 +18,8 @@
 
 import unittest
 
+import six
+
 import qvarn
 
 
@@ -25,15 +27,15 @@ class StringToUnicodePluginTests(unittest.TestCase):
 
     def test_changes_str_args_to_unicode(self):
         def callback(arg):
-            self.assertEqual(type(arg), unicode)
+            self.assertEqual(type(arg), six.text_type)
         wrapped = qvarn.StringToUnicodePlugin().apply(callback, None)
-        wrapped('')
+        wrapped(b'')
 
     def test_changes_utf8_args_to_unicode(self):
         def callback(arg):
-            self.assertEqual(type(arg), unicode)
+            self.assertEqual(type(arg), six.text_type)
         wrapped = qvarn.StringToUnicodePlugin().apply(callback, None)
-        wrapped('\xc3\xb6l\xc3\xb6l\xc3\xb6l\xc3\xb6')
+        wrapped(b'\xc3\xb6l\xc3\xb6l\xc3\xb6l\xc3\xb6')
 
     def test_does_not_break_with_non_strings(self):
         def callback(arg):
@@ -43,12 +45,12 @@ class StringToUnicodePluginTests(unittest.TestCase):
 
     def test_changes_kwargs_to_unicode(self):
         def callback(arg=''):
-            self.assertEqual(type(arg), unicode)
+            self.assertEqual(type(arg), six.text_type)
         wrapped = qvarn.StringToUnicodePlugin().apply(callback, None)
-        wrapped(arg='')
+        wrapped(arg=b'')
 
     def test_changes_utf8_kwargs_to_unicode(self):
         def callback(arg=''):
-            self.assertEqual(type(arg), unicode)
+            self.assertEqual(type(arg), six.text_type)
         wrapped = qvarn.StringToUnicodePlugin().apply(callback, None)
-        wrapped(arg='\xc3\xb6l\xc3\xb6l\xc3\xb6l\xc3\xb6')
+        wrapped(arg=b'\xc3\xb6l\xc3\xb6l\xc3\xb6l\xc3\xb6')

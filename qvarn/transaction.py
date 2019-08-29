@@ -48,6 +48,12 @@ class Transaction(object):
     def set_sql(self, sql):
         self._sql = sql
 
+    def get_engine(self):
+        return self._sql.get_engine()
+
+    def get_metadata(self):
+        return self._sql.get_metadata()
+
     def __enter__(self):
         assert self._sql is not None
         assert self._conn is None
@@ -63,9 +69,9 @@ class Transaction(object):
         try:
             if exc_type is None:
                 self._conn.commit()
-            else:  # pragma: no cover
+            else:
                 self._conn.rollback()
-        except BaseException:  # pragma: no cover
+        except BaseException:
             qvarn.log.log('put_conn', conn=repr(self._conn))
             self._sql.put_conn(self._conn)
             raise
@@ -83,6 +89,9 @@ class Transaction(object):
             m.note(query=query, values=values)
         return c
 
+    def execute(self, what, query, values=None):
+        return self._execute(what, query, values)
+
     def create_table(self, table_name, column_name_type_pairs):
         query = self._sql.format_create_table(
             table_name, column_name_type_pairs)
@@ -91,7 +100,12 @@ class Transaction(object):
     def add_column(self, table_name, column_name, column_type):
         query = self._sql.format_add_column(
             table_name, column_name, column_type)
-        self._execute('ALTER TABLE', query, {})
+        self._execute('ADD COLUMN', query, {})
+
+    def alter_column(self, table_name, column_name, old, new):
+        query = self._sql.format_alter_column(table_name, column_name, old,
+                                              new)
+        self._execute('ALTER COLUMN', query, {})
 
     def rename_table(self, old_name, new_name):
         query = self._sql.format_rename_table(old_name, new_name)

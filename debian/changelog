@@ -1,4 +1,137 @@
-qvarn (0.82+git-1) UNRELEASED; urgency=medium
+qvarn (0.82-25) experimental; urgency=medium
+
+  * New upstream version.
+
+ -- POV Team <tilaajavastuu@pov.lt>  Wed, 19 Jun 2019 10:47:43 +0300
+
+qvarn (0.82-24) experimental; urgency=medium
+
+  * New upstream version.
+
+ -- POV Team <tilaajavastuu@pov.lt>  Tue, 26 Mar 2019 16:13:46 +0200
+
+qvarn (0.82-23) experimental; urgency=medium
+
+  * New upstream version.
+
+ -- POV Team <tilaajavastuu@pov.lt>  Tue, 12 Feb 2019 17:37:08 +0200
+
+qvarn (0.82-22) experimental; urgency=medium
+
+  * New upstream version.
+
+ -- Marius Gedminas <marius@pov.lt>  Tue, 29 Jan 2019 16:37:08 +0200
+
+qvarn (0.82-21) experimental; urgency=medium
+
+  * New upstream version.
+
+ -- Vaultit <info@vaultit.org>  Tue, 04 Dec 2018 13:41:43 +0200
+
+qvarn (0.82-20) experimental; urgency=medium
+
+  * New upstream version.
+
+ -- Vaultit <info@vaultit.org>  Tue, 20 Nov 2018 11:19:53 +0200
+
+qvarn (0.82-19) experimental; urgency=medium
+
+  * New upstream version.
+
+ -- Vaultit <info@vaultit.org>  Tue, 13 Nov 2018 16:31:24 +0200
+
+qvarn (0.82-18) experimental; urgency=medium
+
+  * New upstream version.
+
+ -- Vaultit <info@vaultit.org>  Fri, 26 Oct 2018 14:41:32 +0300
+
+qvarn (0.82-17) experimental; urgency=medium
+
+  * New upstream version:
+
+ -- Vaultit <info@vaultit.org>  Fri, 19 Oct 2018 15:00:00 +0300
+
+qvarn (0.82-16) experimental; urgency=medium
+
+  * New upstream version:
+
+ -- POV Team <tilaajavastuu@pov.lt>  Mon, 24 Sep 2018 13:00:00 +0300
+
+qvarn (0.82-15) experimental; urgency=medium
+
+  * New upstream version:
+
+ -- POV Team <tilaajavastuu@pov.lt>  Tue, 28 Aug 2018 14:30:00 +0300
+
+qvarn (0.82+git-14) experimental; urgency=medium
+
+  * New upstream version:
+
+ -- POV Team <tilaajavastuu@pov.lt>  Tue, 21 Aug 2018 09:00:00 +0300
+
+qvarn (0.82+git-13) experimental; urgency=medium
+
+  * New upstream version:
+
+ -- POV Team <tilaajavastuu@pov.lt>  Mon, 06 Aug 2018 18:06:57 +0300
+
+qvarn (0.82+git-12) experimental; urgency=medium
+
+  * New upstream version.
+
+ -- POV Team <tilaajavastuu@pov.lt>  Tue, 10 Jul 2018 16:25:00 +0300
+
+qvarn (0.82+git-11) experimental; urgency=medium
+
+  * New upstream version.
+
+ -- POV Team <tilaajavastuu@pov.lt>  Mon, 04 Jun 2018 17:03:15 +0300
+
+qvarn (0.82+git-10) experimental; urgency=medium
+
+  * New upstream version.
+
+ -- POV Team <tilaajavastuu@pov.lt>  Fri, 25 May 2018 15:47:46 +0300
+
+qvarn (0.82+git-9) experimental; urgency=medium
+
+  * New upstream version.
+
+ -- POV Team <tilaajavastuu@pov.lt>  Fri, 25 May 2018 14:30:06 +0300
+
+qvarn (0.82+git-8) experimental; urgency=medium
+
+  * Include X-Forwarded-for header content in access log.
+  * Do not log listener requests.
+
+ -- POV Team <tilaajavastuu@pov.lt>  Thu, 19 Apr 2018 16:30:00 +0300
+
+qvarn (0.82+git-7) experimental; urgency=medium
+
+  * Add access logging via standard logging facilities.
+
+ -- POV Team <tilaajavastuu@pov.lt>  Thu, 19 Apr 2018 10:00:00 +0300
+
+qvarn (0.82+git-6) experimental; urgency=medium
+
+  * Make sure log files are re-opened after uwsgi forks.
+
+ -- POV Team <tilaajavastuu@pov.lt>  Mon, 27 Feb 2018 10:46:00 +0300
+
+qvarn (0.82+git-5) experimental; urgency=medium
+
+  * Fixed a race condition in log file rotation.
+
+ -- POV Team <tilaajavastuu@pov.lt>  Mon, 26 Feb 2018 15:30:00 +0300
+
+qvarn (0.82+git-4) experimental; urgency=medium
+
+  * Sort in descending order.
+
+ -- POV Team <tilaajavastuu@pov.lt>  Wed, 10 Jan 2018 15:38:30 +0300
+
+qvarn (0.82+git-1) experimental; urgency=medium
 
   * New upstream version.
 

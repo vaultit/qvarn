@@ -15,15 +15,22 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 
 import datetime
+import itertools
 import json
 import logging
+import operator
 import os
-import thread
+import sys
+import syslog
 import time
 import traceback
-import syslog
+
+import yaml
+import six
+from six.moves import _thread
 
 import qvarn
 
@@ -51,6 +58,10 @@ class StructuredLog(object):
         for writer, _ in self._writers:
             writer.close()
         self._writers = []
+
+    def reopen(self):
+        for writer, _ in self._writers:
+            writer.reopen()
 
     def add_log_writer(self, writer, filter_rule):
         self._writers.append((writer, filter_rule))
@@ -95,15 +106,20 @@ class StructuredLog(object):
             int: self._nop_conversion,
             float: self._nop_conversion,
             bool: self._nop_conversion,
-            unicode: self._nop_conversion,
+            six.text_type: self._nop_conversion,
             type(None): self._nop_conversion,
 
-            str: self._convert_str_value,
-            buffer: self._convert_buffer_value,
+            bytes: self._convert_str_value,
+            memoryview: self._convert_buffer_value,
             list: self._convert_list_value,
             dict: self._convert_dict_value,
             tuple: self._convert_tuple_value,
         }
+
+        # pylint: disable=undefined-variable
+        if six.PY2:
+            converters[long] = self._nop_conversion
+        # pylint: enable=undefined-variable
 
         value_type = type(value)
         assert value_type in converters, \
@@ -118,12 +134,12 @@ class StructuredLog(object):
     def _convert_str_value(self, value):
         # Convert to UTF8, if that works. Otherwise, repr(value).
         try:
-            return value.encode('utf8')
+            return value.decode('utf8')
         except UnicodeDecodeError:
-            return repr(value)
+            return repr(value).lstrip('b')
 
     def _convert_buffer_value(self, value):
-        return repr(str(value))
+        return repr(value.tobytes()).lstrip('b')
 
     def _convert_list_value(self, value):
         return [self._convert_value(item) for item in value]
@@ -156,13 +172,13 @@ class StructuredLog(object):
         return os.getpid()
 
     def _get_thread_id(self):
-        return thread.get_ident()
+        return _thread.get_ident()
 
     def _get_traceback(self):
         return traceback.format_exc()
 
 
-class SlogWriter(object):  # pragma: no cover
+class SlogWriter(object):
 
     def write(self, log_obj):
         raise NotImplementedError()
@@ -170,13 +186,19 @@ class SlogWriter(object):  # pragma: no cover
     def close(self):
         raise NotImplementedError()
 
+    def reopen(self):
+        raise NotImplementedError()
 
-class NullSlogWriter(SlogWriter):  # pragma: no cover
+
+class NullSlogWriter(SlogWriter):
 
     def write(self, log_obj):
         pass
 
     def close(self):
+        pass
+
+    def reopen(self):
         pass
 
 
@@ -184,6 +206,7 @@ class FileSlogWriter(SlogWriter):
 
     def __init__(self):
         self._log_filename = None
+        self._log_filename_with_pid = None
         self._log_file = None
         self._bytes_max = None
         self._encoder = json.JSONEncoder(sort_keys=True)
@@ -192,20 +215,26 @@ class FileSlogWriter(SlogWriter):
         self._bytes_max = bytes_max
 
     def get_filename(self):
-        return self._log_filename
+        return self._log_filename_with_pid
 
-    def get_rotated_filename(self, now=None):
+    def get_rotated_filename(self, now=None, pid=None):
+        if pid is None:
+            pid = os.getpid()
         prefix, suffix = os.path.splitext(self._log_filename)
-        if now is None:  # pragma: no cover
+        if now is None:
             now = time.localtime()
         else:
-            now = (list(now) + [0]*9)[:9]
+            now = (tuple(now) + (0,) * 9)[:9]
         timestamp = time.strftime('%Y%m%dT%H%M%S', now)
-        return '{}-{}{}'.format(prefix, timestamp, suffix)
+        return '{}-{}-{}{}'.format(prefix, timestamp, pid, suffix)
 
-    def set_filename(self, filename):
+    def set_filename(self, filename, pid=None):
         self._log_filename = filename
-        self._log_file = open(filename, 'a')
+        if pid is None:
+            pid = os.getpid()
+        prefix, suffix = os.path.splitext(self._log_filename)
+        self._log_filename_with_pid = '{}-{}{}'.format(prefix, pid, suffix)
+        self._log_file = open(self._log_filename_with_pid, 'a')
 
     def write(self, log_obj):
         if self._log_file:
@@ -223,15 +252,19 @@ class FileSlogWriter(SlogWriter):
         if pos >= self._bytes_max:
             self._log_file.close()
             rotated = self.get_rotated_filename()
-            os.rename(self._log_filename, rotated)
+            os.rename(self.get_filename(), rotated)
             self.set_filename(self._log_filename)
 
     def close(self):
         self._log_file.close()
         self._log_file = None
 
+    def reopen(self, pid=None):
+        self.close()
+        self.set_filename(self._log_filename, pid=pid)
 
-class SyslogSlogWriter(SlogWriter):  # pragma: no cover
+
+class SyslogSlogWriter(SlogWriter):
 
     def write(self, log_obj):
         encoder = json.JSONEncoder(sort_keys=True)
@@ -241,8 +274,116 @@ class SyslogSlogWriter(SlogWriter):  # pragma: no cover
     def close(self):
         pass
 
+    def reopen(self):
+        pass
 
-class SlogHandler(logging.Handler):  # pragma: no cover
+
+class StdoutSlogWriter(SlogWriter):
+
+    def __init__(self, pretty=False, oneline=False):
+        self.pretty = pretty
+        self.oneline = oneline
+        if pretty and not oneline:
+            # On Python 2 we want to handle both str and unicode
+            # On Python 3 we want to handle just str
+            yaml.add_representer(str, self._text_representer)
+            yaml.add_representer(six.text_type, self._text_representer)
+
+    def _text_representer(self, dumper, data):
+        if '\n' in data:
+            return dumper.represent_scalar(
+                u'tag:yaml.org,2002:str', data, style='|')
+        return dumper.represent_scalar(
+            u'tag:yaml.org,2002:str', data, style='')
+
+    def write(self, log_obj):
+        if self.oneline:
+            obj = {
+                k: v
+                for k, v in log_obj.items()
+                if not k.startswith('_') and k not in (
+                    'msg_type',
+                    'headers',
+                    'env',
+                    'method',
+                    'path',
+                    'url_args',
+                    'steps',
+                    'old_version',
+                    'prototype_list',
+                    'entry',
+                )
+            }
+            msg = [
+                log_obj['_timestamp'],
+                log_obj['_context'],
+                log_obj['msg_type'] + ':',
+            ]
+
+            if log_obj['msg_type'] == 'http-request':
+                msg += [
+                    log_obj['method'],
+                    log_obj['path'],
+                    log_obj['url_args'],
+                ]
+            elif log_obj['msg_type'] == 'sql-transaction':
+                sort_key = operator.itemgetter('what')
+                steps = [
+                    (what, list(group))
+                    for what, group in itertools.groupby(
+                        sorted(log_obj['steps'], key=sort_key), key=sort_key)
+                ]
+                msg.append(', '.join([
+                    '%d x %s %.04fms' % (
+                        len(group),
+                        what,
+                        sum(x['duration_ms'] for x in group)
+                    ) for what, group in steps
+                ]))
+            elif log_obj['msg_type'] == 'access_log':
+                entry = log_obj['entry']
+                msg.append(', '.join([
+                    entry['operation'],
+                    'rtype=%s' % entry['resource_type'],
+                    'ids=%d' % len(entry['resource_ids']),
+                    'why=%s' % entry['why'],
+                ]))
+
+            def formatkv(k, v):
+                if k == 'duration_ms' and isinstance(v, float):
+                    return 'duration=%0.4fms' % v
+                elif k == 'spec' and isinstance(v, dict):
+                    return 'path=%s type=%s' % (v.get('path'), v.get('type'))
+                else:
+                    return '%s=%s' % (k, v)
+
+            msg += [
+                formatkv(k, v)
+                for k, v in obj.items()
+            ]
+
+            print(*filter(None, msg))
+
+            if '_traceback' in log_obj:
+                print(log_obj['_traceback'])
+
+        elif self.pretty:
+            yaml.dump(
+                log_obj, stream=sys.stdout, indent=4, default_flow_style=False,
+                explicit_start=True, explicit_end=True)
+        else:
+            encoder = json.JSONEncoder(sort_keys=True)
+            s = encoder.encode(log_obj)
+            print(s)
+
+    def close(self):
+        pass
+
+    def reopen(self):
+        pass
+
+
+class SlogHandler(logging.Handler):
 
     '''A handler for the logging library to capture into a slog.
 
@@ -260,13 +401,14 @@ class SlogHandler(logging.Handler):  # pragma: no cover
         for attr in dir(record):
             if not attr.startswith('_'):
                 value = getattr(record, attr)
-                if not isinstance(value, (str, unicode, int, bool, float)):
+                if not isinstance(value, (bytes, six.text_type, int, bool,
+                                          float)):
                     value = repr(value)
                 log_args[attr] = value
         self.slog.log('logging', **log_args)
 
 
-def hijack_logging(slog):  # pragma: no cover
+def hijack_logging(slog):
     '''Hijack log messages that come via logging.* into a slog.'''
 
     handler = SlogHandler(slog)

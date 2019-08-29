@@ -1,0 +1,6 @@
+cmdtest
+pycodestyle
+pylint
+pytest
+pytest-cov
+webtest

@@ -21,18 +21,28 @@
 #
 # pylint: disable=no-member
 # pylint: disable=unsubscriptable-object
+# pylint: disable=unsupported-delete-operation
+# pylint: disable=unsupported-assignment-operation
+
+# And sometimes Pylint is just acting strangely in ways I can't explain
+# (https://github.com/PyCQA/pylint/issues/2180)
+# pylint: disable=relative-import
+# (https://github.com/PyCQA/pylint/issues/2181)
+# pylint: disable=wrong-import-order
 
 
 '''Multi-item resources in the HTTP API.'''
 
 
-import urllib
-import urlparse
 import json
 
 import bottle
+import six
+from six.moves.urllib.parse import urljoin, urlparse, urlunparse, unquote
 
 import qvarn
+
+from qvarn.read_only import SortParam
 
 
 class ListResource(object):
@@ -59,7 +69,7 @@ class ListResource(object):
         self._listener = None
         self._dbconn = None
 
-    def _no_validator(self, item):  # pragma: no cover
+    def _no_validator(self, item):
         return
 
     def set_path(self, path):
@@ -74,7 +84,7 @@ class ListResource(object):
         '''Set the prototype for each sub-item.'''
         self._item_prototype = item_prototype
 
-    def set_item_validator(self, item_validator):  # pragma: no cover
+    def set_item_validator(self, item_validator):
         '''Set function to provide item-specific validation.
 
         Note that ``item_validator`` does not need to do generic
@@ -86,7 +96,7 @@ class ListResource(object):
         self._item_validator = item_validator or self._no_validator
 
     def set_subitem_prototype(
-            self, subitem_name, prototype):  # pragma: no cover
+            self, subitem_name, prototype):
         '''Set prototype for a subitem.'''
         self._subitem_prototypes.add(self._item_type, subitem_name, prototype)
 
@@ -99,7 +109,7 @@ class ListResource(object):
         '''
         self._listener = listener
 
-    def prepare_resource(self, dbconn):  # pragma: no cover
+    def prepare_resource(self, dbconn):
         '''Prepare the resource for action.'''
 
         self._dbconn = dbconn
@@ -162,7 +172,7 @@ class ListResource(object):
 
         return item_paths + subitem_paths
 
-    def get_items(self):  # pragma: no cover
+    def get_items(self):
         '''Serve GET /foos to list all items.'''
         ro = self._create_ro_storage()
         with self._dbconn.transaction() as t:
@@ -172,7 +182,7 @@ class ListResource(object):
                 ],
             }
 
-    def get_matching_items(self, search_criteria):  # pragma: no cover
+    def get_matching_items(self, search_criteria):
         '''Serve GET /foos/search to list items matching search criteria.'''
 
         # We need criteria to be encoded so that when we split by slash (/),
@@ -184,8 +194,11 @@ class ListResource(object):
         # Split at the first "/search/" and take the part after it
         search_criteria = request_uri.split('/search/', 1)[1]
 
-        criteria = [urllib.unquote(c).decode('utf8')
+        criteria = [unquote(c)
                     for c in search_criteria.split('/')]
+        if six.PY2:
+            # urllib.parse.unquote() already decodes UTF-8 on Python 3
+            criteria = [c.decode('UTF-8') for c in criteria]
 
         search_params = []
         show_params = []
@@ -244,7 +257,11 @@ class ListResource(object):
                 i += 2
             elif part == u'sort':
                 sort_field = criteria[i + 1]
-                sort_params.append(sort_field)
+                sort_params.append(SortParam(sort_field, ascending=True))
+                i += 2
+            elif part == u'rsort':
+                sort_field = criteria[i + 1]
+                sort_params.append(SortParam(sort_field, ascending=False))
                 i += 2
             elif part == u'limit':
                 try:
@@ -283,7 +300,7 @@ class ListResource(object):
             return ro.search(t, search_params, show_params, sort_params,
                              limit=limit, offset=offset)
 
-    def post_item(self):  # pragma: no cover
+    def post_item(self):
         '''Serve POST /foos to create a new item.'''
 
         item = bottle.request.qvarn_json
@@ -305,22 +322,22 @@ class ListResource(object):
 
         self._listener.notify_create(added[u'id'], added[u'revision'])
         resource_path = u'%s/%s' % (self._path, added[u'id'])
-        resource_url = urlparse.urljoin(
+        resource_url = urljoin(
             bottle.request.url, resource_path)
         # FIXME: Force https scheme, until haproxy access us via https.
-        resource_url = urlparse.urlunparse(
-            ('https',) + urlparse.urlparse(resource_url)[1:])
+        resource_url = urlunparse(
+            ('https',) + urlparse(resource_url)[1:])
         bottle.response.headers['Location'] = resource_url
         bottle.response.status = 201
         return added
 
-    def get_item(self, item_id):  # pragma: no cover
+    def get_item(self, item_id):
         '''Serve GET /foos/123 to get an existing item.'''
         ro = self._create_ro_storage()
         with self._dbconn.transaction() as t:
             return ro.get_item(t, item_id)
 
-    def get_subitem(self, item_id, subitem_path):  # pragma: no cover
+    def get_subitem(self, item_id, subitem_path):
         '''Serve GET /foos/123/subitem.'''
         ro = self._create_ro_storage()
         with self._dbconn.transaction() as t:
@@ -330,7 +347,7 @@ class ListResource(object):
         subitem[u'revision'] = item[u'revision']
         return subitem
 
-    def put_item(self, item_id):  # pragma: no cover
+    def put_item(self, item_id):
         '''Serve PUT /foos/123 to update an item.'''
 
         item = bottle.request.qvarn_json
@@ -350,7 +367,7 @@ class ListResource(object):
         self._listener.notify_update(updated[u'id'], updated[u'revision'])
         return updated
 
-    def put_subitem(self, item_id, subitem_name):  # pragma: no cover
+    def put_subitem(self, item_id, subitem_name):
         '''Serve PUT /foos/123/subitem to update a subitem.'''
 
         subitem = bottle.request.qvarn_json
@@ -373,21 +390,21 @@ class ListResource(object):
         self._listener.notify_update(updated[u'id'], updated[u'revision'])
         return subitem
 
-    def delete_item(self, item_id):  # pragma: no cover
+    def delete_item(self, item_id):
         '''Serve DELETE /foos/123 to delete an item.'''
         wo = self._create_wo_storage()
         with self._dbconn.transaction() as t:
             wo.delete_item(t, item_id)
         self._listener.notify_delete(item_id)
 
-    def _create_ro_storage(self):  # pragma: no cover
+    def _create_ro_storage(self):
         ro = qvarn.ReadOnlyStorage()
         ro.set_item_prototype(self._item_type, self._item_prototype)
         for subitem_name, prototype in self._subitem_prototypes.get_all():
             ro.set_subitem_prototype(self._item_type, subitem_name, prototype)
         return ro
 
-    def _create_wo_storage(self):  # pragma: no cover
+    def _create_wo_storage(self):
         wo = qvarn.WriteOnlyStorage()
         wo.set_item_prototype(self._item_type, self._item_prototype)
         for subitem_name, prototype in self._subitem_prototypes.get_all():
@@ -395,13 +412,13 @@ class ListResource(object):
         return wo
 
     def _create_resource_ro_storage(
-            self, resource_name, prototype):  # pragma: no cover
+            self, resource_name, prototype):
         ro = qvarn.ReadOnlyStorage()
         ro.set_item_prototype(resource_name, prototype)
         return ro
 
     def _create_resource_wo_storage(
-            self, resource_name, prototype):  # pragma: no cover
+            self, resource_name, prototype):
         wo = qvarn.WriteOnlyStorage()
         wo.set_item_prototype(resource_name, prototype)
         return wo

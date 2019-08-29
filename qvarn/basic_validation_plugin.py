@@ -21,6 +21,7 @@
 #
 # pylint: disable=unsubscriptable-object
 # pylint: disable=unsupported-membership-test
+# pylint: disable=no-member
 
 import json
 
@@ -58,10 +59,19 @@ class BasicValidationPlugin(object):
 
     def _parse_json(self):
         if bottle.request.content_type != 'application/json':
-            raise ContentIsNotJSON()
+            raise ContentTypeIsNotJSON()
+
+        # We'll parse the HTTP request body ourselves, because Bottle
+        # sometimes wants to use simplejson, which returns plain
+        # strings instead of Unicode strings, and that's not
+        # acceptable to us.
+        body = bottle.request.body.read()
         try:
-            obj = json.load(bottle.request.body)
-        except ValueError:
+            if not isinstance(body, str):
+                # Python 3.4 and 3.5 insist on JSON data coming in as a string
+                body = body.decode('UTF-8')
+            obj = json.loads(body)
+        except (ValueError, UnicodeDecodeError):
             raise ContentIsNotJSON()
 
         bottle.request.qvarn_json = obj

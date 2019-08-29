@@ -42,7 +42,7 @@ class ListenerResourceBase(unittest.TestCase):
 
         vs = qvarn.VersionedStorage()
         vs.set_resource_type(self.resource_type)
-        vs.start_version(u'first-version', None)
+        vs.start_version(u'first-version')
         vs.add_prototype(self.prototype)
         vs.add_prototype(qvarn.listener_prototype, auxtable=u'listener')
         vs.add_prototype(qvarn.notification_prototype,

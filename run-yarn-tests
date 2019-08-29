@@ -1,0 +1,106 @@
+#!/usr/bin/env python
+
+from __future__ import print_function, unicode_literals
+
+import argparse
+import contextlib
+import os
+import shutil
+import signal
+import subprocess
+import sys
+import tempfile
+
+
+@contextlib.contextmanager
+def tempdir(path=None, leave=False):
+    if path:
+        if not os.path.exists(path):
+            os.mkdir(path)
+        yield os.path.abspath(path)
+    else:
+        path = tempfile.mkdtemp(prefix='run-yarn-tests-')
+        try:
+            yield path
+        finally:
+            if leave:
+                print('leaving tempdir:', path)
+            else:
+                shutil.rmtree(path)
+
+
+def read(*path):
+    with open(os.path.join(*path)) as f:
+        return f.read().strip()
+
+
+def kill(*path):
+    path = os.path.join(*path)
+    if os.path.exists(path):
+        pid = int(read(path))
+        os.kill(pid, signal.SIGINT)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '-d', '--base-dir', help="path to base dir for storing files")
+    parser.add_argument(
+        '--logto', help="write logs to a specified file")
+    parser.add_argument(
+        '--leave', action='store_true', help="do not delete temporary directory")
+    parser.add_argument(
+        '--qvarn-venv', default='env',
+        help="specify virtualenv for qvarn-run (can be Python 2 or 3)")
+    parser.add_argument(
+        '--yarn-venv', default='env',
+        help="specify virtualenv for yarn (must be Python 2)")
+    parser.add_argument(
+        '-o', '--set-option', nargs='*', action='append', default=[],
+        help="override Qvarn configuration option -o database.host=local"
+             " (see Configuration section in README.rst)")
+    args, argv = parser.parse_known_args()
+
+    with tempdir(args.base_dir, leave=args.leave) as tmpdir:
+        qvarn_run = os.path.join(args.qvarn_venv, 'bin', 'qvarn-run')
+        run_qvarn_args = []
+        if args.logto:
+            run_qvarn_args += ['--logto', args.logto]
+        for option in sum(args.set_option, []):
+            run_qvarn_args += ['--set-option', option]
+        subprocess.check_call(
+            [qvarn_run, '-d', tmpdir, '--prepare-storage'] + run_qvarn_args)
+        subprocess.check_call(
+            [qvarn_run, '-d', tmpdir, '--https', '--daemonize'] + run_qvarn_args)
+
+        port = read(tmpdir, 'port')
+        token_conf = os.path.join(tmpdir, 'createtoken.conf')
+        with open(token_conf, 'w') as f:
+            f.write('\n'.join([
+                '[https://localhost:%s]' % port,
+                'client_id =',
+                'client_secret =',
+                '',
+            ]))
+
+        path = ':'.join(
+            [os.path.abspath(os.path.join(args.yarn_venv, 'bin'))]
+            + os.environ['PATH'].split(':')
+        )
+        try:
+            p = subprocess.Popen(
+                ['./test-api', 'https://localhost:%s' % port] + argv,
+                cwd=os.path.abspath('docs/qvarn-api-doc'),
+                env=dict(
+                    os.environ,
+                    PATH=path,
+                    QVARN_CREATETOKEN_CONF=token_conf,
+                ),
+            )
+            sys.exit(p.wait())
+        finally:
+            kill(tmpdir, 'pid')
+
+
+if __name__ == "__main__":
+    main()

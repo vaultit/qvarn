@@ -20,12 +20,15 @@
 
 set -eu
 
+env=env
 
-# Run unit tests using the CoverageTestRunner module.
-# See http://liw.fi/coverage-test-runner/ for the module
-# (python-coverage-test-runner package in Debian).
+if [ "${1-}" = "py3" ]; then
+    env=env3
+fi
 
-python -m CoverageTestRunner qvarn --ignore-missing-from=without-tests
+# Run unit tests using py.test.
+
+$env/bin/py.test -ra --cov-report=term-missing --cov=qvarn qvarn
 
 # coverage.py leaves .coverage around even after a successful run.
 # It's useless, though, so delete it.
@@ -37,7 +40,7 @@ rm -f .coverage
 # PEP8 specification. See https://www.python.org/dev/peps/pep-0008/ for
 # details.
 
-pep8 qvarn/*.py
+$env/bin/pycodestyle qvarn
 
 
 # Use pylint to find errors and more style issues. Note that pylint
@@ -95,28 +98,4 @@ pep8 qvarn/*.py
 #
 #       too-many-statements             some of our methods just have to be long.
 
-pylint --rcfile /dev/null \
-       --persistent no \
-       --reports no \
-       --min-similarity-lines=9999 \
-       --disable invalid-name \
-       --disable too-many-public-methods \
-       --disable too-few-public-methods \
-       --disable too-many-arguments \
-       --disable too-many-instance-attributes \
-       --disable unused-argument \
-       --disable star-args \
-       --disable broad-except \
-       --disable no-self-use \
-       --disable cyclic-import \
-       --disable missing-docstring \
-       --disable fixme \
-       --disable too-many-branches \
-       --disable too-many-locals \
-       --disable locally-disabled \
-       --disable redefined-variable-type \
-       --disable too-many-statements \
-       --disable arguments-differ \
-       --disable no-else-return \
-       \
-       qvarn
+$env/bin/pylint --rcfile .pylintrc qvarn

@@ -18,6 +18,8 @@
 
 import unittest
 
+import six
+
 import qvarn
 
 
@@ -38,9 +40,9 @@ class SchemaFromPrototypeTests(unittest.TestCase):
         self.assertEqual(
             sorted(schema),
             sorted([
-                (u'foo', u'type', unicode),
-                (u'foo', u'id', unicode),
-                (u'foo', u'name', unicode),
+                (u'foo', u'type', six.text_type),
+                (u'foo', u'id', six.text_type),
+                (u'foo', u'name', six.text_type),
                 (u'foo', u'age', int),
             ]))
 
@@ -55,11 +57,11 @@ class SchemaFromPrototypeTests(unittest.TestCase):
         self.assertEqual(
             sorted(schema),
             sorted([
-                (u'foo', u'type', unicode),
-                (u'foo', u'id', unicode),
-                (u'foo_strings', u'id', unicode),
+                (u'foo', u'type', six.text_type),
+                (u'foo', u'id', six.text_type),
+                (u'foo_strings', u'id', six.text_type),
                 (u'foo_strings', u'list_pos', int),
-                (u'foo_strings', u'strings', unicode),
+                (u'foo_strings', u'strings', six.text_type),
             ]))
 
     def test_gives_correct_schema_from_prototype_with_dict_list(self):
@@ -78,15 +80,15 @@ class SchemaFromPrototypeTests(unittest.TestCase):
         self.assertEqual(
             sorted(schema),
             sorted([
-                (u'foo', u'type', unicode),
-                (u'foo', u'id', unicode),
-                (u'foo_vehicle', u'id', unicode),
+                (u'foo', u'type', six.text_type),
+                (u'foo', u'id', six.text_type),
+                (u'foo_vehicle', u'id', six.text_type),
                 (u'foo_vehicle', u'list_pos', int),
-                (u'foo_vehicle', u'vehicle_type', unicode),
-                (u'foo_vehicle_owners', u'id', unicode),
+                (u'foo_vehicle', u'vehicle_type', six.text_type),
+                (u'foo_vehicle_owners', u'id', six.text_type),
                 (u'foo_vehicle_owners', u'dict_list_pos', int),
                 (u'foo_vehicle_owners', u'list_pos', int),
-                (u'foo_vehicle_owners', u'owners', unicode),
+                (u'foo_vehicle_owners', u'owners', six.text_type),
             ]))
 
     def test_gives_correct_schema_from_prototype_with_inner_dict_list(self):
@@ -111,23 +113,24 @@ class SchemaFromPrototypeTests(unittest.TestCase):
         self.assertEqual(
             sorted(schema),
             sorted([
-                (u'foo', u'type', unicode),
-                (u'foo', u'id', unicode),
+                (u'foo', u'type', six.text_type),
+                (u'foo', u'id', six.text_type),
 
-                (u'foo_vehicle', u'id', unicode),
+                (u'foo_vehicle', u'id', six.text_type),
                 (u'foo_vehicle', u'list_pos', int),
-                (u'foo_vehicle', u'vehicle_type', unicode),
+                (u'foo_vehicle', u'vehicle_type', six.text_type),
 
-                (u'foo_vehicle_owners', u'id', unicode),
+                (u'foo_vehicle_owners', u'id', six.text_type),
                 (u'foo_vehicle_owners', u'dict_list_pos', int),
                 (u'foo_vehicle_owners', u'list_pos', int),
                 (u'foo_vehicle_owners', u'owned_from_year', int),
 
-                (u'foo_vehicle_owners_owner_names', u'id', unicode),
+                (u'foo_vehicle_owners_owner_names', u'id', six.text_type),
                 (u'foo_vehicle_owners_owner_names', u'dict_list_pos', int),
                 (u'foo_vehicle_owners_owner_names', u'list_pos', int),
                 (u'foo_vehicle_owners_owner_names', u'str_list_pos', int),
-                (u'foo_vehicle_owners_owner_names', u'owner_names', unicode),
+                (u'foo_vehicle_owners_owner_names', u'owner_names',
+                 six.text_type),
             ]))
 
     def test_gives_correct_schema_from_prototype_for_subresource(self):
@@ -141,6 +144,6 @@ class SchemaFromPrototypeTests(unittest.TestCase):
         self.assertEqual(
             sorted(schema),
             sorted([
-                (table_name, u'id', unicode),
-                (table_name, u'foo', unicode),
+                (table_name, u'id', six.text_type),
+                (table_name, u'foo', six.text_type),
             ]))

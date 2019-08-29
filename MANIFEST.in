@@ -1,0 +1,5 @@
+include NEWS
+include COPYING
+include *.rst
+include *.in
+include *.txt

@@ -17,18 +17,40 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import ast
+from setuptools import setup, find_packages
 
-from distutils.core import setup
 
-import qvarn
+def read_version(filename):
+    with open(filename) as f:
+        for line in f:
+            if line.startswith('__version__'):
+                return ast.literal_eval(line.partition('=')[-1].strip())
+
+
+def read_requirements(filename):
+    with open(filename) as f:
+        return [req for req in (req.partition('#')[0].strip() for req in f) if req]
 
 
 setup(
     name='qvarn',
-    version=qvarn.__version__,
+    version=read_version('qvarn/version.py'),
     description='backend service for JSON and binary data storage',
     author='Suomen Tilaajavastuu Oy',
     author_email='tilaajavastuu.hifi@tilaajavastuu.fi',
-    packages=['qvarn'],
-    scripts=['slog-pretty', 'slog-errors', 'qvarn-backend'],
+    packages=find_packages(),
+    scripts=[
+        'slog-pretty',
+        'slog-errors',
+        'qvarn-backend',
+        'qvarn-run',
+    ],
+    install_requires=read_requirements('requirements.in'),
+    classifiers=[
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+    ],
 )

@@ -4,6 +4,7 @@ import json
 import sys
 
 import yaml
+import six
 
 
 def text_representer(dumper, data):
@@ -13,8 +14,11 @@ def text_representer(dumper, data):
     return dumper.represent_scalar(
         u'tag:yaml.org,2002:str', data, style='')
 
+
+# On Python 2 we want to handle both str and unicode
+# On Python 3 we want to handle just str
 yaml.add_representer(str, text_representer)
-yaml.add_representer(unicode, text_representer)
+yaml.add_representer(six.text_type, text_representer)
 
 
 def dump(f):

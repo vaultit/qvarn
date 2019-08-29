@@ -51,5 +51,5 @@ class QvarnException(Exception):
             u'message': self.msg
         })
 
-    def __str__(self):  # pragma: no cover
+    def __str__(self):
         return self.msg.format(**self.error)

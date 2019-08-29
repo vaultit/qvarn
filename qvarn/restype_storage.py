@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 import yaml
+import six
 
 import qvarn
 
@@ -32,11 +32,11 @@ class ResourceTypeStorage(object):
         transaction.create_table(
             self._table_name,
             {
-                u'id': unicode,
-                u'revision': unicode,
-                u'type': unicode,
-                u'name': unicode,
-                u'yaml': unicode,
+                u'id': six.text_type,
+                u'revision': six.text_type,
+                u'type': six.text_type,
+                u'name': six.text_type,
+                u'yaml': six.text_type,
             }
         )
 
@@ -80,7 +80,7 @@ class ResourceTypeStorage(object):
             [u'yaml'],
             ('=', self._table_name, u'name', type_name),
         )
-        if len(rows) != 1:  # pragma: no cover
+        if len(rows) != 1:
             return None
         return yaml.safe_load(rows[0][u'yaml'])
 

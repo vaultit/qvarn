@@ -169,7 +169,7 @@ def table_name(**kwargs):
 
     # This is here just to guard against the decision list being
     # broken.
-    assert False  # pragma: no cover
+    assert False
 
 
 class ComplicatedTableNameError(qvarn.QvarnException):
@@ -179,7 +179,7 @@ class ComplicatedTableNameError(qvarn.QvarnException):
 
 
 def create_tables_for_resource_type(
-        transaction, resource_type, prototype_list):  # pragma: no cover
+        transaction, resource_type, prototype_list):
     '''Create database tables for a resource type.
 
     This creates all the tables for one resource type, given a list of
@@ -212,7 +212,7 @@ def create_tables_for_resource_type(
         create_tables_from_schema(transaction, schema)
 
 
-def create_tables_from_schema(transaction, schema):  # pragma: no cover
+def create_tables_from_schema(transaction, schema):
     '''Create tables from a schema.
 
     See schema.py for what a schema is. The tables are assumed to
@@ -234,15 +234,15 @@ def create_tables_from_schema(transaction, schema):  # pragma: no cover
 # From http://stackoverflow.com/questions/2890146/
 # It seems this will be unnecessary in Python 3.
 
-def set_up_yaml_loader_constructors():  # pragma: no cover
+def set_up_yaml_loader_constructors():
 
     def construct_yaml_str(self, node):
         # Override the default string handling function
         # to always return unicode objects. Except if the
         # resource type field is the string "blob" in which
-        # case we use a buffer().
+        # case we use a memoryview().
         if node.value == 'blob':
-            return buffer('')
+            return memoryview(b'')
         return self.construct_scalar(node)
 
     yaml.SafeLoader.add_constructor(

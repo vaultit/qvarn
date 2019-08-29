@@ -16,8 +16,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
 
-`/bolagsfakta_suppliers`
-------------------------
+`/bol_suppliers`
+----------------
 
 This resource stores information about project supplier relationships
 for Bolagsfakta project.
@@ -25,14 +25,14 @@ for Bolagsfakta project.
 
 Synopsis:
 
-* `GET /bolagsfakta_suppliers` --- get a list of ids of suppliers
-* `POST /bolagsfakta_suppliers` --- create a new supplier relationship
-* `GET /bolagsfakta_suppliers/<id>` --- get the information about a specific
+* `GET /bol_suppliers` --- get a list of ids of suppliers
+* `POST /bol_suppliers` --- create a new supplier relationship
+* `GET /bol_suppliers/<id>` --- get the information about a specific
   supplier relationship
-* `PUT /bolagsfakta_suppliers/<id>` --- update supplier relationship
-* `DELETE /bolagsfakta_suppliers/<id>` --- update supplier relationship
-* `GET /bolagsfakta_suppliers/search/exact/materialized_path/<org_id>`  --- find
-  all supplier that are descendands of org_id organisation
+* `PUT /bol_suppliers/<id>` --- update supplier relationship
+* `DELETE /bol_suppliers/<id>` --- update supplier relationship
+* `GET /bol_suppliers/search/exact/materialized_path/<org_id>`  --- find
+  all supplier that are descendants of org_id organisation
 
 Errors:
 
@@ -43,7 +43,7 @@ Example result for a supplier:
 
     EXAMPLE
     {
-        "type": "bolagsfakta_supplier",
+        "type": "bol_supplier",
         "id": "12345",
         "bolagsfakta_status": "ok",
         "contract_start_date": "2016-06-01",
@@ -76,27 +76,27 @@ Fields in the result:
 
 ### Tests
 
-Create a new bolagsfakta_supplier entry, update it and delete it
+Create a new bol_supplier entry, update it and delete it
 
-    SCENARIO manage bolagsfakta supplier
+    SCENARIO manage bol supplier
 
-CLient has access rights to bolagsfakta_suppliers resource
+Client has access rights to bol_suppliers resource
 
     GIVEN client has access to scopes
-    ... "uapi_bolagsfakta_suppliers_get uapi_bolagsfakta_suppliers_id_delete
-    ...  uapi_bolagsfakta_suppliers_id_get uapi_bolagsfakta_suppliers_id_put
-    ...  uapi_bolagsfakta_suppliers_post uapi_bolagsfakta_suppliers_search_id_get"
+    ... "uapi_bol_suppliers_get uapi_bol_suppliers_id_delete
+    ...  uapi_bol_suppliers_id_get uapi_bol_suppliers_id_put
+    ...  uapi_bol_suppliers_post uapi_bol_suppliers_search_id_get"
 
-Attempt to create a new bolagsfakta supplier with invlaid fields.
+Attempt to create a new bol supplier with invalid fields.
 
-    WHEN client POSTs /bolagsfakta_suppliers with {"some_field": 100}
+    WHEN client POSTs /bol_suppliers with {"some_field": 100}
     THEN HTTP status code is 400
 
-Create a new bolagsfakta supplier.
+Create a new bol supplier.
 
-    WHEN client POSTs /bolagsfakta_suppliers with
+    WHEN client POSTs /bol_suppliers with
     ... {
-    ...     "type": "bolagsfakta_supplier",
+    ...     "type": "bol_supplier",
     ...     "bolagsfakta_status": "ok",
     ...     "contract_start_date": "2016-06-01",
     ...     "contract_end_date": "2016-12-31",
@@ -114,7 +114,7 @@ Create a new bolagsfakta supplier.
     THEN HTTP status code is 201
     AND result matches
     ... {
-    ...     "type": "bolagsfakta_supplier",
+    ...     "type": "bol_supplier",
     ...     "bolagsfakta_status": "ok",
     ...     "contract_start_date": "2016-06-01",
     ...     "contract_end_date": "2016-12-31",
@@ -132,17 +132,17 @@ Create a new bolagsfakta supplier.
     AND result has key "id" containing a string, saved as $ID1
     AND result has key "revision" containing a string, saved as $REV1
 
-Check that the bolagsfakta supplier exists.
+Check that the bol supplier exists.
 
-    WHEN client GETs /bolagsfakta_suppliers
+    WHEN client GETs /bol_suppliers
     THEN HTTP status code is 200
     AND result has key "resources", a list containing {"id": "$ID1"}
 
-    WHEN client GETs /bolagsfakta_suppliers/$ID1
+    WHEN client GETs /bol_suppliers/$ID1
     THEN HTTP status code is 200
     AND result matches
     ... {
-    ...     "type": "bolagsfakta_supplier",
+    ...     "type": "bol_supplier",
     ...     "bolagsfakta_status": "ok",
     ...     "contract_start_date": "2016-06-01",
     ...     "contract_end_date": "2016-12-31",
@@ -164,10 +164,10 @@ Check that the bolagsfakta supplier exists.
 
 Update the supplier record.
 
-    WHEN client PUTs /bolagsfakta_suppliers/$ID1 with
+    WHEN client PUTs /bol_suppliers/$ID1 with
     ... {
     ...     "revision": "$REV1",
-    ...     "type": "bolagsfakta_supplier",
+    ...     "type": "bol_supplier",
     ...     "bolagsfakta_status": "stop",
     ...     "contract_start_date": "2016-06-01",
     ...     "contract_end_date": "2016-12-31",
@@ -185,7 +185,7 @@ Update the supplier record.
     THEN HTTP status code is 200
     AND result matches
     ... {
-    ...     "type": "bolagsfakta_supplier",
+    ...     "type": "bol_supplier",
     ...     "bolagsfakta_status": "stop",
     ...     "contract_start_date": "2016-06-01",
     ...     "contract_end_date": "2016-12-31",
@@ -206,14 +206,13 @@ Update the supplier record.
 
 Search for descendant suppliers via materialized_path.
 
-
-    WHEN client GETs /bolagsfakta_suppliers/search/exact/materialized_path/34567
+    WHEN client GETs /bol_suppliers/search/exact/materialized_path/34567
     THEN HTTP status code is 200
     AND result has key "resources", a list containing {"id": "$ID1"}
 
 Finally delete the supplier.
 
-    WHEN client DELETEs /bolagsfakta_suppliers/$ID1
+    WHEN client DELETEs /bol_suppliers/$ID1
     THEN HTTP status code is 200
-    WHEN client GETs /bolagsfakta_suppliers/$ID1
+    WHEN client GETs /bol_suppliers/$ID1
     THEN HTTP status code is 404

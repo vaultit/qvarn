@@ -20,16 +20,26 @@
 # this module.
 #
 # pylint: disable=unsubscriptable-object
+# pylint: disable=unsupported-delete-operation
+# pylint: disable=unsupported-assignment-operation
 
+# And sometimes Pylint is just acting strangely in ways I can't explain
+# (https://github.com/PyCQA/pylint/issues/2180)
+# pylint: disable=relative-import
+# (https://github.com/PyCQA/pylint/issues/2181)
+# pylint: disable=wrong-import-order
 
 '''Listener and notification resources in the HTTP API.'''
 
 
 import time
-import urlparse
+
 import bottle
+from six.moves.urllib.parse import urljoin, urlparse, urlunparse
 
 import qvarn
+
+from qvarn.read_only import SortParam
 
 
 listener_prototype = {
@@ -92,7 +102,7 @@ class ListenerResource(object):
         self._notification_table = qvarn.table_name(
             resource_type=item_type, auxtable=u'notification')
 
-    def _quote(self, path):  # pragma: no cover
+    def _quote(self, path):
         path = path.lstrip('/')
         return '_'.join(path.split('/'))
 
@@ -180,7 +190,7 @@ class ListenerResource(object):
                 'warning', msg_text='Ignoring exception from ALTER TABLE',
                 exception=str(e))
 
-    def get_listeners(self):  # pragma: no cover
+    def get_listeners(self):
         '''Serve GET /foos/listeners to list all listeners.'''
         ro = self._create_resource_ro_storage(
             self._listener_table, listener_prototype)
@@ -202,7 +212,7 @@ class ListenerResource(object):
             result = ro.search(t, [
                 qvarn.create_search_param(u'exact', u'listener_id',
                                           listener_id),
-            ], [], sort_params=[u'last_modified'])
+            ], [], sort_params=[SortParam(u'last_modified', ascending=True)])
         return result
 
     def post_listener(self):
@@ -225,11 +235,11 @@ class ListenerResource(object):
             added = wo.add_item(t, listener)
 
         resource_path = u'%s/listeners/%s' % (self._path, added[u'id'])
-        resource_url = urlparse.urljoin(
+        resource_url = urljoin(
             bottle.request.url, resource_path)
         # FIXME: Force https scheme, until haproxy access us via https.
-        resource_url = urlparse.urlunparse(
-            ('https',) + urlparse.urlparse(resource_url)[1:])
+        resource_url = urlunparse(
+            ('https',) + urlparse(resource_url)[1:])
         bottle.response.headers['Location'] = resource_url
         bottle.response.status = 201
         return added
@@ -251,7 +261,7 @@ class ListenerResource(object):
         with self._dbconn.transaction() as t:
             return ro.get_item(t, notification_id)
 
-    def put_listener(self, listener_id):  # pragma: no cover
+    def put_listener(self, listener_id):
         '''Serve PUT /foos/listeners/123 to update a listener.'''
 
         listener = bottle.request.qvarn_json
@@ -270,7 +280,7 @@ class ListenerResource(object):
 
         return updated
 
-    def delete_listener(self, listener_id):  # pragma: no cover
+    def delete_listener(self, listener_id):
         '''Serve DELETE /foos/listeners/123 to delete a listener.'''
         with self._dbconn.transaction() as t:
             wo_listener = self._create_resource_wo_storage(
@@ -293,7 +303,7 @@ class ListenerResource(object):
                     # Try to delete all anyway
                     pass
 
-    def delete_notification(self, notification_id):  # pragma: no cover
+    def delete_notification(self, notification_id):
         '''Serve DELETE /foos/listeners/123/notifications/123.
 
         Deletes a notification.
@@ -330,7 +340,7 @@ class ListenerResource(object):
                 }
                 wo.add_item(t, notification)
 
-    def notify_update(self, item_id, item_revision):  # pragma: no cover
+    def notify_update(self, item_id, item_revision):
         '''Adds an updated notification.
 
         Notification is added for every listener that is listening on
@@ -362,7 +372,7 @@ class ListenerResource(object):
                 }
                 wo.add_item(t, notification)
 
-    def notify_delete(self, item_id):  # pragma: no cover
+    def notify_delete(self, item_id):
         '''Adds an deleted notification.
 
         Notification is added for every listener that is listening on

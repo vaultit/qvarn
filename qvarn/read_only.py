@@ -20,7 +20,12 @@ import time
 import uuid
 import collections
 
+import six
+
 import qvarn
+
+
+SortParam = collections.namedtuple('SortParam', ('key', 'ascending'))
 
 SearchParam = collections.namedtuple('SearchParam', (
     'rule',
@@ -123,7 +128,7 @@ class ReadOnlyStorage(object):
         self._m = None
         return result
 
-    def _build_schema(self):  # pragma: no cover
+    def _build_schema(self):
         schema = qvarn.schema_from_prototype(
             self._prototype, resource_type=self._item_type)
         for subpath, subproto in self._subitem_prototypes.get_all():
@@ -131,8 +136,8 @@ class ReadOnlyStorage(object):
                 subproto, resource_type=self._item_type, subpath=subpath)
         return schema
 
-    def _kludge(self, transaction, schema, search_params,
-                sort_params=None, limit=None, offset=None):  # pragma: no cover
+    def _kludge(self, transaction, schema, search_params, sort_params=None,
+                limit=None, offset=None):
         sql = getattr(transaction, '_sql')
         main_table = qvarn.table_name(resource_type=self._item_type)
         tables_used = [main_table]
@@ -148,15 +153,18 @@ class ReadOnlyStorage(object):
             join_conditions = {}
             sort_params = sort_params or []
             order_by_fields = [
-                self._kludge_order_by_fields(
-                    sql, schema, key, main_table, tables_used, join_conditions)
-                for key in sort_params]
+                self._kludge_order_by_fields(sql, schema, param, main_table,
+                                             tables_used, join_conditions)
+                for param in sort_params]
 
         with self._m.new('build full sql query'):
             main_table_alias = u't0'
             # With `SELECT DISTINCT` PostgreSQL requires all ORDER BY fields to
             # be included in select list too.
-            select_list = [main_table_alias + u'.id'] + order_by_fields
+            select_list = (
+                [main_table_alias + u'.id'] +
+                [f.key for f in order_by_fields]
+            )
             query = (
                 u'SELECT DISTINCT {select_list} '
                 u'FROM {main_table} AS {main_table_alias}'
@@ -177,14 +185,18 @@ class ReadOnlyStorage(object):
                 query += u' WHERE ' + u' AND '.join(
                     u'({})'.format(c) for c in conds)
             if order_by_fields:
-                query += u' ORDER BY ' + u', '.join(order_by_fields)
+                query += u' ORDER BY ' + u', '.join([
+                    # pylint: disable=no-member
+                    sort.key + (u'' if sort.ascending else u' DESC')
+                    for sort in order_by_fields
+                ])
             if limit is not None or offset is not None:
                 query += u' ' + sql.format_limit(limit, offset)
             self._m.note(query=query, values=values)
 
         return self._kludge_execute(sql, query, values)
 
-    def _kludge_execute(self, sql, query, values):  # pragma: no cover
+    def _kludge_execute(self, sql, query, values):
         with self._m.new('get conn'):
             conn = sql.get_conn()
         try:
@@ -205,7 +217,7 @@ class ReadOnlyStorage(object):
             return ids
 
     def _kludge_conds(self, sql, schema, param, values,
-                      main_table, tables_used):  # pragma: no cover
+                      main_table, tables_used):
         rule_queries = {
             u'exact': u'{} = {}',
             u'gt': u'{} > {}',
@@ -228,7 +240,7 @@ class ReadOnlyStorage(object):
                     tables_used.append(table_name)
 
                 qualified_name = sql.qualified_column(table_alias, column_name)
-                if column_type == unicode:
+                if column_type == six.text_type:
                     qualified_name = u'LOWER(' + qualified_name + u')'
 
                 if param.any:
@@ -237,7 +249,7 @@ class ReadOnlyStorage(object):
                     values_list = [param.value]
 
                 for value in values_list:
-                    rand_name = unicode(uuid.uuid4())
+                    rand_name = six.text_type(uuid.uuid4())
                     conds.append(rule_queries[param.rule].format(
                         qualified_name,
                         sql.format_qualified_placeholder(
@@ -250,14 +262,14 @@ class ReadOnlyStorage(object):
             raise FieldNotInResource(field=param.key)
         return u' OR '.join(conds)
 
-    def _kludge_order_by_fields(self, sql, schema, key, main_table,
+    def _kludge_order_by_fields(self, sql, schema, sort, main_table,
                                 tables_used, join_conditions):
         columns_by_table_name = collections.defaultdict(list)
         for table_name, column_name, _ in schema:
             columns_by_table_name[table_name].append(column_name)
 
         for table_name, column_name, _ in schema:
-            if column_name == key:
+            if column_name == sort.key:
                 if table_name == main_table:
                     table_alias = u't0'
                 else:
@@ -267,9 +279,10 @@ class ReadOnlyStorage(object):
                     join_conds = self._kludge_first_item_join_cond(
                         sql, table_alias, columns_by_table_name[table_name])
                     join_conditions[idx] = join_conds
-                return sql.qualified_column(table_alias, column_name)
+                qualified_name = sql.qualified_column(table_alias, column_name)
+                return SortParam(qualified_name, ascending=sort.ascending)
         # key did not match column name in any table
-        raise FieldNotInResource(field=key)
+        raise FieldNotInResource(field=sort.key)
 
     def _kludge_first_item_join_cond(self, sql, table_alias, columns):
         # Build extra condition JOIN conditions in order to join just first
@@ -286,16 +299,15 @@ class ReadOnlyStorage(object):
                 conds.append('{} = 0'.format(qualified_name))
         return ' AND '.join(conds)
 
-    def _cast_value(self, value):  # pragma: no cover
+    def _cast_value(self, value):
         magic = {
             u'true': True,
             u'false': False,
         }
-        lower = unicode(value).lower()
+        lower = six.text_type(value).lower()
         return magic.get(lower, lower)
 
-    def _build_search_result(self, transaction, ids,
-                             show_params):  # pragma: no cover
+    def _build_search_result(self, transaction, ids, show_params):
         fields = []
         for param in show_params:
             if param == u'show_all':
@@ -309,16 +321,14 @@ class ReadOnlyStorage(object):
         else:
             return self._build_search_result_ids_only(ids)
 
-    def _build_search_result_show_all(self, transaction,
-                                      ids):  # pragma: no cover
+    def _build_search_result_show_all(self, transaction, ids):
         return {
             u'resources': [
                 self.get_item(transaction, resource_id) for resource_id in ids
             ],
         }
 
-    def _build_search_result_with_fields(self, transaction, ids,
-                                         fields):  # pragma: no cover
+    def _build_search_result_with_fields(self, transaction, ids, fields):
         if u'id' not in fields:
             fields = fields + [u'id']
         return {
@@ -328,7 +338,7 @@ class ReadOnlyStorage(object):
             ],
         }
 
-    def _build_search_result_ids_only(self, ids):  # pragma: no cover
+    def _build_search_result_ids_only(self, ids):
         return {
             u'resources': [
                 {u'id': resource_id} for resource_id in ids
@@ -372,7 +382,7 @@ class ReadWalker(qvarn.ItemWalker):
         return not self._main_fields or field in self._main_fields
 
     def visit_main_dict(self, item, column_names):
-        if self._main_fields:  # pragma: no cover
+        if self._main_fields:
             column_names = [c for c in column_names if c in self._main_fields]
         row = self._get_row(self._item_type, self._item_id, column_names)
         for name in column_names:
@@ -429,7 +439,7 @@ class ReadWalker(qvarn.ItemWalker):
                 table_name, self._item_id, column_names)
 
     def visit_dict_in_list_str_list(self, item, field, pos, str_list_field):
-        if not self._main_field_ok(field):  # pragma: no cover
+        if not self._main_field_ok(field):
             return
 
         table_name = qvarn.table_name(
@@ -440,7 +450,7 @@ class ReadWalker(qvarn.ItemWalker):
         match = (
             'AND',
             ('=', table_name, u'id', self._item_id),
-            ('=', table_name, u'dict_list_pos', unicode(pos))
+            ('=', table_name, u'dict_list_pos', six.text_type(pos))
         )
         rows = self._transaction.select(
             table_name, [u'list_pos', str_list_field], match)
@@ -451,7 +461,7 @@ class ReadWalker(qvarn.ItemWalker):
 
     def visit_inner_dict_list(self, item, outer_field, inner_field,
                               column_names):
-        if not self._main_field_ok(outer_field):  # pragma: no cover
+        if not self._main_field_ok(outer_field):
             return
 
         table_name = qvarn.table_name(
@@ -481,7 +491,7 @@ class ReadWalker(qvarn.ItemWalker):
             inner_list.append(row)
 
 
-class Measurement(object):  # pragma: no cover
+class Measurement(object):
 
     def __init__(self):
         self._started = time.time()
@@ -495,10 +505,10 @@ class Measurement(object):  # pragma: no cover
         self._steps.append(Step(what))
         return self._steps[-1]
 
-    def note(self, **kwargs):  # pragma: no cover
+    def note(self, **kwargs):
         self._steps[-1].note(**kwargs)
 
-    def log(self, exc_info):  # pragma: no cover
+    def log(self, exc_info):
         duration = self._ended - self._started
         qvarn.log.log(
             'kludge-sql-transaction',
@@ -516,7 +526,7 @@ class Measurement(object):  # pragma: no cover
         )
 
 
-class Step(object):  # pragma: no cover
+class Step(object):
 
     def __init__(self, what):
         self._started = None

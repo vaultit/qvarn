@@ -23,9 +23,11 @@ from .version import (
 
 from .slog import (
     StructuredLog,
+    SlogWriter,
     NullSlogWriter,
     FileSlogWriter,
     SyslogSlogWriter,
+    StdoutSlogWriter,
     hijack_logging,
 )
 
@@ -55,6 +57,10 @@ from .http_statuses import (
     UnsupportedMediaType,
 )
 
+from .healthcheck import (
+    HealthcheckEndpoint,
+)
+
 from .counter import (
     Counter,
 )
@@ -72,6 +78,7 @@ from .validate import (
 from .basic_validation_plugin import (
     BasicValidationPlugin,
     NoItemRevision,
+    ContentIsNotJSON,
     ContentTypeIsNotJSON,
 )
 
@@ -102,6 +109,7 @@ from .write_only import (
     CannotAddWithId,
     CannotAddWithRevision,
     WrongRevision,
+    DeleteWalker,
 )
 
 from .read_only import (
@@ -117,7 +125,9 @@ from .restype_storage import (
 
 from .backend_app import (
     BackendApplication,
+    get_configuration,
     log,
+    DEFAULT_CONFIG,
 )
 
 from .filler import (
@@ -182,9 +192,17 @@ from .schema import (
 
 from .versioned_storage import (
     VersionedStorage,
+    get_current_tables,
 )
 
 from .resource_server import (
     ResourceServer,
     add_resource_type_to_server,
+)
+
+from .auth_token import (
+    AuthTokenResource,
+)
+from .auth_proxy import (
+    AuthProxyResource,
 )

@@ -18,19 +18,49 @@
 
 
 import argparse
-import ConfigParser
 import os
 import sys
-import yaml
 
+import yaml
 import bottle
+from six.moves import configparser
 
 import qvarn
 
 
 log = qvarn.StructuredLog()
-log.add_log_writer(qvarn.NullSlogWriter(), qvarn.FilterAllow())
+log.add_log_writer(qvarn.StdoutSlogWriter(oneline=True), qvarn.FilterAllow())
 qvarn.hijack_logging(log)
+
+
+DEFAULT_CONFIG = {
+    'main': {
+        'specdir': '',
+        'log-max-files': '10',
+        'log-max-bytes': '10240',
+        'log': 'syslog',
+        'enable_access_log': 'false',
+        'access_log_entry_chunk_size': '300',
+    },
+    'database': {
+        'type': 'postgres',  # postgres, sqlite
+        'host': 'localhost',
+        'port': '5432',
+        'name': 'qvarn',
+        'user': 'qvarn',
+        'password': 'qvarn',
+        'readonly': 'false',
+        'minconn': '1',
+        'maxconn': '5',
+        'file': '',
+    },
+    'auth': {
+        'token_issuer': '',
+        'token_validation_key': '',
+        'token_private_key_file': '',
+        'proxy_to': '',
+    },
+}
 
 
 class BackendApplication(object):
@@ -69,10 +99,10 @@ class BackendApplication(object):
         self._vs_list = []
         self._conf = None
 
-    def add_versioned_storage(self, versioned_storage):  # pragma: no cover
+    def add_versioned_storage(self, versioned_storage):
         self._vs_list.append(versioned_storage)
 
-    def add_routes(self, resources):  # pragma: no cover
+    def add_routes(self, resources):
         '''Add routes to the application.
 
         A route is the path serve (e.g., "/version"), the HTTP method
@@ -88,7 +118,7 @@ class BackendApplication(object):
         for route in routes:
             self._app.route(**route)
 
-    def prepare_for_uwsgi(self, specdir):  # pragma: no cover
+    def prepare_for_uwsgi(self, specdir=None):
         '''Prepare the application to be run by uwsgi.
 
         Load resource type specifications from specdir, if in prepare
@@ -118,32 +148,31 @@ class BackendApplication(object):
         else:
             return self._app
 
-    def run_helper(self, specdir):  # pragma: no cover
-        self._conf, args = self._parse_config()
+    def run_helper(self, specdir=None, argv=None,
+                   uwsgi_postfork_setup=True):
+        self._conf, args = get_configuration(argv)
 
         if args.prepare_storage:
+            specdir = specdir or self._conf.get('main', 'specdir')
             # Logging should be the first plugin (outermost wrapper)
             self._configure_logging(self._conf)
             qvarn.log.set_context('prepare-storage')
-            self._connect_to_storage(self._conf)
-            specs_and_texts = self._load_specs_from_files(specdir)
-            self._store_resource_types(specs_and_texts)
-            specs = self._load_specs_from_db()
-            self._add_resource_types_from_specs(s for s in specs)
-            self._prepare_storage(self._conf)
+            self._connect_to_storage(self._conf, specdir, prepare_storage=True)
         else:
             # Logging should be the first plugin (outermost wrapper)
             self._configure_logging(self._conf)
             qvarn.log.set_context('setup')
-            self._install_logging_plugin()
+            self._install_logging_plugin(self._conf)
             # Error catching should also be as high as possible to catch all
             self._app.install(qvarn.ErrorTransformPlugin())
+            self._setup_auth_token_endpoint(self._conf)
             self._setup_auth(self._conf)
-            # Import is here to not fail tests and is only used on uWSGI
-            import uwsgidecorators
-            uwsgidecorators.postfork(self._uwsgi_postfork_setup)
+            if uwsgi_postfork_setup:
+                # Import is here to not fail tests and is only used on uWSGI
+                import uwsgidecorators
+                uwsgidecorators.postfork(self._uwsgi_postfork_setup)
 
-    def _uwsgi_postfork_setup(self):  # pragma: no cover
+    def _uwsgi_postfork_setup(self):
         '''Setup after uWSGI has forked the process.
 
         We create the database connection pool after uWSGI has forked the
@@ -151,13 +180,15 @@ class BackendApplication(object):
 
         '''
 
+        qvarn.log.reopen()
         self._connect_to_storage(self._conf)
+        self._setup_healthcheck_endpoint()
 
         self._setup_auth(self._conf)
         self._app.add_hook('before_request', self._add_missing_route)
         self._app.install(qvarn.StringToUnicodePlugin())
 
-    def _add_missing_route(self):  # pragma: no cover
+    def _add_missing_route(self):
         # If the route already exists, do nothing. Otherwise, check if
         # request path refers to a defined resource type, and if so,
         # add route. Otherwise, sucks to be the API client.
@@ -187,7 +218,7 @@ class BackendApplication(object):
             type_names = rst.get_types(t)
             for type_name in type_names:
                 spec = rst.get_spec(t, type_name)
-                if spec[u'path'] == path or path.startswith(spec[u'path'] +
+                if spec[u'path'] == path or path.startswith(spec[u'path'] +  # noqa
                                                             u'/'):
                     qvarn.log.log(
                         'debug', msg_text='Found spec', path=path, spec=spec)
@@ -195,52 +226,62 @@ class BackendApplication(object):
         qvarn.log.log('debug', msg_text='No spec found for path', path=path)
         return None
 
-    def _add_route_for_resource_type(self, spec):  # pragma: no cover
+    def _add_route_for_resource_type(self, spec):
         qvarn.log.log(
             'debug', msg_text='Adding missing route', path=spec['path'])
         resources = qvarn.add_resource_type_to_server(self, spec)
         self.add_routes(resources)
 
-    def _parse_config(self):  # pragma: no cover
-        parser = argparse.ArgumentParser()
-        parser.add_argument(
-            '--prepare-storage',
-            action='store_true',
-            help='only prepare database storage')
-        parser.add_argument(
-            '--config',
-            metavar='FILE',
-            help='use FILE as configuration file')
-        args = parser.parse_args()
-
-        config = ConfigParser.RawConfigParser()
-        files_read = config.read(args.config)
-        if files_read != [args.config]:
-            raise MissingConfigFileError(filename=args.config)
-        return config, args
-
-    def _connect_to_storage(self, conf):  # pragma: no cover
+    def _connect_to_storage(self, conf, specdir=None,
+                            prepare_storage=False):
         '''Prepare the database for use.'''
+        dbtype = conf.get('database', 'type')
 
-        args = {
-            'host': conf.get('database', 'host'),
-            'port': conf.get('database', 'port'),
-            'db_name': conf.get('database', 'name'),
-            'user': conf.get('database', 'user'),
-            'min_conn': conf.get('database', 'minconn'),
-            'max_conn': conf.get('database', 'maxconn'),
-        }
+        if dbtype == 'postgres':
+            args = {
+                'host': conf.get('database', 'host'),
+                'port': conf.get('database', 'port'),
+                'db_name': conf.get('database', 'name'),
+                'user': conf.get('database', 'user'),
+                'min_conn': conf.get('database', 'minconn'),
+                'max_conn': conf.get('database', 'maxconn'),
+            }
+            # Log all connection parameters except password.
+            log.log('connect-to-storage', **args)
+            password = conf.get('database', 'password')
+            sql = qvarn.PostgresAdapter(password=password, **args)
 
-        # Log all connection parameters except password.
-        log.log('connect-to-storage', **args)
-        sql = qvarn.PostgresAdapter(
-            password=conf.get('database', 'password'),
-            **args)
+        elif dbtype == 'sqlite':
+            dbfile = conf.get('database', 'file')
+            if dbfile:
+                log.log('connect-to-storage', dbtype=dbtype, dbfile=dbfile)
+                sql = qvarn.SqliteAdapter(dbfile)
+            else:
+                log.log('connect-to-storage', dbtype=dbtype)
+                sql = qvarn.SqliteAdapter()
+                # For in-momory sqlite we always want to prepare storage
+                prepare_storage = True
+
+        else:
+            raise ConfigurationError("Unknown database type: %r" % dbtype)
 
         self._dbconn = qvarn.DatabaseConnection()
         self._dbconn.set_sql(sql)
 
-    def _load_specs_from_files(self, specdir):  # pragma: no cover
+        if prepare_storage:
+            specs_and_texts = self._load_specs_from_files(specdir)
+            self._add_resource_types_from_specs(s for s, t in specs_and_texts)
+            self._prepare_storage(self._conf)
+            self._store_resource_types(specs_and_texts)
+            # sanity check: were they stored successfully?
+            self._load_specs_from_db()
+        else:
+            specs = self._load_specs_from_db()
+            resources = self._add_resource_types_from_specs(specs)
+            self.add_routes(resources)
+            # see also: self._add_missing_route
+
+    def _load_specs_from_files(self, specdir):
         qvarn.log.log(
             'debug', msg_text='Loading specs from {!r}'.format(specdir))
         specs = []
@@ -253,7 +294,7 @@ class BackendApplication(object):
             specs.append((spec, spec_text))
         return specs
 
-    def _load_specs_from_db(self):  # pragma: no cover
+    def _load_specs_from_db(self):
         qvarn.log.log('debug', msg_text='Loading specs from database')
         specs = []
         rst = qvarn.ResourceTypeStorage()
@@ -266,32 +307,44 @@ class BackendApplication(object):
                 specs.append(spec)
         return specs
 
-    def _find_yaml_files(self, specdir):  # pragma: no cover
+    def _find_yaml_files(self, specdir):
         basenames = os.listdir(specdir)
         return [
             os.path.join(specdir, x) for x in basenames if x.endswith('.yaml')
         ]
 
-    def _add_resource_types_from_specs(self, specs):  # pragma: no cover
+    def _add_resource_types_from_specs(self, specs):
         resources = []
         for spec in specs:
             resources += qvarn.add_resource_type_to_server(self, spec)
         return resources
 
-    def _prepare_storage(self, conf):  # pragma: no cover
+    def _prepare_storage(self, conf):
         '''Prepare the database for use.'''
         if not conf.getboolean('database', 'readonly'):
-            with self._dbconn.transaction() as t:
+            if conf.get('database', 'type') == 'sqlite':
+                # For some reason, sqlite does not work with large DDL
+                # transactions.
+                with self._dbconn.transaction() as t:
+                    tables = qvarn.get_current_tables(t)
                 for vs in self._vs_list:
-                    vs.prepare_storage(t)
+                    with self._dbconn.transaction() as t:
+                        vs.prepare_storage(t, tables)
+            else:
+                with self._dbconn.transaction() as t:
+                    tables = qvarn.get_current_tables(t)
+                    for vs in self._vs_list:
+                        vs.prepare_storage(t, tables)
 
-    def _configure_logging(self, conf):  # pragma: no cover
+    def _configure_logging(self, conf):
         lognames = ['log', 'log2', 'log3', 'log4', 'log5']
         for logname in lognames:
             if conf.has_option('main', logname):
                 name = conf.get('main', logname)
                 rule = self._load_filter_rules(conf, logname)
-                if name == 'syslog':
+                if name.startswith('stdout'):
+                    self._configure_logging_to_stdout(name, rule)
+                elif name == 'syslog':
                     self._configure_logging_to_syslog(rule)
                 else:
                     max_bytes = self._get_max_log_bytes(conf, logname)
@@ -304,7 +357,7 @@ class BackendApplication(object):
             argv=sys.argv,
             env=dict(os.environ))
 
-    def _load_filter_rules(self, conf, logname):  # pragma: no cover
+    def _load_filter_rules(self, conf, logname):
         opt = logname + '-filter'
         if conf.has_option('main', opt):
             filename = conf.get('main', opt)
@@ -314,29 +367,50 @@ class BackendApplication(object):
         else:
             return qvarn.FilterAllow()
 
-    def _configure_logging_to_syslog(self, rule):  # pragma: no cover
+    def _configure_logging_to_syslog(self, rule):
         writer = qvarn.SyslogSlogWriter()
+        qvarn.log.close()
         qvarn.log.add_log_writer(writer, rule)
 
-    def _get_max_log_bytes(self, conf, logname):  # pragma: no cover
+    def _configure_logging_to_stdout(self, name, rule):
+        if name == 'stdout':
+            writer = qvarn.StdoutSlogWriter()
+        elif name == 'stdout-pretty':
+            writer = qvarn.StdoutSlogWriter(pretty=True)
+        elif name == 'stdout-oneline':
+            writer = qvarn.StdoutSlogWriter(oneline=True)
+        else:
+            raise ConfigurationError("Unknonw log hander: %r" % name)
+
+        qvarn.log.close()
+        qvarn.log.add_log_writer(writer, rule)
+
+    def _get_max_log_bytes(self, conf, logname):
         max_bytes = 10 * 1024**2
         opt = logname + '-max-bytes'
         if conf.has_option('main', opt):
             max_bytes = conf.getint('main', opt)
         return max_bytes
 
-    def _configure_logging_to_file(self, filename, max_bytes,
-                                   rule):  # pragma: no cover
+    def _configure_logging_to_file(self, filename, max_bytes, rule):
         writer = qvarn.FileSlogWriter()
         writer.set_filename(filename)
         writer.set_max_file_size(max_bytes)
+        qvarn.log.close()
         qvarn.log.add_log_writer(writer, rule)
 
-    def _install_logging_plugin(self):  # pragma: no cover
-        logging_plugin = qvarn.LoggingPlugin()
+    def _install_logging_plugin(self, conf):
+        alog_enabled = conf.getboolean('main', 'enable_access_log')
+        chunk_size = conf.getint('main', 'access_log_entry_chunk_size')
+        qvarn.log.log('info',
+                      msg='Access logging enabled?',
+                      enabled=alog_enabled)
+        logging_plugin = qvarn.LoggingPlugin(
+            log_access=alog_enabled,
+            access_log_entry_chunk_size=chunk_size)
         self._app.install(logging_plugin)
 
-    def _setup_auth(self, conf):  # pragma: no cover
+    def _setup_auth(self, conf):
         validation_key = None
         issuer = None
 
@@ -356,21 +430,141 @@ class BackendApplication(object):
                 validation_key=validation_key,
                 issuer=issuer)
 
-    def _prepare_resources(self, resources):  # pragma: no cover
+    def _prepare_resources(self, resources):
         routes = []
         for r in resources:
             routes += r.prepare_resource(self._dbconn)
         return routes
 
-    def _store_resource_types(self, specs_and_texts):  # pragma: no cover
+    def _store_resource_types(self, specs_and_texts):
         qvarn.log.log('debug', msg_text='Storing specs in database')
         rst = qvarn.ResourceTypeStorage()
         with self._dbconn.transaction() as t:
             rst.prepare_tables(t)
             for spec, text in specs_and_texts:
                 qvarn.log.log(
-                    'debug', msg_text='Storing spec', spec=repr(spec))
+                    'debug', msg_text='Storing spec', spec=spec)
                 rst.add_or_update_spec(t, spec, text)
+
+    def _setup_auth_token_endpoint(self, config):
+        issuer = config.get('auth', 'token_issuer')
+        private_key_file = config.get('auth', 'token_private_key_file')
+        if private_key_file:
+            qvarn.log.log(
+                'info',
+                msg='loading /auth/token endpoint',
+                private_key_file=private_key_file,
+            )
+            with open(private_key_file, 'rb') as f:
+                private_key = f.read()
+            self.add_routes([qvarn.AuthTokenResource(private_key, issuer)])
+        proxy_to = config.get('auth', 'proxy_to')
+        if proxy_to:
+            qvarn.log.log(
+                'info',
+                msg='loading /auth/token proxy endpoint',
+                proxy_to=proxy_to,
+            )
+            self.add_routes([qvarn.AuthProxyResource(proxy_to)])
+
+    def _setup_healthcheck_endpoint(self):
+        self.add_routes([qvarn.HealthcheckEndpoint()])
+
+
+def set_config_option(config, section, option, value):
+    config.set(section, option, value)
+
+
+def get_configuration(argv=None, env=None, validate=True):
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--prepare-storage',
+        action='store_true',
+        help='only prepare database storage')
+    parser.add_argument(
+        '--config',
+        metavar='FILE',
+        help='use FILE as configuration file')
+    parser.add_argument(
+        '-o', '--set-option',
+        nargs='*',
+        action='append',
+        default=[],
+        help="override configuration options, "
+             "example -o database.host=local")
+    args = parser.parse_args(argv)
+    env = env or os.environ
+
+    config = configparser.RawConfigParser()
+
+    # Load default values
+    for section in DEFAULT_CONFIG:
+        if not config.has_section(section):
+            config.add_section(section)
+        for option, value in DEFAULT_CONFIG[section].items():
+            set_config_option(config, section, option, value)
+
+    # Load configuration from a configuration file
+    config_file = env.get('QVARN_CONFIG', '')
+    config_file = args.config or config_file
+    if config_file:
+        files_read = config.read(config_file)
+        if files_read != [config_file]:
+            raise MissingConfigFileError(filename=config_file)
+
+    # Load configuration parameters from environment variables
+    for section in DEFAULT_CONFIG:
+        for option, value in DEFAULT_CONFIG[section].items():
+            varname = 'QVARN_%s_%s' % (section, option)
+            varname = varname.upper().replace('-', '_')
+            if varname in env:
+                set_config_option(config, section, option, env[varname])
+            elif section == 'main':
+                varname = 'QVARN_%s' % option
+                varname = varname.upper().replace('-', '_')
+                if varname in env:
+                    set_config_option(config, section, option,
+                                      env[varname])
+
+    # Load configuration parameters from command line arguments
+    for option in sum(args.set_option, []):
+        option, value = option.split('=', 1)
+        section, option = option.split('.', 1)
+        set_config_option(config, section, option, value)
+
+    if validate:
+        validate_configuration(config)
+
+    return config, args
+
+
+def validate_configuration(config):
+    specdir = config.get('main', 'specdir')
+
+    if not os.path.exists(specdir):
+        raise ConfigurationError((
+            "main.specdir (%r) does not exist."
+        ) % specdir)
+
+    yamls = [x for x in os.listdir(specdir) if x.endswith('.yaml')]
+    if not yamls:
+        raise ConfigurationError((
+            "main.specdir (%r) does not have any yaml files."
+        ) % specdir)
+
+    for name in yamls:
+        yamlfile = os.path.join(specdir, name)
+        with open(yamlfile) as f:
+            schema = yaml.safe_load(f)
+        if not all(x in schema for x in ('type', 'path', 'versions')):
+            raise ConfigurationError((
+                "%r file does not look like a resource type specification. "
+                "Make sure %r contains only resource type spec yaml files."
+            ) % (yamlfile, specdir))
+
+
+class ConfigurationError(Exception):
+    pass
 
 
 class MissingAuthorizationError(qvarn.QvarnException):

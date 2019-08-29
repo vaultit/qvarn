@@ -18,13 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import os
-import yaml
-
 import qvarn
-
-
-specdir = '/etc/qvarn'
 
 
 def version():
@@ -52,4 +46,4 @@ def setup_version_resource(app):
 app = qvarn.BackendApplication()
 resource = setup_version_resource(app)
 app.add_routes([resource])
-application = app.prepare_for_uwsgi(specdir)
+application = app.prepare_for_uwsgi()

@@ -1,0 +1,12 @@
+PyJWT
+bottle
+cryptography
+psycopg2-binary
+pycryptodome
+pyyaml
+requests
+six
+uwsgi
+uwsgidecorators
+setuptools
+sqlalchemy

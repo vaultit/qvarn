@@ -19,7 +19,7 @@
 import re
 
 
-class FilterRule(object):  # pragma: no cover
+class FilterRule(object):
 
     def allow(self, log_obj):
         raise NotImplementedError()
@@ -103,7 +103,7 @@ def construct_log_filter(filters):
                     spec['field'], spec['regexp'])
             elif 'field' in spec:
                 rule = FilterHasField(spec['field'])
-            else:  # pragma: no cover
+            else:
                 rule = FilterAllow()
         if 'include' in spec:
             rule = FilterInclude(spec, rule)

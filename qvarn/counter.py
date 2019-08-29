@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import thread
+import threading
 
 
 class Counter(object):
@@ -22,7 +22,7 @@ class Counter(object):
     '''A threadsafe incrementing counter.'''
 
     def __init__(self):
-        self._lock = thread.allocate_lock()
+        self._lock = threading.Lock()
         self._counter = 0
 
     def get(self):

@@ -115,6 +115,7 @@
 
 
 import hashlib
+import codecs
 
 
 class ResourceIdGenerator(object):
@@ -133,16 +134,16 @@ class ResourceIdGenerator(object):
         return self._canonical_form(type_field, random_field, checksum_field)
 
     def _encode_type(self, resource_type):
-        return hashlib.sha512(resource_type).hexdigest()[:4]
+        return hashlib.sha512(resource_type.encode('UTF-8')).hexdigest()[:4]
 
     def _get_randomness(self):
         num_bits = 128
-        num_bytes = num_bits / 8
+        num_bytes = num_bits // 8
         random_bytes = self._urandom.get_random_bytes(num_bytes)
-        return random_bytes.encode('hex')
+        return codecs.encode(random_bytes, 'hex').decode('ASCII')
 
     def _compute_checksum(self, rest):
-        return hashlib.sha512(rest).hexdigest()[:8]
+        return hashlib.sha512(rest.encode('UTF-8')).hexdigest()[:8]
 
     def _canonical_form(self, type_field, random_field, checksum_field):
         return u'{0}-{1}-{2}'.format(type_field, random_field, checksum_field)

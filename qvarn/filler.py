@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import six
+
 
 def add_missing_item_fields(item_type, prototype, item):
 
@@ -55,7 +57,7 @@ def _default_value(proto, field_name):
 
     defaults_by_type = {
         int: None,
-        unicode: None,
+        six.text_type: None,
         bool: None,
         list: [],
     }

@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Usage ./build-debian-package
+
+set -euvo pipefail
+
+BUILD_NUMBER="${CI_JOB_ID:-1}"
+
+commit_date="$(git show --pretty='Date: %cD' | sed -n '/^Date: */s///p')"
+formatted_commit_date="$(date -u --date="$commit_date" "+%Y%m%dT%H%M")"
+commit="$(git log --pretty=oneline HEAD^..HEAD | awk '{print $1}')"
+
+srcpkg="$(awk '/^Source:/ { print $2 }' debian/control)"
+upstream_version="$(git describe --tags --abbr=0).$formatted_commit_date"
+
+# Full version is upstream_version - build_number
+full_version="$upstream_version-$BUILD_NUMBER"
+
+echo "srcpkg: $srcpkg"
+echo "upstream_version: $upstream_version"
+echo "full_version: $full_version"
+
+# Clean up parent directory
+rm -f "../${srcpkg}"*_*
+
+# Create upstream tarball
+git archive HEAD | xz -9 > "../${srcpkg}_${upstream_version}.orig.tar.xz"
+
+# Setup changelog
+dch -v "$full_version" "New build from commit $commit"
+dch -r ''
+
+# Build
+export VERSION="$upstream_version"
+debuild -e VERSION -us -uc
+
+# Store changes file name
+echo "${srcpkg}_${full_version}_amd64.changes" > ../changes_file

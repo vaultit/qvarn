@@ -29,6 +29,7 @@
 
 
 import bottle
+import six
 
 import qvarn
 
@@ -133,8 +134,8 @@ class FileResource(object):
 
         subitem = {
             u'id': item_id,
-            u'body': buffer(bottle.request.body.read()),
-            u'content_type': unicode(bottle.request.content_type)
+            u'body': memoryview(bottle.request.body.read()),
+            u'content_type': six.text_type(bottle.request.content_type)
         }
 
         added = {u'id': item_id}

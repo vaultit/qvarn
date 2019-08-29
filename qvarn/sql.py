@@ -26,6 +26,7 @@ Qvarn are supported.
 '''
 
 
+import codecs
 import sqlite3
 import string
 
@@ -33,9 +34,11 @@ import psycopg2
 import psycopg2.pool
 import psycopg2.extras
 import psycopg2.extensions
+import six
+import sqlalchemy as sa
 
 
-column_types = (unicode, int, bool, buffer)
+column_types = (six.text_type, int, bool, memoryview)
 
 
 class SqlAdapter(object):
@@ -126,6 +129,9 @@ class SqlAdapter(object):
             self.quote(column_name),
             self.type_name[column_type])
         return sql
+
+    def format_alter_column(self, table_name, column_name, old, new):
+        raise NotImplementedError("column type change is not supported")
 
     def format_rename_table(self, old_name, new_name):
         return u'ALTER TABLE {} RENAME TO {}'.format(
@@ -273,6 +279,19 @@ class SqlAdapter(object):
     def put_conn(self, conn):
         raise NotImplementedError()
 
+    def _create_engine(self, dsn):
+        # pylint: disable=attribute-defined-outside-init
+        self._engine = sa.create_engine(dsn, creator=self.get_conn)
+        # pylint: disable=attribute-defined-outside-init
+        self._metadata = sa.MetaData()
+        self._metadata.reflect(self._engine)
+
+    def get_engine(self):
+        return self._engine
+
+    def get_metadata(self):
+        return self._metadata
+
 
 class SqliteAdapter(SqlAdapter):
 
@@ -280,13 +299,14 @@ class SqliteAdapter(SqlAdapter):
 
     type_name = {
         bool: u'BOOLEAN',
-        buffer: u'BLOB',
+        memoryview: u'BLOB',
         int: u'INTEGER',
-        unicode: u'TEXT',
+        six.text_type: u'TEXT',
     }
 
-    def __init__(self):
-        self._conn = sqlite3.connect(u':memory:')
+    def __init__(self, dbfile=u':memory:'):
+        self._conn = sqlite3.connect(dbfile)
+        self._create_engine('sqlite://')
 
     def format_limit(self, limit=None, offset=None):
         query = []
@@ -307,7 +327,10 @@ class SqliteAdapter(SqlAdapter):
 
     def format_qualified_placeholder_name(self, table_name, column_name):
         q = self.qualified_column(table_name, column_name)
-        return q.encode('hex')
+        return codecs.encode(q.encode('UTF-8'), 'hex').decode('ASCII')
+
+    def format_alter_column(self, table_name, column_name, old, new):
+        raise NotImplementedError("column type change is not supported")
 
     def get_conn(self):
         return self._conn
@@ -322,14 +345,15 @@ class PostgresAdapter(SqlAdapter):
 
     type_name = {
         bool: u'BOOLEAN',
-        buffer: u'BYTEA',
+        memoryview: u'BYTEA',
         int: u'BIGINT',
-        unicode: u'TEXT',
+        six.text_type: u'TEXT',
     }
 
     def __init__(self, **kwargs):
         self._check_init_args(kwargs)
         self._pool = self._create_connection_pool(kwargs)
+        self._create_engine('postgresql+psycopg2://')
 
     def _check_init_args(self, kwargs):
         # Check arguments to __init__. We do it this way, to force
@@ -388,6 +412,34 @@ class PostgresAdapter(SqlAdapter):
 
     def format_qualified_placeholder_name(self, table_name, column_name):
         return self.qualified_column(table_name, column_name)
+
+    def format_alter_column(self, table_name, column_name, old, new):
+
+        def using():
+            if old is bool and new is memoryview:
+                return "(({column}::int)::text)::{type}"
+            elif old is memoryview and new is bool:
+                return "(encode({column}, 'escape')::int)::{type}"
+            elif new is memoryview:
+                return "({column}::text)::{type}"
+            elif old is memoryview:
+                return "encode({column}, 'escape')::{type}"
+            elif old is bool or new is bool:
+                return "({column}::int)::{type}"
+            else:
+                return "{column}::{type}"
+
+        sql = (
+            u'ALTER TABLE {table} '
+            u'ALTER COLUMN {column} '
+            u'SET DATA TYPE {type} '
+            u'USING ' + using()
+        ).format(
+            table=self.quote(table_name),
+            column=self.quote(column_name),
+            type=self.type_name[new],
+        )
+        return sql
 
     def get_conn(self):
         return self._pool.getconn()

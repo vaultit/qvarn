@@ -70,7 +70,7 @@ Unique identifier
 Creates a unique identifier used to uniquely identify several resources.
 
     IMPLEMENTS GIVEN unique identifier \$(\S+)
-    save_value "$MATCH_1" "$(python -c 'import uuid; print(uuid.uuid4())')"
+    save_value "$MATCH_1" "$(python2 -c 'import uuid; print(uuid.uuid4())')"
 
 Requests
 --------
@@ -229,7 +229,7 @@ check that the value has another key. Ignore the value of the subkey.
     # We interpret curl.out as a JSON dict. This is easiest done in
     # Python. Don't want to parse JSON in shell.
 
-    python -c '
+    python2 -c '
     import json, sys, os
     obj = json.load(sys.stdin)
     mainkey = os.environ["MATCH_1"]
@@ -255,7 +255,7 @@ Extract the resource id of a list of resources returned by a query.
     echo ----
     cat "$DATADIR/curl.out"
     echo ----
-    python -c '
+    python2 -c '
     import json, sys, os
     obj = json.load(sys.stdin)
     index = int(os.environ["MATCH_1"])
@@ -271,7 +271,7 @@ can have steps that look for known matches, but don't get confused by
 additional matches.
 
     IMPLEMENTS THEN search result contains match (.*)
-    python -c '
+    python2 -c '
         
     import json, sys, os
     obj = json.load(sys.stdin)

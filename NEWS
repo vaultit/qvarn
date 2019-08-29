@@ -1,8 +1,244 @@
 NEWS for Qvarn
 ==============
 
-Version 0.82+git, not yet released
+Version 0.82+vaultit.25.git, UNRELEASED
+---------------------------------------
+
+
+Version 0.82+vaultit.25, 2019-06-19
+-----------------------------------
+
+* Upgrade PyJWT to 1.7.1. Previously dev environment was using 1.6.4 and
+  production environment was using a very old 1.4.1 version. 1.4.1 version had
+  a Python 3 related bug, that prevented Qvarn's build-in authorization server
+  to work.
+
+
+Version 0.82+vaultit.24, 2019-03-26
+-----------------------------------
+
+* Added /healthcheck endpoint.
+
+* Fix `dbconn` py.test fixture, it borke other tests, because this fixture
+  always deletes whole database, while moste tests rely on session scope
+  database fixture.
+
+
+Version 0.82+vaultit.20, 2018-11-20
+-----------------------------------
+
+* qvarn-run scripts no longer overwrites all files in --base-dir. If file
+  already exists it is left as is. token and qvarn.conf files are still
+  overwritten each time, bet qvarn.conf is read before overwriting, so manually
+  added changes should be left as is, unless -o option overrides it.
+
+
+Version 0.82+vaultit.19, 2018-11-13
+-----------------------------------
+
+* Previously all schema migrations for all resource types was run under single
+  transaction. Now that was changed, to use separate transactions for each
+  resource type. This change was made, because sqlite database gave strange
+  errors, that table does not exist even if create table statement was
+  executed. Running each resource type migration under a separate transaction
+  fixed the issue. But I still don't know why that happed.
+
+  This change only effects sqlite database, PostgreSQL still runs under single
+  transaction for all resource type migrations.
+
+* More strict resource type YAML field checks. Now if Qvarn finds an unknown
+  field type it will raise an error. Previously fields with unknown types were
+  silently ignored.
+
+* Added support for changing type of existing columns. Qvarn tries to
+  automatically convert between types, but automatic conversion only works for
+  really simple cases. For example if you have data "ABC" and you want to
+  convert that to integer, this will fail. But if all your strings contain
+  numbers, then automatic conversion will work.
+
+  Most likely, before changing field type you will have to do manual data
+  migration to prepare data for conversion.
+
+  Currently, booleans are converted to 0 and 1, integers are converted to
+  strings, bytes are converted to strings with escape symbols.
+
+  Type conversion is only suppored on PostgreSQL, if you will try to do type
+  conversion on SQLite you will get error.
+
+
+Version 0.82+vaultit.18, 2018-10-26
+-----------------------------------
+
+* Full Qvarn schema migration code refactoring. Previously Qvarn did schema
+  migration by renaming original tables, then creating new tables and copying
+  data from original renamed to new tables. This was very slow and consumed a
+  lot of memory.
+
+  New schema migration uses `ALTER TABLE {} ADD COLUMN {}` SQL statements. This
+  should work a lot faster.
+
+  This change is backwards incompatible. Now, it is possible to only add new
+  things to the schema, but it is not possible to remove. Previously, Qvarn was
+  able to remove columns.
+
+  Except this incompatibility everything else should be backwards compatible.
+
+  After adding new columns, they are all set to NULL, same thing was before
+  this refactoring.
+
+* Now, resource type schema from yaml files is only stored if migrations are
+  successful. Previously, first yaml files are pushed to database and only then
+  migrations were applied.
+
+* New all resource types are loaded on Qvarn startup to make things more
+  reliable and to get possible errors sooner. Previously Qvarn added
+  missing resource types on request, by detecting needed resource type from
+  URL.
+
+* Refactored sqlalchemy initialization. sqlalchemy is now used for database
+  introspection during schema migration.
+
+
+Version 0.82+vaultit.17, 2018-10-19
+-----------------------------------
+
+* Twine issue fix.
+
+* Make /auth/token endpoint implementation that forwards to another server.
+
+
+Version 0.82+vaultit.13, 2018-08-06
+-----------------------------------
+
+* Upgrade `cryptography` from v2.2.2 to v2.3.
+
+
+Version 0.82+vaultit.12, 2018-07-10
+-----------------------------------
+
+* CoverageTestRunner was replaced by py.test + pytest-cov, and webtest
+  was added for functional tests.
+
+* Add Python 3 support.
+
+
+Version 0.82+vaultit.11, 2018-06-04
+-----------------------------------
+
+* Change version scheme in order to make it work with pip and be compatible
+  with PEP-440.
+
+* Fix bug with multiple `-o` flags, where only the last one was accepted in
+  `qvarn-run` and `qvarn-backend` commands.
+
+* New `main.access_log_entry_chunk_size` configuration options was added to
+  control how many ids to put into single log entry. Default chunk size was
+  changed from 40 to 300.
+
+* New `--https` option for `qvarn-run` script. Previously `qvarn-run` used
+  https by default, now http is used by default, but https can be turned on
+  using `--https` flag.
+
+* Fix configuration loading using `QVARN_CONFIG`, previously `QVARN_CONFIG` was
+  not respected and `--config` command line argument was used. Now this is
+  fixed.
+
+* `qvarn-run` script now runs `uwsgi` with `--http-keepalive` flag in order to
+  maintain connection if client uses `Keep-Alive`. This fixes `Resetting
+  dropped connection: localhost` client errors and improves performance.
+
+
+Version 0.82+vaultit.10, 2018-05-25
+-----------------------------------
+
+* Fix Python packaging in order to make Qvarn pip installable.
+
+
+Version 0.82-9.vaultit, 2018-05-25
 ----------------------------------
+
+* Continuous integration was configured, now there all qvarn tests will run
+  automatically on each push. An updated `Makefile`, `qvarn-run` and
+  `run-yarn-tests` scripts automates Qvarn and it is possible to run
+  integration tests using single command.
+
+* All configuration parameters can be overriden via environment variables and
+  command line arguments. Example `-o database.host=localhost`, `export
+  QVARN_DATABASE_HOST=localhost`.
+
+* Path to qvarn resource type spec files is no longer hardcoded and can be
+  specified via configuration (example: `-o main.specdir=path/to/dir` or
+  `qvarn-run -r path/to/dir`).
+
+* `qvarn-run` command introduced. This command helps to run Qvarn under uwsgi
+  and will take care of all the configuration needed to run Qvarn.
+
+* `database.type` and `database.file` configuration parameters are introduced.
+  Qvarn had support for sqlite database, but it was not possible run Qvarn with
+  SQLite database, because sqlite was hardcoded only for tests.
+
+  Even if possibility to run Qvarn with SQLite exists, but SQLite backend does
+  not pass some yarn tests due to boolean type handling and unicode support. So
+  use it at your own risk.
+
+  `qvarn-run` command will automatically set `database.file` fi `-o
+  database.type=sqlite` is set.
+
+* New `/auth/token` API endpoint and `auth.token_private_key_file`
+  configuration parameter were introduced. `/auth/token` endpoint is only
+  available if `auth.token_private_key_file` is set. `qvarn-run` script
+  automatically sets `auth.token_private_key_file` parameter and allows to
+  get access token with client credentials. For example:
+
+    $ http -f --verify no https://localhost:9000/auth/token
+           grant_type=client_credentials scope=uapi_orgs_get
+
+  As you can see HTTP basic auth is not given.
+
+  `/auth/token` allows you to run qvarn without Gluu.
+
+  But there is also possibility to run Qvarn with Gluu `qvarn-run --gluu
+  https://gluu.example.com`.
+
+* New log handlers where added `stdout`, `stdout-pretty` and `stdout-oneline`.
+
+* Now Qvarn log to stdout while starting, previously when Qvarn is starting
+  logging was turned off, hiding all startup errors.
+
+* Qvarn now validates `main.specdir` parameter and outputs error immediately if
+  some resource type definition checks did not pass. Currently it tries to load
+  yaml files and checks for `type` and `path` properties.
+
+
+Version 0.82-8.vaultit, released 2018-04-19
+-------------------------------------------
+
+* Include X-Forwarded-for header content in access log.
+* Do not log listener requests.
+
+
+Version 0.82-7.vaultit, released 2018-04-19
+-------------------------------------------
+
+* Add access logging via standard logging facilities.
+
+
+Version 0.82-6.vaultit, released 2018-02-27
+-------------------------------------------
+
+* Re-open log-files after fork.
+
+
+Version 0.82-5.vaultit, released 2018-02-26
+-------------------------------------------
+
+* Fixed a race condition in log file rotation.
+
+
+Version 0.82-4.vaultit, released 2018-01-10
+-------------------------------------------
+
+* Added /rsort operator for sorting in descending order.
 
 
 Version 0.82-3.vaultit, released 2017-09-27
@@ -11,7 +247,7 @@ Version 0.82-3.vaultit, released 2017-09-27
 * Added /any operator.
 
 * Fixed Qvarn initialization bug, where specs where initialized from path. In
-  cases where path was not a resource type, but also cantained additional
+  cases where path was not a resource type, but also contained additional
   components, like resource id, initialization failed.
 
 * Fixed performance issue with notifications. In order to get notifications
@@ -25,7 +261,7 @@ Version 0.82, released 2017-06-06
 * Added some documentation for resource type definition.
 
 * Mantas added the /limit and /offset operators to /search. This
-  should be useful for implemenating pagination in API clients.
+  should be useful for implementing pagination in API clients.
 
 * Made the Transaction class handle exceptions when committing or
   rolling back a database transaction, and not leak database

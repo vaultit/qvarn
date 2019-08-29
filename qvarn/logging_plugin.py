@@ -27,16 +27,20 @@ import time
 import bottle
 
 import qvarn
+from qvarn.access_log import AccessLogger
 
 
 class LoggingPlugin(object):
 
     '''A Bottle plugin to log HTTP requests.'''
 
-    def __init__(self):
+    def __init__(self, log_access=True, access_log_entry_chunk_size=None):
         # Create a counter shared between threads so that HTTP
         # requests can be numbered linearly between threads.
         self._counter = qvarn.Counter()
+        self._access_logger = AccessLogger(
+            entry_chunk_size=access_log_entry_chunk_size)
+        self._access_log_enabled = log_access
 
     def apply(self, callback, route):
         def wrapper(*args, **kwargs):
@@ -46,6 +50,7 @@ class LoggingPlugin(object):
                 self._log_request()
                 data = callback(*args, **kwargs)
                 self._add_response_headers()
+                self._log_access(data)
                 self._log_response(data)
                 self._end_context()
                 return data
@@ -82,7 +87,7 @@ class LoggingPlugin(object):
         qvarn.log.log(
             'http-request',
             method=r.method,
-            path=r.path.decode('utf-8'),
+            path=r.path,
             url_args=r.url_args,
             headers={
                 key: (
@@ -106,3 +111,10 @@ class LoggingPlugin(object):
             'http-response',
             status=r.status_code,
             headers=dict(r.headers))
+
+    def _log_access(self, data):
+        if self._access_log_enabled and bottle.response.status_code in (200,
+                                                                        201):
+            self._access_logger.log_access(bottle.request,
+                                           bottle.response,
+                                           data)

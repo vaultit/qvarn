@@ -17,6 +17,7 @@
 
 
 import unittest
+import six
 
 import qvarn
 
@@ -26,7 +27,7 @@ class ResourceIdGeneratorTests(unittest.TestCase):
     def test_returns_a_unicode_string(self):
         rig = qvarn.ResourceIdGenerator()
         resource_id = rig.new_id(u'person')
-        self.assertEqual(type(resource_id), unicode)
+        self.assertEqual(type(resource_id), six.text_type)
 
     def test_returns_new_values_each_time(self):
         rig = qvarn.ResourceIdGenerator()

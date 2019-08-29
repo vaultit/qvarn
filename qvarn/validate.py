@@ -16,6 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import six
+
 import qvarn
 
 
@@ -105,7 +107,7 @@ class ItemValidator(object):
         proto_value = prototype[field_name]
         item_value = item[field_name]
 
-        simple_types = (unicode, bool, int)
+        simple_types = (six.text_type, bool, int)
         if isinstance(proto_value, simple_types):
             self._validate_simple_value(field_name, proto_value, item_value)
         elif isinstance(proto_value, list):
@@ -126,18 +128,18 @@ class ItemValidator(object):
     def _validate_list_value(self, field_name, proto_value, item_value):
         if len(proto_value) != 1:
             raise PrototypeListMustHaveOneValue(item=proto_value)
-        if not isinstance(proto_value[0], (unicode, dict)):
+        if not isinstance(proto_value[0], (six.text_type, dict)):
             raise PrototypeListMustHaveStringsOrDicts(prototype=proto_value)
         if not isinstance(item_value, list):
             raise ItemMustHaveList(conflicting_type=str(type(item_value)))
-        if isinstance(proto_value[0], unicode):
+        if isinstance(proto_value[0], six.text_type):
             self._validate_list_of_strings(item_value)
         elif isinstance(proto_value[0], dict):
             self._validate_list_of_dicts(proto_value, item_value)
 
     def _validate_list_of_strings(self, item_value):
         for i, value in enumerate(item_value):
-            if not isinstance(value, unicode):
+            if not isinstance(value, six.text_type):
                 raise ItemListMustContainStrings(
                     position=i, conflicting_value=repr(value))
 

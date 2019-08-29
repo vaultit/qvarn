@@ -16,6 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import six
+
 import qvarn
 
 
@@ -63,14 +65,14 @@ class SchemaWalker(qvarn.ItemWalker):
     def visit_main_str_list(self, item, field):
         table_name = qvarn.table_name(
             list_field=field, **self._table_name_kwargs)
-        self._add_column(table_name, u'id', unicode)
+        self._add_column(table_name, u'id', six.text_type)
         self._add_column(table_name, u'list_pos', int)
-        self._add_column(table_name, field, unicode)
+        self._add_column(table_name, field, six.text_type)
 
     def visit_main_dict_list(self, item, field, column_names):
         table_name = qvarn.table_name(
             list_field=field, **self._table_name_kwargs)
-        self._add_column(table_name, u'id', unicode)
+        self._add_column(table_name, u'id', six.text_type)
         self._add_column(table_name, u'list_pos', int)
         for column_name in column_names:
             column_type = type(item[field][0][column_name])
@@ -81,17 +83,17 @@ class SchemaWalker(qvarn.ItemWalker):
             list_field=field,
             subdict_list_field=str_list_field,
             **self._table_name_kwargs)
-        self._add_column(table_name, u'id', unicode)
+        self._add_column(table_name, u'id', six.text_type)
         self._add_column(table_name, u'dict_list_pos', int)
         self._add_column(table_name, u'list_pos', int)
-        self._add_column(table_name, str_list_field, unicode)
+        self._add_column(table_name, str_list_field, six.text_type)
 
     def visit_inner_dict_list(self, item, field, inner_field, simple_columns):
         table_name = qvarn.table_name(
             list_field=field,
             subdict_list_field=inner_field,
             **self._table_name_kwargs)
-        self._add_column(table_name, u'id', unicode)
+        self._add_column(table_name, u'id', six.text_type)
         self._add_column(table_name, u'dict_list_pos', int)
         self._add_column(table_name, u'list_pos', int)
         for column_name in simple_columns:
@@ -107,8 +109,8 @@ class SchemaWalker(qvarn.ItemWalker):
             subdict_list_field=inner_field,
             inner_dict_list_field=str_list_field,
             **self._table_name_kwargs)
-        self._add_column(table_name, u'id', unicode)
+        self._add_column(table_name, u'id', six.text_type)
         self._add_column(table_name, u'dict_list_pos', int)
         self._add_column(table_name, u'list_pos', int)
         self._add_column(table_name, u'str_list_pos', int)
-        self._add_column(table_name, str_list_field, unicode)
+        self._add_column(table_name, str_list_field, six.text_type)

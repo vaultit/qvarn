@@ -1,0 +1,273 @@
+#!/usr/bin/env python2
+
+from __future__ import unicode_literals, print_function
+
+import argparse
+import base64
+from six.moves import configparser
+import contextlib
+import errno
+import os
+import random
+import signal
+import shutil
+import socket
+import subprocess
+import sys
+import tempfile
+
+import requests
+import six
+from six.moves.urllib.parse import urljoin
+from Crypto.PublicKey import RSA
+from Crypto.Util.number import bytes_to_long
+
+from qvarn.testing import ALGORITHM
+from qvarn.testing import get_scopes_from_resource_types
+from qvarn.testing import get_jwt_token
+from qvarn.backend_app import set_config_option
+from qvarn import DEFAULT_CONFIG
+
+
+def get_new_rsa_key(bits=4096):
+    return RSA.generate(bits)
+
+
+def get_key_from_gluu(url):
+    data = requests.get(url, verify=False).json()
+    for key in data['keys']:
+        if key['alg'] == ALGORITHM:
+            # There can be multiple keys, but we take first ALGORITHM key.
+            return RSA.construct((
+                bytes_to_long(base64_decode(key['n'])),
+                bytes_to_long(base64_decode(key['e'])),
+            ))
+
+
+def base64_decode(b64strUnicode):
+    b64str = b64strUnicode.encode()
+    missing_padding = b"=" * (4 - len(b64str) % 4)
+    return base64.b64decode(b64str + missing_padding, b'-_')
+
+
+@contextlib.contextmanager
+def basedir(base_dir=None):
+    """Create temp base dir or use given one if given."""
+    if base_dir is None:
+        if six.PY3:
+            with tempfile.TemporaryDirectory() as base_dir:
+                yield base_dir
+        else:
+            base_dir = tempfile.mkdtemp(prefix='run-qvarn-')
+            try:
+                yield base_dir
+            finally:
+                shutil.rmtree(base_dir)
+    else:
+        if not os.path.exists(base_dir):
+            os.mkdir(base_dir)
+        yield base_dir
+
+
+def config_read_dict(config, values):
+    if six.PY3:
+        config.read_dict(values)
+    else:
+        for section in values:
+            if not config.has_section(section):
+                config.add_section(section)
+            for option, value in values[section].items():
+                set_config_option(config, section, option, value)
+
+
+def whereis(paths, name):
+    for path in paths:
+        if os.path.exists(os.path.join(path, name)):
+            return os.path.join(path, name)
+    raise Exception("Can'f find %r" % name)
+
+
+def get_random_port():
+    MAX = 1000
+    for i in range(MAX):
+        port = random.randint(1025, 2**15 - 1)
+        s = socket.socket()
+        try:
+            s.bind(('0.0.0.0', port))
+        except OSError as e:
+            if e.errno == errno.EADDRINUSE:
+                continue
+            raise
+        else:
+            return port
+    else:
+        raise Exception("Can't find free port after %s attempts." % MAX)
+
+
+def update_config_from_args(config, args):
+    for option in args:
+        option, value = option.split('=', 1)
+        section, option = option.split('.', 1)
+        set_config_option(config, section, option, value)
+
+
+def create_uwsgi_ssl_keys(ssldir):
+    if not os.path.exists(os.path.join(ssldir, 'ssl.key')):
+        subprocess.check_call([
+            'openssl', 'genrsa',
+            '-out', os.path.join(ssldir, 'ssl.key'),
+            '2048',
+        ])
+    if not os.path.exists(os.path.join(ssldir, 'ssl.csr')):
+        subprocess.check_call([
+            'openssl', 'req', '-new',
+            '-key', os.path.join(ssldir, 'ssl.key'),
+            '-out', os.path.join(ssldir, 'ssl.csr'),
+            '-subj', '/C=FI/ST=State/L=Locality/O=Tilaajavastuu/CN=localhost',
+        ])
+    if not os.path.exists(os.path.join(ssldir, 'ssl.crt')):
+        subprocess.check_call([
+            'openssl', 'x509', '-req', '-days', '365',
+            '-in', os.path.join(ssldir, 'ssl.csr'),
+            '-signkey', os.path.join(ssldir, 'ssl.key'),
+            '-out', os.path.join(ssldir, 'ssl.crt'),
+        ])
+
+
+def add_environ_path(path):
+    paths = os.environ['PATH'].split(':')
+    if path not in paths:
+        return [path] + paths
+    else:
+        return paths
+
+
+def call_prepare_storage(base_dir, paths):
+    subprocess.check_call([
+        'qvarn-backend',
+        '--config', os.path.join(base_dir, 'qvarn.conf'),
+        '--prepare-storage',
+    ], env=dict(os.environ, PATH=':'.join(paths)))
+
+
+def call_uwsgi_qvarn_backend(args, base_dir, ssldir, paths, port, https):
+    cmd = ['uwsgi']
+
+    if https:
+        cmd += [
+            '--https', ','.join([
+                ':' + str(port),
+                os.path.join(ssldir, 'ssl.crt'),
+                os.path.join(ssldir, 'ssl.key'),
+            ]),
+        ]
+    else:
+        cmd += [
+            '--http', ':' + str(port),
+        ]
+
+    cmd += [
+        '--http-keepalive',
+        '--wsgi-file', whereis(paths, 'qvarn-backend'),
+        # Access token size can be quite big, so we need to make buffer
+        # size big enough too.
+        '--buffer-size', '65535',
+        '--pidfile', os.path.join(base_dir, 'pid'),
+        '--master',
+        '--honour-stdin',
+    ]
+
+    if args.daemonize:
+        cmd += ['--daemonize2', args.logto or os.path.join(base_dir, 'uwsgi.log')]
+    elif args.logto:
+        cmd += ['--logto', args.logto]
+
+    try:
+        p = subprocess.Popen(cmd, env=dict(
+            os.environ,
+            PATH=':'.join(paths),
+            QVARN_CONFIG=os.path.abspath(os.path.join(base_dir, 'qvarn.conf')),
+        ))
+        p.wait()
+    except KeyboardInterrupt:
+        p.send_signal(signal.SIGINT)
+        p.wait()
+
+
+def create_base_dir_files(base_dir, config, args, ssldir, key, https):
+    if https and not os.path.exists(ssldir):
+        os.mkdir(ssldir)
+        create_uwsgi_ssl_keys(ssldir)
+
+    if args.gluu:
+        config.set('auth', 'proxy_to', urljoin(args.gluu, '/oxauth/seam/resource/restv1/oxauth/token'))
+    else:
+        config.set('auth', 'token_private_key_file', os.path.join(base_dir, 'private.key'))
+        if not os.path.exists(os.path.join(base_dir, 'private.key')):
+            with open(os.path.join(base_dir, 'private.key'), 'wb') as f:
+                f.write(key.exportKey('PEM'))
+
+        issuer = config.get('auth', 'token_issuer')
+        scopes = get_scopes_from_resource_types(args.resource_types_dir)
+        with open(os.path.join(base_dir, 'token'), 'wb') as f:
+            f.write(get_jwt_token(key, issuer, scopes))
+
+    if config.get('database', 'type') == 'sqlite' and not config.get('database', 'file'):
+        config.set('database', 'file', os.path.join(base_dir, 'sqlite.db'))
+
+    with open(os.path.join(base_dir, 'qvarn.conf'), 'w') as f:
+        config.write(f)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--base-dir', help="path to base dir for storing files")
+    parser.add_argument('-o', '--set-option', nargs='*', action='append', default=[], help="override Qvarn configuration option -o database.host=local")
+    parser.add_argument('-g', '--gluu', help="Gluu URL, example: https://auth.example.com")
+    parser.add_argument('-r', '--resource-types-dir', default='resource_type', help="path to resource types definitions, default: ./resource_type")
+    parser.add_argument('-p', '--port', type=int, help="Qvarn HTTP port to run on, by default a random port is chosen")
+    parser.add_argument('--https', action='store_true', help="run Qvarn on https with a self-signed certificate")
+    parser.add_argument('--logto', help="write log to a specified file")
+    parser.add_argument('--prepare-storage', action='store_true', help='only prepare database storage')
+    parser.add_argument('--daemonize', action='store_true', help="daemonize uwsgi process")
+    args = parser.parse_args()
+
+    if args.gluu:
+        key = get_key_from_gluu(args.gluu + '/oxauth/seam/resource/restv1/oxauth/jwks')
+        issuer = args.gluu
+    else:
+        key = get_new_rsa_key()
+        issuer = 'https://auth.example.com'
+
+    config = configparser.RawConfigParser()
+    config_read_dict(config, DEFAULT_CONFIG)
+    config_read_dict(config, {
+        'main': {
+            'specdir': args.resource_types_dir,
+            'log': 'stdout-oneline',
+        },
+        'auth': {
+            'token_issuer': issuer,
+            'token_validation_key': key.exportKey('OpenSSH').decode(),
+        },
+    })
+
+    with basedir(args.base_dir) as base_dir:
+        config.read(os.path.join(base_dir, 'qvarn.conf'))
+        update_config_from_args(config, sum(args.set_option, []))
+
+        ssldir = os.path.join(base_dir, 'ssl')
+        paths = add_environ_path(os.path.dirname(sys.executable))
+        create_base_dir_files(base_dir, config, args, ssldir, key, args.https)
+        if args.prepare_storage:
+            call_prepare_storage(base_dir, paths)
+        else:
+            port = args.port or get_random_port()
+            with open(os.path.join(base_dir, 'port'), 'w') as f:
+                f.write(str(port))
+            print("Running Qvarn on http%s://localhost:%d" % ('s' if args.https else '', port))
+            call_uwsgi_qvarn_backend(args, base_dir, ssldir, paths, port, args.https)
+
+
+if __name__ == "__main__":
+    main()
