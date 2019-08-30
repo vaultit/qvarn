@@ -20,6 +20,7 @@ idna==2.8                 # via requests
 importlib-metadata==0.19  # via pluggy, pytest
 isort==4.3.21             # via pylint
 lazy-object-proxy==1.4.2  # via astroid
+markdown==2.6.11
 mccabe==0.6.1             # via pylint
 more-itertools==7.2.0     # via pytest, zipp
 packaging==19.1           # via pytest

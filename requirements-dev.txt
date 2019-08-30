@@ -27,6 +27,7 @@ importlib-metadata==0.19  # via pluggy, pytest
 ipaddress==1.0.22         # via cryptography
 isort==4.3.21             # via pylint
 lazy-object-proxy==1.4.2  # via astroid
+markdown==2.6.11
 mccabe==0.6.1             # via pylint
 more-itertools==5.0.0     # via pytest, zipp
 packaging==19.1           # via pytest

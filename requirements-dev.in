@@ -4,3 +4,4 @@ pylint
 pytest
 pytest-cov
 webtest
+markdown==2.6.11 # yarn test runner does not work with newer markdown versions
